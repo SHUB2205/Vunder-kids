@@ -26,7 +26,13 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
-  }
+  },
+  isVerified: {
+    type:Boolean,
+    default:false
+  },
+  verifyToken: String,
+  tokenExpiration: Date
 });
 
 UserSchema.pre('save', async function(next) {
