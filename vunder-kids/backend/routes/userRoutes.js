@@ -1,13 +1,13 @@
 const express = require('express');
 const { registerUser, loginUser,verifyEmail,sendVerificationEmail } = require('../controllers/userController');
 const router = express.Router();
-const { check, body } = require('express-validator');
-
+const { body } = require('express-validator');
+const Limiter = require('../middleware/Limiter');
 
 
 router.post('/register',
     [
-    check('email')
+    body('email')
       .isEmail()
       .withMessage('Please enter a valid email.')
       .normalizeEmail(),
@@ -27,6 +27,7 @@ router.post('/register',
       })
   ], registerUser);
 
+  
 router.post('/login', [
     body('email')
       .isEmail()
@@ -37,7 +38,12 @@ router.post('/login', [
       .trim()
   ],loginUser);
 
-router.post('/send-verification-email',sendVerificationEmail);
+
+
+router.post('/send-verification-email',[
+  body('email').isEmail().withMessage('Please enter a valid email address').normalizeEmail()
+],Limiter.emailVerificationLimiter,sendVerificationEmail);
+
 router.get('/verify-email/:token', verifyEmail);
 
 module.exports = router;
