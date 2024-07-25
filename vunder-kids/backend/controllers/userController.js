@@ -104,7 +104,7 @@ const requestResetPassword = async (req, res) => {
     user.tokenExpiration = Date.now() + 3600000;
     await user.save();
 
-    // Send email
+    // Send emai
     await transporter.sendMail({
       // to check
       to: req.body.email, 
