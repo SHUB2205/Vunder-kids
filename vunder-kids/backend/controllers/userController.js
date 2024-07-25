@@ -126,7 +126,7 @@ const sendVerificationEmail = async (req, res, next) => {
     }
 
     user.verifyToken = token;
-    user.tokenExpiration = Date.now() + 3600000; // 1 hour
+    user.tokenExpiration = Date.now() + 3600000; //1 hour
     await user.save();
 
     const verificationLink = `${BACKEND_URL}/api/verify-email/${token}`;
