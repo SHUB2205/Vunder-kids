@@ -2,14 +2,15 @@ var jwt = require("jsonwebtoken");
 
 const isAuth=async (req,res,next)=>{
     try {
-        let token=req.header("auth-token")
+        let token=req.header("token")
         if(!token){
             return res.send("Token Is Not Correct");
         }
         const data = jwt.verify(token,process.env.JWT_SECRET);
-        // console.log(data);
+
         // { user: { id: '64b0873ba5029152669bd531' }, iat: 1689290555 }
-        req.user = data.user;
+        req.user = data;
+      
         next();
     } catch (error) {
         res.status(400).json({ error: error.message });
