@@ -100,7 +100,7 @@ const requestResetPassword = async (req, res) => {
     const token = crypto.randomBytes(32).toString("hex");
     console.log(token);
     user.verifyToken = token;
-    // Token valid for 1 hour
+    // Token valid fo 1 hour
     user.tokenExpiration = Date.now() + 3600000;
     await user.save();
 
@@ -115,7 +115,7 @@ const requestResetPassword = async (req, res) => {
       `,
     });
 
-    
+
     return res
       .status(200)
       .json({ message: "Password reset email sent successfully" ,link:`http://localhost:5000/api/reset-password/${token}`});
