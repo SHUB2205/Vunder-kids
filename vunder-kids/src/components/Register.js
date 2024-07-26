@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './Auth.css';
 
+const SERVER_URL = "http://localhost:5000";
+
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -19,7 +21,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/register', formData);
+      const response = await axios.post(SERVER_URL+'/api/register',formData);
       console.log(response.data);
     } catch (error) {
       console.error(error);
