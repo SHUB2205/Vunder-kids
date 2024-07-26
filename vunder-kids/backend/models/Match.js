@@ -14,9 +14,12 @@ const MatchSchema = new mongoose.Schema({
       user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-      },
-      score: Number
+      }
     }],
+    score : {
+        type:Number,
+        required:true
+    },
     winner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
