@@ -1,3 +1,4 @@
+//  This middleware is created by the paras
 const jwt = require('jsonwebtoken');
 
 module.exports = async (req, res, next) => {
