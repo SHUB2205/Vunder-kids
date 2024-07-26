@@ -26,8 +26,11 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
-  }
-  ,
+  },
+  isVerified: {
+    type:Boolean,
+    default:false
+  },
   date: { type: Date, default: Date.now },
   verifyToken: String,
   tokenExpiration: Date
@@ -47,3 +50,5 @@ UserSchema.methods.matchPassword = async function(enteredPassword) {
 const User = mongoose.model('User', UserSchema);
 
 module.exports = User;
+
+

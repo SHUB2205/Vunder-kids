@@ -27,8 +27,8 @@ function App() {
           </>
           }
           />
-          <Route path="/register" component={Register} />
-          <Route path="/login" component={Login} />
+          <Route path="/register" Component={Register} />
+          <Route path="/login" Component={Login} />
         </Routes>
       </div>
     </Router>
