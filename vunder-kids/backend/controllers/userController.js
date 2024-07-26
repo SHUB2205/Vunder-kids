@@ -18,7 +18,7 @@ const generateToken = (id) => {
   });
 };
 
-//  Registation of The User  //
+//  Registation of The  User  //
 const registerUser = async (req, res) => {
   const {
     name,
