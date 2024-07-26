@@ -2,7 +2,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const crypto = require('crypto');
-
+const bcrypt = require('bcryptjs');
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -99,12 +99,7 @@ const requestResetPassword = async (req, res) => {
     // Generate a verification token
     const token = crypto.randomBytes(32).toString("hex");
     console.log(token);
-    user.verifyToken = token;
-    // Token valid fo 1 hour
-    user.tokenExpiration = Date.now() + 3600000;
-    await user.save();
-
-    // Send emai
+    // Send email
     await transporter.sendMail({
       // to check
       to: req.body.email, 
@@ -114,6 +109,12 @@ const requestResetPassword = async (req, res) => {
         <p>Click this <a href="http://localhost:5000/api/reset-password/${token}">link</a> to reset your password.</p>
       `,
     });
+    
+    // Token valid fo 1 hour
+    user.verifyToken = token;
+    user.tokenExpiration = Date.now() + 3600000;
+    await user.save();
+
 
 
     return res
@@ -128,6 +129,7 @@ const requestResetPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   // Extract token from URL
   const { token } = req.params;
+  console.log(token);
   const { newPassword } = req.body;
 
   if (!newPassword) {
@@ -146,19 +148,22 @@ const resetPassword = async (req, res) => {
     }
 
     // Find user associated with the token
-    const tokenData = resetTokens.get(token);
-    if (!tokenData || tokenData.expires < Date.now()) {
+    const tokenExpiration = user.tokenExpiration;
+    const verifyToken=user.verifyToken;
+    if (!verifyToken || tokenExpiration < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
+    // Update password
     // Hash the new password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     await user.save();
 
-    // Remove the token from memory
-    resetTokens.delete(token);
-
+    // Remove the token from database
+    // error in this line
+    //  user.verifyToken;
+    await user.save();
     return res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
     console.error("Error resetting password:", error);

@@ -9,7 +9,7 @@ const isAuth=require("../middleware/is-Auth");
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post("/request-reset-password",isAuth,requestResetPassword);
-router.post("/reset-password/:token",resetPassword);
+router.get("/reset-password/:token",isAuth,resetPassword);
 router.get("/userId",isAuth,userId);
 
 
