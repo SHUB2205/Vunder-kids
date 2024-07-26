@@ -163,7 +163,7 @@ const resetPassword = async (req, res) => {
     // Remove the token from database
     // error in this line
     //  user.verifyToken;
-    await user.save();
+    // await user.save();
     return res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
     console.error("Error resetting password:", error);
