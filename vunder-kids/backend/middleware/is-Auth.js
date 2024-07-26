@@ -1,4 +1,5 @@
 //  This Middleware is created by Vikrant 
+//  For Auth
 var jwt = require("jsonwebtoken");
 
 const isAuth=async (req,res,next)=>{
