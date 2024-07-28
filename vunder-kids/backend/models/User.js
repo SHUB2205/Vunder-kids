@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const Match = require('./Match');
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -10,31 +11,50 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  class: {
+  userClass: { // Renamed 'class' to avoid reserved word conflict
     type: String,
     required: true
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true // Indexing for faster queries
   },
   phoneNumber: {
     type: String,
-    required: true
+    required: true,
+    index: true // Indexing for faster queries
   },
   password: {
     type: String,
     required: true
   },
   isVerified: {
-    type:Boolean,
-    default:false
+    type: Boolean,
+    default: false
   },
-  date: { type: Date, default: Date.now },
-  verifyToken: String,
-  tokenExpiration: Date
+
+  matches: [{ 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Match'
+  }],
+  progress: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Progress' 
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  verifyToken: {
+    type: String
+  },
+  tokenExpiration: {
+    type: Date
+  }
 });
+
 
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
