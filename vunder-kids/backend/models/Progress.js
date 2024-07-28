@@ -1,21 +1,32 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const ProgressSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    overallScore: {
+  overallScore: {
+    type: Number,
+    default: 0,
+  },
+  // Divide the score among the sports
+  sportScores: [
+    {
+      score: {
         type: Number,
-        default: 0
+        default: 0,
+      },
+      sport: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Sport",
+        required: true,
+      },
     },
-    sportScores: [{
-        sport: String,
-        score: Number
-    }]
+  ],
+  userAchievements: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserAchievement",
+    },
+  ],
 });
 
-const Progress = mongoose.model('Progress', ProgressSchema);
+const Progress = mongoose.model("Progress", ProgressSchema);
 
 module.exports = Progress;

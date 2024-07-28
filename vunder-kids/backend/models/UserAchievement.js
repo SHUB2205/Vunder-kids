@@ -1,25 +1,23 @@
 const mongoose = require('mongoose');
 
+
 const UserAchievementSchema = new mongoose.Schema({
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    achievement: {
+  achievement: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Achievement',
       required: true
-    },
-     status: {
+  },
+  status: {
       type: String,
       enum: ['in_progress', 'completed'],
       default: 'in_progress'
-    },
-    completedDate: {
+  },
+  completedDate: {
       type: Date
-    }
-  });
+  }
+});
+
+
   
 const UserAchievement = mongoose.model('UserAchievement', UserAchievementSchema);
 
