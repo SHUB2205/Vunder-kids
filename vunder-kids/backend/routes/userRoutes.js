@@ -3,7 +3,7 @@ const { registerUser, loginUser ,requestResetPassword , resetPassword ,userId,se
 const router = express.Router();
 const { body } = require('express-validator');
 const Limiter = require('../middleware/Limiter');
-const isAuth=require("../middleware/is-Auth");
+const {isAuth}=require("../middleware/is-Auth");
 
 
 router.post('/register',

@@ -2,7 +2,7 @@ const express = require('express');
 const { addSport, updateSport, getAllSports, getSportById } = require('../controllers/sportController');
 const { body } = require('express-validator');
 const router = express.Router();
-const isAuth = require("../middleware/is-Auth");
+const {isAuth} = require("../middleware/is-Auth");
 
 // Add a new sport
 router.post(

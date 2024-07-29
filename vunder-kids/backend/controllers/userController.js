@@ -28,6 +28,7 @@ const registerUser = async (req, res, next) => {
       const error = new Error('Validation failed');
       error.status = 422;
       error.data = errors.array();
+      console.log(error.data);
       throw error;
     }
 
@@ -41,7 +42,7 @@ const registerUser = async (req, res, next) => {
     const user = await User.create({
       name,
       school,
-      class: userClass,
+      userClass,
       email,
       phoneNumber,
       password,

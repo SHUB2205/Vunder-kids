@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Match = require('./Match');
+const Schema = mongoose.Schema;
+
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -52,7 +54,13 @@ const UserSchema = new mongoose.Schema({
   },
   tokenExpiration: {
     type: Date
-  }
+  },
+  likes:[
+    {
+    type:Schema.Types.ObjectId,
+    ref: 'Post',
+    }
+  ]
 });
 
 
