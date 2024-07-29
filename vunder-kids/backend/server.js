@@ -21,6 +21,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 app.use('/api', userRoutes);
 
+
 // 404 Error Handler
 app.use((req, res, next) => {
   const error = new Error('Not Found');
