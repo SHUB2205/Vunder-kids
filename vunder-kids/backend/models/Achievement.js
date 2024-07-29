@@ -1,26 +1,8 @@
-const mongoose = require("mongoose");
+// achievements.js
+const Achievements = [
+  { score: 50, title: 'Bronze', description: 'Reached 50 points' },
+  { score: 110, title: 'Silver', description: 'Reached 110 points' },
+  { score: 200, title: 'Gold', description: 'Reached 200 points' }
+];
 
-const AchievementSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  requiredScore: {
-    type: Number,
-    required: true,
-  },
-  //  This Will be done in Future to show the Achievement As per There Sports
-  // sport: {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: 'Sport',
-  // }
-});
-
-const Achievement = mongoose.model("Achievement", AchievementSchema);
-
-module.exports = Achievement;
+module.exports = Achievements;
