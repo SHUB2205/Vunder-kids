@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
+const matchRoutes = require('./routes/matchRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 
 const postRoutes = require('./routes/postRoute');
 const progressRoutes=require('./routes/progressRoute');
@@ -36,12 +38,18 @@ mongoose.connect(process.env.MONGO_URI, {
 
 //  userRoutes
 app.use('/api', userRoutes);
+
+app.use('/api/matches', matchRoutes);
+app.use('/api/teams', teamRoutes);
+
+
 app.use('/api/post', postRoutes);
 app.use('/api/user-achievements', progressRoutes);
 // searcRoute
 app.use("/api/search",searcRoute);
 // editRoute
 app.use("/api/edit",editRoute);
+
 
 // 404 Error Handler
 app.use((req, res, next) => {

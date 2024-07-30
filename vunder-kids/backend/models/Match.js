@@ -15,6 +15,16 @@ const MatchSchema = new mongoose.Schema({
         ref: 'Sport',
         required: true
     },
+    // teams : [ 
+    // {
+    //     team : "team1id",
+    //     score : 20
+    // },
+    // {
+    //     team : "teambid",
+    //     score : 80
+    // }
+    //]
     teams: [{
         team: {
             type: mongoose.Schema.Types.ObjectId,
