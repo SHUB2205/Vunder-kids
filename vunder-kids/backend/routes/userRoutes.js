@@ -6,6 +6,17 @@ const Limiter = require('../middleware/Limiter');
 const isAuth=require("../middleware/is-Auth");
 
 
+//  POst rquest from client side
+// {
+//   "name":"vikrant",
+//   "school":"St.Marys",
+//   "userClass":"Xth",
+//   "email":"vikrant@example.com",
+//   "phoneNumber":"1234567895",
+//   "password":"vikrant123",
+//   "confirmPassword":"vikrant123"
+// }
+
 router.post('/register',
     [
     body('email')

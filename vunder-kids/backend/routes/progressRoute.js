@@ -9,5 +9,8 @@ const isAuth=require("../middleware/is-Auth");
 
 // Route to get user progress
 
-router.get("/user-achievements/:userId",userProgress);
-router.put("/user-achievements/update-score",isAuth,updateScore);
+router.get("/:userId",userProgress);
+router.put("/update-score",isAuth,updateScore);
+
+
+module.exports = router;
