@@ -9,6 +9,10 @@ const progressRoutes=require('./routes/progressRoute');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const userRoutes = require('./routes/userRoutes');
+const progressRoutes=require('./routes/progressRoute');
+const searcRoute=require('./routes/searchRoute');
+const editRoute=require("./routes/editRoute");
 
 //  for test purpose only
 // const {
@@ -34,6 +38,10 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use('/api', userRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/user-achievements', progressRoutes);
+// searcRoute
+app.use("/api/search",searcRoute);
+// editRoute
+app.use("/api/edit",editRoute);
 
 // 404 Error Handler
 app.use((req, res, next) => {
