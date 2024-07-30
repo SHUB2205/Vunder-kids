@@ -5,6 +5,15 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 
+//  For the Unique Name
+const { v4: uuidv4 } = require('uuid');
+// Middleware to generate unique username
+const generateUniqueUserName = (displayName) => {
+  const shortUuid = uuidv4().split('-')[0];
+  return `${displayName}-${shortUuid}`;
+};
+
+
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -21,14 +30,15 @@ const generateToken = (id) => {
 };
 
 const registerUser = async (req, res, next) => {
-  const { name, school, class: userClass, email, phoneNumber, password } = req.body;
+  const { name, school, userClass  , email, phoneNumber, password } = req.body;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error('Validation failed');
-      error.status = 422;
-      error.data = errors.array();
-      throw error;
+      return res.status(400).json({ errors: errors.array() });
+      // const error = new Error('Validation failed');
+      // error.status = 422;
+      // error.data = errors.array();
+      // throw error;
     }
 
     const userExists = await User.findOne({ email });
@@ -37,8 +47,9 @@ const registerUser = async (req, res, next) => {
       error.status = 400;
       throw error;
     }
-
+    const userName = generateUniqueUserName(name);
     const user = await User.create({
+      userName,
       name,
       school,
       userClass,
@@ -50,6 +61,7 @@ const registerUser = async (req, res, next) => {
     if (user) {
       res.status(201).json({
         _id: user._id,
+        userName:user.userName,
         name: user.name,
         email: user.email,
         token: generateToken(user._id),
@@ -66,7 +78,7 @@ const registerUser = async (req, res, next) => {
 
 
 // Login The User //
-const loginUser = async (req, res) => {
+const loginUser = async (req, res,next) => {
   const { email, password } = req.body;
 
   try {
@@ -93,6 +105,7 @@ const loginUser = async (req, res) => {
 
     res.json({
       _id: user._id,
+      userName:user.userName,
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
