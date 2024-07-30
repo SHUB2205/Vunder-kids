@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
+const matchRoutes = require('./routes/matchRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +22,9 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 app.use('/api', userRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/teams', teamRoutes);
+
 
 // 404 Error Handler
 app.use((req, res, next) => {
