@@ -42,7 +42,7 @@ const registerUser = async (req, res, next) => {
     const user = await User.create({
       name,
       school,
-      userClass ,
+      userClass,
       email,
       phoneNumber,
       password,

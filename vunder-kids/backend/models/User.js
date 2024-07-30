@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Match = require('./Match');
+const Schema = mongoose.Schema;
+
 
   const UserSchema = new mongoose.Schema({
     name: {
@@ -35,25 +37,44 @@ const Match = require('./Match');
       default: false
     },
 
-    matches: [{ 
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Match'
-    }],
-    progress: { 
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Progress' 
-    },
-    date: {
-      type: Date,
-      default: Date.now
-    },
-    verifyToken: {
-      type: String
-    },
-    tokenExpiration: {
-      type: Date
+  matches: [{ 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Match'
+  }],
+  progress: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Progress' 
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  verifyToken: {
+    type: String
+  },
+  tokenExpiration: {
+    type: Date
+  },
+  likes:[
+    {
+    type:Schema.Types.ObjectId,
+    ref: 'Post',
     }
-  });
+  ],
+  following: [
+    {
+      type:Schema.Types.ObjectId,
+      ref: 'User',
+    }
+  ],
+  followers: [
+    {
+      type:Schema.Types.ObjectId,
+      ref: 'User',
+    }
+  ]
+});
+
 
 
 UserSchema.pre('save', async function(next) {
