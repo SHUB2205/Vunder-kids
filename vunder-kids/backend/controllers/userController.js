@@ -52,7 +52,7 @@ const registerUser = async (req, res, next) => {
       userName,
       name,
       school,
-      userClass ,
+      userClass,
       email,
       phoneNumber,
       password,

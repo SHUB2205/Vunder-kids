@@ -2,6 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const userRoutes = require('./routes/userRoutes');
+
+const postRoutes = require('./routes/postRoute');
+const progressRoutes=require('./routes/progressRoute');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const userRoutes = require('./routes/userRoutes');
@@ -31,7 +36,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 //  userRoutes
 app.use('/api', userRoutes);
-// ProgressRoutes
+app.use('/api/post', postRoutes);
 app.use('/api/user-achievements', progressRoutes);
 // searcRoute
 app.use("/api/search",searcRoute);
