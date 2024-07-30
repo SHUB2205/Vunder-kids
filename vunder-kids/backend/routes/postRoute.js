@@ -13,6 +13,7 @@ router.get('/post/:postId',optionalAuth, postController.getPost);
 router.post('/create', isAuth,postController.createPost); //tested
 
 router.get('/posts/',postController.getPosts); //tested
+
 router.get('/posts/:username',postController.getPosts); //tested
 
 router.get('/recent_post',postController.recentPost); // tested

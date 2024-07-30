@@ -5,27 +5,37 @@ const User = require('../models/User');
 // const upload = require('../cloudinary');
 const { validationResult } = require('express-validator');
 
-
+//Get Post from id
 exports.getPost = async (req, res, next) => {
   const { postId } = req.params;
   try {
     const post = await Post.findById(postId)
       .populate('creator', '_id name email')
-      .populate('comments')
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'user',
+          select: 'name email'
+        }
+      })
       .lean();
+
     
     if (!post) {
       const error = new Error('Post not found.');
       error.statusCode = 404;
       throw error;
     }
-    
-    const isLiked = req.user && req.user.likes.includes(postId);
+    let isLiked;
+    if (req.user){
+      const user = await User.findById(req.user.id);
+      isLiked = user && user.likes.includes(postId);
+    }
     
     if (req.user) {
       post.comments = post.comments.map(comment => ({
         ...comment,
-        isLikedByCurrentUser: comment.likedBy.some(user => user._id.toString() === req.user._id.toString()),
+        isLikedByCurrentUser: comment.likedBy.some(user => user._id.toString() === req.user.id.toString()),
         likedBy: comment.likedBy.length
       }));
     } else {
@@ -41,6 +51,7 @@ exports.getPost = async (req, res, next) => {
   }
 };
 
+//Get Posts of a User/All Users
 exports.getPosts = async (req,res,next) => {
   const {username} = req.params;
   let posts;
@@ -59,6 +70,7 @@ exports.getPosts = async (req,res,next) => {
   }
 }
 
+//Create Post
 exports.createPost = [
 //   upload.single('media'), 
   async (req, res, next) => {
@@ -98,15 +110,6 @@ exports.createPost = [
 ];
 
 
-exports.getUserPosts = async (req, res, next) => {
-  const { userId } = req.params;
-  try {
-    const posts = await Post.find({ creator: userId });
-    res.status(200).json({ posts });
-  } catch (err) {
-    next(err.statusCode ? err : { ...err, statusCode: 500 });
-  }
-};
 
 
 exports.toggleLike = async (req, res, next) => {
@@ -141,6 +144,7 @@ exports.toggleLike = async (req, res, next) => {
   }
 };
 
+//Post Comment on /:commentid
 exports.commentOnPost = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -157,8 +161,7 @@ exports.commentOnPost = async (req, res, next) => {
     }
     const comment = new Comment({
       content,
-      username: req.user.username,
-      profilePic: req.user.profilePic,
+      user:req.user.id
     });
     post.comments.push(comment);
    
@@ -182,9 +185,9 @@ exports.toggleLikeComment = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    const isLiked = comment.likedBy.includes(req.user._id);
+    const isLiked = comment.likedBy.includes(req.user.id);
     const updateOp = isLiked ? '$pull' : '$push';
-    await Comment.updateOne({ _id: commentId }, { [updateOp]: { likedBy: req.user._id } });
+    await Comment.updateOne({ _id: commentId }, { [updateOp]: { likedBy: req.user.id } });
     const updatedComment = await Comment.findById(commentId);
     res.status(200).json({ message: 'Comment like toggled!', likes: updatedComment.likedBy.length });
   } catch (err) {
@@ -232,14 +235,14 @@ exports.toggleFollow = async (req, res, next) => {
 
   const { followId } = req.body;
   try {
-    if (followId.toString() === req.user._id.toString()) {
+    if (followId.toString() === req.user.id.toString()) {
       const error = new Error("Can't follow own account");
       error.statusCode = 403;
       throw error;
     }
 
-    const followUser = User.findById(followId);
-    const userId = req.user.id;
+    const followUser = await User.findById(followId);
+    const user =await User.findById(req.user.id);
 
     if (!followUser) {
       const error = new Error('User not found.');
@@ -247,11 +250,11 @@ exports.toggleFollow = async (req, res, next) => {
       throw error;
     }
 
-    const isFollowing = user.progress.following.includes(followId);
+    const isFollowing = user.following.includes(followId);
     const updateOp = isFollowing ? '$pull' : '$push';
     await Promise.all([
-      User.updateOne({ _id: userId }, { [updateOp]: { 'following': followId } }),
-      User.updateOne({ _id: followUser._id }, { [updateOp]: { 'followers': userId} })
+      User.updateOne({ _id: user._id }, { [updateOp]: { 'following': followId } }),
+      User.updateOne({ _id: followUser._id }, { [updateOp]: { 'followers': user._id} })
     ]);
     res.status(200).json({ message: 'Follow status updated!' });
   } catch (err) {
