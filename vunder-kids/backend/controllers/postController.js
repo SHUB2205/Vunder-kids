@@ -10,7 +10,7 @@ exports.getPost = async (req, res, next) => {
   const { postId } = req.params;
   try {
     const post = await Post.findById(postId)
-      .populate('creator', '-password -likes')
+      .populate('creator', '_id name email')
       .populate('comments')
       .lean();
     
@@ -20,13 +20,7 @@ exports.getPost = async (req, res, next) => {
       throw error;
     }
     
-    post.creator.progress = {
-      following: post.creator.progress.following.length,
-      followers: post.creator.progress.followers.length
-    };
-    
     const isLiked = req.user && req.user.likes.includes(postId);
-    const isFollowed = req.user && req.user.progress.following.includes(post.creator._id);
     
     if (req.user) {
       post.comments = post.comments.map(comment => ({
@@ -40,7 +34,7 @@ exports.getPost = async (req, res, next) => {
         likedBy: comment.likedBy.length
       }));
     }
-    res.status(200).json({ post, isLiked, isFollowed });
+    res.status(200).json({ post, isLiked });
   } catch (err) {
     console.log(err);
     next(err.statusCode ? err : { ...err, statusCode: 500 });
@@ -53,10 +47,10 @@ exports.getPosts = async (req,res,next) => {
   try{
     if (username){
       const user = await User.findOne({name : username});
-      posts = await Post.find({ 'creator': user._id }).populate('creator', '-password').sort({createdAt : -1});
+      posts = await Post.find({ 'creator': user._id }).populate('creator', '_id name email').sort({createdAt : -1});
     }
     else{
-      posts = await Post.find().populate('creator', '-password').sort({createdAt : -1});
+      posts = await Post.find().populate('creator', '_id name email').sort({createdAt : -1});
     }
     res.status(200).json({posts : posts});
   }
@@ -205,7 +199,7 @@ exports.recentPost = async (req, res , next) => {
       .limit(5)
       .populate({
         path: 'creator',
-        select: 'username profilePic'
+        select: '_id name email'
       });
     res.json(recentPosts);
   } 
@@ -226,6 +220,41 @@ exports.getLikedPosts = async (req,res,next) => {
     res.status(200).json({posts});
   }
   catch (err){
+    next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
+};
+
+exports.toggleFollow = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { followId } = req.body;
+  try {
+    if (followId.toString() === req.user._id.toString()) {
+      const error = new Error("Can't follow own account");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const followUser = User.findById(followId);
+    const userId = req.user.id;
+
+    if (!followUser) {
+      const error = new Error('User not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isFollowing = user.progress.following.includes(followId);
+    const updateOp = isFollowing ? '$pull' : '$push';
+    await Promise.all([
+      User.updateOne({ _id: userId }, { [updateOp]: { 'following': followId } }),
+      User.updateOne({ _id: followUser._id }, { [updateOp]: { 'followers': userId} })
+    ]);
+    res.status(200).json({ message: 'Follow status updated!' });
+  } catch (err) {
     next(err.statusCode ? err : { ...err, statusCode: 500 });
   }
 };

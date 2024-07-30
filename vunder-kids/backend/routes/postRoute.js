@@ -31,4 +31,8 @@ router.put('/like-comment/:commentId', isAuth, [
     param('commentId').isMongoId().withMessage('Invalid comment ID')
 ], postController.toggleLikeComment);   
 
+router.put('/toggle-follow', isAuth, [
+    body('followId').isMongoId().withMessage('Invalid user ID')
+  ], postController.toggleFollow);
+  
 module.exports = router;
