@@ -1,23 +1,18 @@
 const mongoose = require('mongoose');
 
-
 const UserAchievementSchema = new mongoose.Schema({
+  achievements: [{
+    title: {
+      type: String, // Store achievement title
+      required: true
+    },
+    completedDate: {
+      type: Date,
+      default: Date.now // Automatically set the completion date
+    }
+  }]
+});
 
-    achievements: [{
-      achievement: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Achievement',
-        required: true
-      },
-      completedDate: {
-        type: Date
-      }
-    }]
-
-  });
-
-
-    
 const UserAchievement = mongoose.model('UserAchievement', UserAchievementSchema);
 
 module.exports = UserAchievement;

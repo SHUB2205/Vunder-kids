@@ -21,15 +21,15 @@ const generateToken = (id) => {
 };
 
 const registerUser = async (req, res, next) => {
-  const { name, school, class: userClass, email, phoneNumber, password } = req.body;
+  const { name, school, userClass  , email, phoneNumber, password } = req.body;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error('Validation failed');
-      error.status = 422;
-      error.data = errors.array();
-      console.log(error.data);
-      throw error;
+      return res.status(400).json({ errors: errors.array() });
+      // const error = new Error('Validation failed');
+      // error.status = 422;
+      // error.data = errors.array();
+      // throw error;
     }
 
     const userExists = await User.findOne({ email });
@@ -67,7 +67,7 @@ const registerUser = async (req, res, next) => {
 
 
 // Login The User //
-const loginUser = async (req, res) => {
+const loginUser = async (req, res,next) => {
   const { email, password } = req.body;
 
   try {

@@ -4,38 +4,38 @@ const Match = require('./Match');
 const Schema = mongoose.Schema;
 
 
-const UserSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  school: {
-    type: String,
-    required: true
-  },
-  userClass: { // Renamed 'class' to avoid reserved word conflict
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true // Indexing for faster queries
-  },
-  phoneNumber: {
-    type: String,
-    required: true,
-    index: true // Indexing for faster queries
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
+  const UserSchema = new mongoose.Schema({
+    name: {
+      type: String,
+      required: true
+    },
+    school: {
+      type: String,
+      required: true
+    },
+    userClass: { // Renamed 'class' to avoid reserved word conflict
+      type: String,
+      required: true
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true // Indexing for faster queries
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
+      index: true // Indexing for faster queries
+    },
+    password: {
+      type: String,
+      required: true
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
 
   matches: [{ 
     type: mongoose.Schema.Types.ObjectId,
@@ -74,6 +74,7 @@ const UserSchema = new mongoose.Schema({
     }
   ]
 });
+
 
 
 UserSchema.pre('save', async function(next) {
