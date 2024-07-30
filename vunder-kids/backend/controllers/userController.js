@@ -5,6 +5,15 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 
+//  For the Unique Name
+const { v4: uuidv4 } = require('uuid');
+// Middleware to generate unique username
+const generateUniqueUserName = (displayName) => {
+  const shortUuid = uuidv4().split('-')[0];
+  return `${displayName}-${shortUuid}`;
+};
+
+
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -38,8 +47,9 @@ const registerUser = async (req, res, next) => {
       error.status = 400;
       throw error;
     }
-
+    const userName = generateUniqueUserName(name);
     const user = await User.create({
+      userName,
       name,
       school,
       userClass ,
@@ -51,6 +61,7 @@ const registerUser = async (req, res, next) => {
     if (user) {
       res.status(201).json({
         _id: user._id,
+        userName:user.userName,
         name: user.name,
         email: user.email,
         token: generateToken(user._id),
@@ -94,6 +105,7 @@ const loginUser = async (req, res,next) => {
 
     res.json({
       _id: user._id,
+      userName:user.userName,
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
