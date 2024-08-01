@@ -1,13 +1,13 @@
-const Message = require('../models/chatModels/Message');
 const User = require('../models/User');
 const Group = require('../models/chatModels/Group');
-const io = require('../socketio').getIo;
-const mongoose = require('mongoose')
+const Message = require('../models/chatModels/Message');
+
 
 exports.getPrivateMessages = async (req, res) => {
   try {
     const userId = req.user.id;
     const { otherUserId } = req.params;
+
     const messages = await Message.find({
       $or: [
         { sender: userId, recipient: otherUserId },
@@ -17,13 +17,14 @@ exports.getPrivateMessages = async (req, res) => {
 
     res.json(messages);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching private messages', error: error.message });
+    console.error('Error fetching private messages:', error);
+    res.status(500).json({ message: 'Error fetching private messages' });
   }
 };
 
 exports.getGroupMessages = async (req, res) => {
   try {
-    const userId = req.user.user.id;
+    const userId = req.user.id;
     const { groupId } = req.params;
     
     const group = await Group.findById(groupId);
@@ -37,7 +38,8 @@ exports.getGroupMessages = async (req, res) => {
 
     res.json(messages);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching group messages', error: error.message });
+    console.error('Error fetching group messages:', error);
+    res.status(500).json({ message: 'Error fetching group messages' });
   }
 };
 
@@ -45,114 +47,64 @@ exports.getUserChats = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find all messages where the user is either the sender or recipient
-    const messages = await Message.aggregate([
-      {
-        $match: {
-          $or: [
-            { sender: mongoose.Types.ObjectId(userId) },
-            { recipient: mongoose.Types.ObjectId(userId) }
-          ]
+    const user = await User.findById(userId)
+      .populate({
+        path: 'messages',
+        options: { sort: { timestamp: -1 } },
+        populate: {
+          path: 'sender recipient',
+          select: 'name'
         }
-      },
-      {
-        $sort: { timestamp: -1 }
-      },
-      {
-        $group: {
-          _id: {
-            $cond: [
-              { $eq: ["$sender", mongoose.Types.ObjectId(userId)] },
-              "$recipient",
-              "$sender"
-            ]
-          },
-          lastMessage: { $first: "$$ROOT" }
+      })
+      .populate({
+        path: 'groups',
+        select: 'name',
+        populate: {
+          path: 'messages',
+          options: { sort: { timestamp: -1 }, limit: 1 },
+          populate: {
+            path: 'sender',
+            select: 'name'
+          }
         }
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "_id",
-          foreignField: "_id",
-          as: "chatPartner"
-        }
-      },
-      {
-        $unwind: "$chatPartner"
-      },
-      {
-        $project: {
-          _id: 1,
-          lastMessage: 1,
-          "chatPartner.name": 1,
-          "chatPartner._id": 1
-        }
+      });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const privateChats = user.messages.reduce((chats, message) => {
+      const otherUser = message.sender._id.toString() === userId ? message.recipient : message.sender;
+      const existingChat = chats.find(chat => chat.id === otherUser._id.toString());
+
+      if (!existingChat) {
+        chats.push({
+          type: 'user',
+          id: otherUser._id,
+          name: otherUser.name,
+          lastMessage: message.content,
+          timestamp: message.timestamp
+        });
       }
-    ]);
 
-    // Find group messages
-    const groupMessages = await Message.aggregate([
-      {
-        $match: {
-          group: { $exists: true },
-          sender: mongoose.Types.ObjectId(userId)
-        }
-      },
-      {
-        $sort: { timestamp: -1 }
-      },
-      {
-        $group: {
-          _id: "$group",
-          lastMessage: { $first: "$$ROOT" }
-        }
-      },
-      {
-        $lookup: {
-          from: "groups",
-          localField: "_id",
-          foreignField: "_id",
-          as: "groupInfo"
-        }
-      },
-      {
-        $unwind: "$groupInfo"
-      },
-      {
-        $project: {
-          _id: 1,
-          lastMessage: 1,
-          "groupInfo.name": 1
-        }
-      }
-    ]);
+      return chats;
+    }, []);
 
-    // Combine and format the results
-    const chats = [
-      ...messages.map(m => ({
-        type: 'user',
-        id: m.chatPartner._id,
-        name: m.chatPartner.name,
-        lastMessage: m.lastMessage.content,
-        timestamp: m.lastMessage.timestamp
-      })),
-      ...groupMessages.map(g => ({
-        type: 'group',
-        id: g._id,
-        name: g.groupInfo.name,
-        lastMessage: g.lastMessage.content,
-        timestamp: g.lastMessage.timestamp
-      }))
-    ];
+    const groupChats = user.groups.map(group => ({
+      type: 'group',
+      id: group._id,
+      name: group.name,
+      lastMessage: group.messages ? group.messages[0].content : null,
+      timestamp: group.messages  ? group.messages[0].timestamp : null
+    }));
 
-    // Sort chats by the most recent message
-    chats.sort((a, b) => b.timestamp - a.timestamp);
+    const allChats = [...privateChats, ...groupChats]
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-    res.json(chats);
+    res.json(allChats);
   } catch (error) {
     console.error('Error in getUserChats:', error);
-    res.status(500).json({ message: 'Error fetching user chats', error: error.message });
+    res.status(500).json({ message: 'Error fetching user chats' });
   }
 };
 
@@ -169,7 +121,11 @@ exports.sendMessage = async (req, res) => {
         content
       });
       await message.save();
-      io().to(recipientId).emit('new message', message);
+
+      await User.updateMany(
+        { _id: { $in: [senderId, recipientId] } },
+        { $push: { messages: message._id } }
+      );
     } else if (groupId) {
       const group = await Group.findById(groupId);
       if (!group || !group.members.includes(senderId)) {
@@ -181,13 +137,47 @@ exports.sendMessage = async (req, res) => {
         content
       });
       await message.save();
-      io().to(groupId).emit('new group message', message);
+
+      await Group.updateOne(
+        { _id: groupId },
+        { $push: { messages: message._id } }
+      );
     } else {
       return res.status(400).json({ message: 'Invalid request' });
     }
 
     res.status(201).json(message);
   } catch (error) {
-    res.status(500).json({ message: 'Error sending message', error: error.message });
+    console.error('Error sending message:', error);
+    res.status(500).json({ message: 'Error sending message' });
+  }
+};
+
+exports.createGroup = async (req, res) => {
+  try {
+    const { name, members } = req.body;
+    const creatorId = req.user.id;
+
+    if (!members.includes(creatorId)) {
+      members.push(creatorId);
+    }
+
+    const newGroup = new Group({
+      name,
+      members,
+      createdBy: creatorId
+    });
+
+    await newGroup.save();
+
+    await User.updateMany(
+      { _id: { $in: members } },
+      { $push: { groups: newGroup._id } }
+    );
+
+    res.status(201).json(newGroup);
+  } catch (error) {
+    console.error('Error creating group:', error);
+    res.status(500).json({ message: 'Error creating group' });
   }
 };
