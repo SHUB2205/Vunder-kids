@@ -15,16 +15,6 @@ const MatchSchema = new mongoose.Schema({
         ref: 'Sport',
         required: true
     },
-    // teams : [ 
-    // {
-    //     team : "team1id",
-    //     score : 20
-    // },
-    // {
-    //     team : "teambid",
-    //     score : 80
-    // }
-    //]
     teams: [{
         team: {
             type: mongoose.Schema.Types.ObjectId,
@@ -39,7 +29,16 @@ const MatchSchema = new mongoose.Schema({
     winner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team'
-    }
+    },
+    agreement: {
+        type: Boolean,
+        default: false, // Default value to ensure a match isn't fixed unless both teams agree
+    },
+    
+    agreedTeams: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Team'
+    }]
 });
 
 const Match = mongoose.model('Match', MatchSchema);
