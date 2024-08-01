@@ -30,7 +30,7 @@ const generateToken = (id) => {
 };
 
 const registerUser = async (req, res, next) => {
-  const { name, school, userClass  , email, phoneNumber, password } = req.body;
+  const { name, school, class : userClass  , email, phoneNumber, password } = req.body;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -80,7 +80,6 @@ const registerUser = async (req, res, next) => {
 // Login The User //
 const loginUser = async (req, res,next) => {
   const { email, password } = req.body;
-
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -91,7 +90,7 @@ const loginUser = async (req, res,next) => {
     }
 
     const user = await User.findOne({ email });
-    if (!user) {
+    if (!user) {  
       const error = new Error('User not found');
       error.status = 401;
       throw error;

@@ -2,24 +2,19 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const userRoutes = require('./routes/userRoutes');
+const http = require('http');
+const socketIo = require('./socketio');
+const socketHandler = require('./socketHandler');
 
 const postRoutes = require('./routes/postRoute');
-const progressRoutes=require('./routes/progressRoute');
+const messageRoutes = require('./routes/messageRoutes');
+const userRoutes = require('./routes/userRoutes');
+const progressRoutes = require('./routes/progressRoute');
+const searchRoute = require('./routes/searchRoute');
+const editRoute = require("./routes/editRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const userRoutes = require('./routes/userRoutes');
-const progressRoutes=require('./routes/progressRoute');
-const searcRoute=require('./routes/searchRoute');
-const editRoute=require("./routes/editRoute");
-
-//  for test purpose only
-// const {
-//   seedData,
-//   seedSports
-  
-// }=require('./routes/TestRoute');
 
 app.use(cors());
 app.use(express.json());
@@ -27,30 +22,26 @@ app.use(express.json());
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useFindAndModify: false // Add this line to avoid the deprecation warning
+  useFindAndModify: false
 }).then(() => {
   console.log('MongoDB connected');
 }).catch(err => {
   console.log('Failed to connect to MongoDB', err);
 });
 
-//  userRoutes
 app.use('/api', userRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/user-achievements', progressRoutes);
-// searcRoute
-app.use("/api/search",searcRoute);
-// editRoute
-app.use("/api/edit",editRoute);
+app.use("/api/search", searchRoute);
+app.use("/api/edit", editRoute);
+app.use('/api/messages', messageRoutes);
 
-// 404 Error Handler
 app.use((req, res, next) => {
   const error = new Error('Not Found');
   error.status = 404;
   next(error);
 });
 
-// Global Error Handler
 app.use((error, req, res, next) => {
   const statusCode = error.status || 500;
   res.status(statusCode).json({
@@ -59,8 +50,11 @@ app.use((error, req, res, next) => {
   });
 });
 
+const server = http.createServer(app);
+const io = socketIo.init(server);
 
+socketHandler(io);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
