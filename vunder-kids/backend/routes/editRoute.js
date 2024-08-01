@@ -4,7 +4,6 @@ const {userName} = require('../controllers/editController');
 const {isAuth}=require("../middleware/is-Auth");
 
 
-
 router.get("/editUserName",isAuth,userName);
 
 

@@ -6,6 +6,8 @@ const http = require('http');
 const socketIo = require('./socketio');
 const socketHandler = require('./socketHandler');
 
+const matchRoutes = require('./routes/matchRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 const postRoutes = require('./routes/postRoute');
 const messageRoutes = require('./routes/messageRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -15,6 +17,14 @@ const editRoute = require("./routes/editRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+
+//  for test purpose only
+// const {
+//   seedData,
+//   seedSports
+  
+// }=require('./routes/TestRoute');
 
 app.use(cors());
 app.use(express.json());
@@ -29,13 +39,20 @@ mongoose.connect(process.env.MONGO_URI, {
   console.log('Failed to connect to MongoDB', err);
 });
 
+//  userRoutes
 app.use('/api', userRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/teams', teamRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/user-achievements', progressRoutes);
-app.use("/api/search", searchRoute);
-app.use("/api/edit", editRoute);
+// searcRoute
+app.use("/api/search",searchRoute);
+// editRoute
+app.use("/api/edit",editRoute);
+
 app.use('/api/messages', messageRoutes);
 
+// 404 Error Handler
 app.use((req, res, next) => {
   const error = new Error('Not Found');
   error.status = 404;
