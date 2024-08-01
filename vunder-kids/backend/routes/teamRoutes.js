@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const teamController = require('../controllers/teamController');
-const isAuth = require('../middleware/is-Auth');
+const {isAuth} = require('../middleware/is-Auth');
 
 // Create a new team
 router.post('/create', isAuth, teamController.createTeam);
