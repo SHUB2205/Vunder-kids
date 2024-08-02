@@ -76,8 +76,16 @@ const Schema = mongoose.Schema;
       type:Schema.Types.ObjectId,
       ref: 'User',
     }
-  ]
-});
+  ],
+  messages: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Message'
+  }],
+  groups: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Group'
+  }]
+}); 
 
 
 

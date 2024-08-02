@@ -11,7 +11,8 @@ const Register = () => {
     class: '',
     email: '',
     phoneNumber: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   });
 
   const handleChange = (e) => {
@@ -38,6 +39,7 @@ const Register = () => {
         <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
         <input type="text" name="phoneNumber" placeholder="Phone Number" onChange={handleChange} required />
         <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
+        <input type="password" name="confirmPassword" placeholder="confirmPassword" onChange={handleChange} required />
         <button type="submit">Register</button>
       </form>
     </div>
