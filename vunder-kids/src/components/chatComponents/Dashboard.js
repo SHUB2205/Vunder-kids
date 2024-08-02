@@ -107,9 +107,8 @@ const Dashboard = () => {
       if (response.error) {
         console.error('Error sending message:', response.error);
         setError('Failed to send message. Please try again.');
-      } else {
-        handleNewMessage(response.message);
       }
+      
     });
   };
 
