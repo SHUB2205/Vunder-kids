@@ -4,7 +4,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const Limiter = require('../middleware/Limiter');
 const {isAuth}=require("../middleware/is-Auth");
-
+const { route } = require('./matchRoutes.js');
 
 //  POst rquest from client side
 // {
@@ -57,7 +57,6 @@ router.post('/send-verification-email',[
 ],Limiter.emailVerificationLimiter,sendVerificationEmail);
 
 router.get('/verify-email/:token', verifyEmail);
-
 
 router.post("/request-reset-password",isAuth,requestResetPassword);
 router.get("/reset-password/:token",isAuth,resetPassword);

@@ -10,7 +10,7 @@ import Footer from './components/Footer';
 import Register from './components/Register';
 import Login from './components/Login';
 import Dashboard  from './components/chatComponents/Dashboard'; 
-
+import GoogleLogin from './components/GoogleLogin';
 function App() {
   return (
     <Router>
@@ -30,6 +30,7 @@ function App() {
           />
           <Route path="/register" Component={Register} />
           <Route path="/login" Component={Login} />
+          <Route path="/googleLogin" Component={GoogleLogin} />
           <Route path="/chat" Component={Dashboard} />
 
         </Routes>
