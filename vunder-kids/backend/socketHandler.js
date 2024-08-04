@@ -1,7 +1,7 @@
+require('dotenv').config();
 const Message = require('./models/chatModels/Message');
 const Group = require('./models/chatModels/Group');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 module.exports = (io) => {
   io.use((socket, next) => {
