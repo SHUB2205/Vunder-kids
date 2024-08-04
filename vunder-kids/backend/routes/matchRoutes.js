@@ -5,9 +5,9 @@ const  {getAllMatches} = require ('../controllers/matchController');
 const router = express.Router();
 
 // Create a new match
-router.post('/', isAuth, matchController.createMatch);
+router.post('/create', isAuth, matchController.createMatch);
 // Get all matches
-router.get('/', isAuth, getAllMatches);
+router.get('/all/:userid', isAuth, getAllMatches);
 
 // Get a match by ID
 router.get('/:id', isAuth, matchController.getMatchById);
