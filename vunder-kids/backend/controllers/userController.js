@@ -30,7 +30,7 @@ const generateToken = (id) => {
 };
 
 const registerUser = async (req, res, next) => {
-  const { name, school, class : userClass  , email, phoneNumber, password } = req.body;
+  const { name, school, userClass  , email, phoneNumber, password } = req.body;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

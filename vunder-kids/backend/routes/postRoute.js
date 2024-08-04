@@ -10,13 +10,13 @@ router.get('/likedPosts',isAuth,postController.getLikedPosts);
 
 router.get('/post/:postId',optionalAuth, postController.getPost);
 
-router.post('/create', isAuth,postController.createPost); //tested
+router.post('/create', isAuth,postController.createPost); 
 
-router.get('/posts/',postController.getPosts); //tested
+router.get('/posts/',postController.getPosts);
 
-router.get('/posts/:username',postController.getPosts); //tested
+router.get('/posts/:username',postController.getPosts);
 
-router.get('/recent_post',postController.recentPost); // tested
+router.get('/recent_post',postController.recentPost);
 
 
 router.put('/like-post/:postId', isAuth, [
