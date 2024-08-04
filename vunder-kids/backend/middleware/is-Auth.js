@@ -24,7 +24,7 @@ const optionalAuth = async (req,res,next)=>{
     try {
         let token=req.header("token")
         if(!token){
-            next();
+            return next();
         }
         const data = jwt.verify(token,process.env.JWT_SECRET);
 

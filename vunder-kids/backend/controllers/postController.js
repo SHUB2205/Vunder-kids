@@ -10,12 +10,12 @@ exports.getPost = async (req, res, next) => {
   const { postId } = req.params;
   try {
     const post = await Post.findById(postId)
-      .populate('creator', '_id name email')
+      .populate('creator', '_id userName email')
       .populate({
         path: 'comments',
         populate: {
           path: 'user',
-          select: 'name email'
+          select: 'userName email'
         }
       })
       .lean();
@@ -57,11 +57,11 @@ exports.getPosts = async (req,res,next) => {
   let posts;
   try{
     if (username){
-      const user = await User.findOne({name : username});
-      posts = await Post.find({ 'creator': user._id }).populate('creator', '_id name email').sort({createdAt : -1});
+      const user = await User.findOne({userName : username});
+      posts = await Post.find({ 'creator': user._id }).populate('creator', '_id userName email').sort({createdAt : -1});
     }
     else{
-      posts = await Post.find().populate('creator', '_id name email').sort({createdAt : -1});
+      posts = await Post.find().populate('creator', '_id userName email').sort({createdAt : -1});
     }
     res.status(200).json({posts : posts});
   }
@@ -125,12 +125,13 @@ exports.toggleLike = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    const isLiked = req.user.likes.includes(postId);
+    const user = await User.findById(req.user.id);
+    const isLiked = user.likes.includes(postId);
     const updateOp = isLiked ? '$pull' : '$push';
     const likesDelta = isLiked ? -1 : 1;
     
     const [userUpdate, postUpdate] = await Promise.all([
-      User.updateOne({ _id: req.user._id }, { [updateOp]: { likes: postId } }),
+      User.updateOne({ _id: req.user.id }, { [updateOp]: { likes: postId } }),
       Post.findByIdAndUpdate(postId, { $inc: { likes: likesDelta } }, { new: true })
     ]);
 
@@ -140,6 +141,7 @@ exports.toggleLike = async (req, res, next) => {
       isLiked: !isLiked
     });
   } catch (err) {
+    console.log(err);
     next(err.statusCode ? err : { ...err, statusCode: 500 });
   }
 };
@@ -212,14 +214,14 @@ exports.recentPost = async (req, res , next) => {
 };
 
 exports.getLikedPosts = async (req,res,next) => {
-  const user = req.user;
+  const user = await User.findById(req.user.id);
   try{
     if (!user){
       const error = new Error('Not Authorized.');
       error.statusCode = 403;
       throw error;
     }
-    const posts = await Post.find({ _id: { $in: req.user.likes } }).populate('creator','_id username profilePic');
+    const posts = await Post.find({ _id: { $in: user.likes } }).populate('creator','_id username');
     res.status(200).json({posts});
   }
   catch (err){
