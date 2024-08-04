@@ -30,6 +30,10 @@ const MatchSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team'
     },
+    matchmakingTeam: { // Added field
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Team'
+    },
     agreement: {
         type: Boolean,
         default: false, // Default value to ensure a match isn't fixed unless both teams agree
@@ -38,7 +42,12 @@ const MatchSchema = new mongoose.Schema({
     agreedTeams: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Team'
-    }]
+    }],
+    status: {
+        type: String,
+        enum: ['in-progress','scheduled','completed', 'cancelled'], // Enum to ensure valid status values
+        default: 'in-progress' // Default status when the match is first created
+    }
 });
 
 const Match = mongoose.model('Match', MatchSchema);
