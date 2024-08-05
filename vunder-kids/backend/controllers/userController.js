@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
+const Notification = require('../models/Notifiication');
 
 //  For the Unique Name
 const { v4: uuidv4 } = require('uuid');
@@ -23,8 +24,8 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (id, isVerified) => {
+  return jwt.sign({ id, isVerified }, process.env.JWT_SECRET, {
     expiresIn: '30d',
   });
 };
@@ -59,12 +60,16 @@ const registerUser = async (req, res, next) => {
     });
 
     if (user) {
+      await Notification.create({
+        user: user._id,
+        type: 'user',
+        message: `You were registered with Email ${user.email}.`,
+      });
       res.status(201).json({
         _id: user._id,
         userName:user.userName,
         name: user.name,
         email: user.email,
-        token: generateToken(user._id),
       });
     } else {
       const error = new Error('Invalid user data');
@@ -107,7 +112,8 @@ const loginUser = async (req, res,next) => {
       userName:user.userName,
       name: user.name,
       email: user.email,
-      token: generateToken(user._id),
+      isVerified: user.isVerified,
+      token: generateToken(user._id, user.isVerified)
     });
   } catch (error) {
     next(error);
@@ -178,7 +184,11 @@ const verifyEmail = async (req, res, next) => {
     user.isVerified = true;
 
     await user.save();
-
+    await Notification.create({
+      user: user._id,
+      type: 'user',
+      message: `Your email ${user.email} was verified.`,
+    });
     res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
     next(error);

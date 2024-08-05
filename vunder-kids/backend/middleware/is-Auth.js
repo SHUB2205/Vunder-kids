@@ -11,7 +11,12 @@ const isAuth=async (req,res,next)=>{
         }
         const data = jwt.verify(token,process.env.JWT_SECRET);
 
-        // { user: { id: '64b0873ba5029152669bd531' }, iat: 1689290555 }
+        //commented for purpose of testing
+        // if (!data.isVerified) {
+        //     return res.status(403).json({ error: "Email not verified" });
+        // }
+
+        // { user: { id: '64b0873ba5029152669bd531' , isVerified:true }, iat: 1689290555 }
         req.user = data;
 
         next();

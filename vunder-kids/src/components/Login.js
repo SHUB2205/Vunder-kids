@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 const SERVER_URL = "http://localhost:5000";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -18,8 +20,13 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(SERVER_URL+'/api/login', formData);
-      localStorage.setItem('token',response.data.token);
-      console.log(response.data);
+      localStorage.setItem('token', response.data.token);
+      if (!response.data.isVerified) {
+        navigate('/verify', { state: { email: formData.email } });
+      } else {
+        // Navigate to dashboard or home page
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error(error);
     }
