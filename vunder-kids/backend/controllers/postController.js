@@ -4,6 +4,7 @@ const User = require('../models/User');
 //adding cloudinary integration at time of frontend
 // const upload = require('../cloudinary');
 const { validationResult } = require('express-validator');
+const Notification = require('../models/Notifiication');
 
 //Get Post from id
 exports.getPost = async (req, res, next) => {
@@ -244,7 +245,7 @@ exports.toggleFollow = async (req, res, next) => {
     }
 
     const followUser = await User.findById(followId);
-    const user =await User.findById(req.user.id);
+    const user = await User.findById(req.user.id);
 
     if (!followUser) {
       const error = new Error('User not found.');
@@ -258,6 +259,16 @@ exports.toggleFollow = async (req, res, next) => {
       User.updateOne({ _id: user._id }, { [updateOp]: { 'following': followId } }),
       User.updateOne({ _id: followUser._id }, { [updateOp]: { 'followers': user._id} })
     ]);
+
+    // Create a notification if the user is now following
+    if (!isFollowing) {
+      await Notification.create({
+        user: followId,
+        type: 'follow',
+        message: `${user.name} started following you.`,
+      });
+    }
+
     res.status(200).json({ message: 'Follow status updated!' });
   } catch (err) {
     next(err.statusCode ? err : { ...err, statusCode: 500 });

@@ -11,6 +11,7 @@ import Register from './components/Register';
 import Login from './components/Login';
 import Dashboard  from './components/chatComponents/Dashboard'; 
 import GoogleLogin from './components/GoogleLogin';
+import Verify from './components/Verify';
 function App() {
   return (
     <Router>
@@ -32,6 +33,7 @@ function App() {
           <Route path="/login" Component={Login} />
           <Route path="/googleLogin" Component={GoogleLogin} />
           <Route path="/chat" Component={Dashboard} />
+          <Route path="/verify" element={<Verify />} />
 
         </Routes>
       </div>
