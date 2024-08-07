@@ -142,6 +142,7 @@ exports.getMatchById = async (req, res) => {
 // Update a match
 exports.updateMatch = async (req, res) => {
   try {
+    const match = await Match.findById(req.params.id);
     if (!match.agreement) {
         return res.status(400).json({ error: "Match agreement is not finalized. Update not allowed." });
       }  

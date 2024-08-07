@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 const SERVER_URL = "http://localhost:5000";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     school: '',
-    class: '',
+    userClass: '',
     email: '',
     phoneNumber: '',
     password: '',
@@ -22,8 +24,9 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(SERVER_URL+'/api/register',formData);
+      const response = await axios.post(SERVER_URL+'/api/register', formData);
       console.log(response.data);
+      navigate('/verify', { state: { email: formData.email } });
     } catch (error) {
       console.error(error);
     }
@@ -35,7 +38,7 @@ const Register = () => {
       <form onSubmit={handleSubmit}>
         <input type="text" name="name" placeholder="Name" onChange={handleChange} required />
         <input type="text" name="school" placeholder="School" onChange={handleChange} required />
-        <input type="text" name="class" placeholder="Class" onChange={handleChange} required />
+        <input type="text" name="userClass" placeholder="Class" onChange={handleChange} required />
         <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
         <input type="text" name="phoneNumber" placeholder="Phone Number" onChange={handleChange} required />
         <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
