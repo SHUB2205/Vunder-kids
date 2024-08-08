@@ -138,6 +138,12 @@ exports.getMatchById = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+//  {
+//   "teams":[
+//     {"team":"66afc5cd7be83c2bf8154ece", "score": "4" },
+//     {"team":"66afc58b7be83c2bf8154ec7","score":"2"}
+//   ]
+// }
 
 // Update a match
 exports.updateMatch = async (req, res) => {
