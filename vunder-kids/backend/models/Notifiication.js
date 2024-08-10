@@ -12,7 +12,7 @@ const NotificationSchema = new mongoose.Schema({
   },
   type: { // Type of notification
     type: String,
-    enum: ['follow', 'matchmaking','match-scheduled','match-accepted','user'], // Enum to restrict notification types
+    enum: ['follow', 'matchmaking','match-scheduled','match-accepted','user','match-cancelled'], // Enum to restrict notification types
     required: true
   },
   read: { // Status of the notification
