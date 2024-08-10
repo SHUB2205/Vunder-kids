@@ -1,34 +1,60 @@
 const Match = require("../models/Match");
-const Sport = require("../models/Sport");
-const Location = require("../models/Location");
 const Team = require("../models/Team");
 const Notification=require("../models/Notifiication");
+const schedule = require('node-schedule');
+const mongoose = require('mongoose');
+const {CronJob} = require ('cron')
 
-// Create a new match
+//when creating a match
+// {
+//   "date": "2024-08-10T14:00:00Z",
+//   "location": "66b4a9ea7db1567036cf1b0a", 
+//   "sport": "66b4aa437db1567036cf1b0f",  
+//   "teams": [
+//       {
+//           "team": "66b5e9259485cf1dc0a47038", 
+//           "score": 0
+//       },
+//       {
+//           "team": "66b4ad4a7db1567036cf1b19", 
+//           "score": 0
+//       }
+//   ],
+//   "matchmakingTeam": "66b5e9259485cf1dc0a47038",
+//   "agreementTime" : 1723266230     (this is epoch time : https://www.epochconverter.com/)
+// }
+
+//create match
 exports.createMatch = async (req, res) => {
   try {
     const newMatchData = req.body;
 
     // Ensure the `teams` field contains at least one team
-    if (!newMatchData.teams || newMatchData.teams.length <= 1) {
+    if (!newMatchData.teams || newMatchData.teams.length === 0) {
       return res
         .status(400)
-        .json({ error: "At least two team must be provided" });
+        .json({ error: "At least one team must be provided" });
     }
 
+    // Extract the first team ID from the array
+    const teamId = newMatchData.teams[0].team;
 
-    const teamIds = newMatchData.teams.map((team) => team.team);
+    // Fetch the team
+    const team = await Team.findById(teamId);
+    if (!team) {
+      return res
+        .status(404)
+        .json({ error: "Team not found" });
+    }
 
-    const teams = await Team.find({ _id: { $in: teamIds } });
+    const allParticipants = team.participants;
 
-    const allParticipants = teams.flatMap((team) => team.participants);
-
+    // Check for duplicates
     const participantCount = allParticipants.reduce((acc, participant) => {
       acc[participant] = (acc[participant] || 0) + 1;
       return acc;
     }, {});
 
-    // Check for duplicates
     const duplicateParticipants = Object.entries(participantCount)
       .filter(([_, count]) => count > 1)
       .map(([participant]) => participant);
@@ -37,42 +63,71 @@ exports.createMatch = async (req, res) => {
       return res
         .status(400)
         .json({
-          error:
-            "A player cannot be part of more than one team in the same match",
+          error: "A player cannot be part of more than one team in the same match",
           duplicates: duplicateParticipants,
         });
     }
 
-    const matchmakingTeamId = newMatchData.matchmakingTeam;
+    // Set default match properties
     newMatchData.status = "in-progress"; 
-    newMatchData.agreedTeams = [matchmakingTeamId];
+    newMatchData.agreedTeams = [teamId];
     newMatchData.winner = null;
 
     const newMatch = new Match(newMatchData);
-
     const savedMatch = await newMatch.save();
-   // Find all other team admins to notify
-   const otherTeams = teams.filter(team => team._id.toString() !== matchmakingTeamId.toString());
 
+    // Notify all other team admins
+    const otherTeams = await Team.find({ _id: { $ne: teamId } });
+    const adminIds = otherTeams.flatMap(otherTeam => otherTeam.admins);
 
-   const adminIds = otherTeams.flatMap(team => team.admins);
+    await Promise.all(adminIds.map(adminId => {
+      return Notification.create({
+        user: adminId,
+        type: 'matchmaking',
+        message: `You have a new match request with team ID: ${savedMatch._id}. Please review the details.`,
+        match: savedMatch._id
+      });
+    }));
 
-
-   await Promise.all(adminIds.map(adminId => {
-     return Notification.create({
-       user: adminId,
-       type: 'matchmaking',
-       message: `You have a new match request with team ID: ${newMatch._id}. Please review the details.`,
-       match: savedMatch._id
-     });
-   }));
-
+    // Schedule a job to check the agreement deadline if agreementTime is provided
+    if (newMatchData.agreementTime) {
+      const agreementTimeEpoch = parseInt(newMatchData.agreementTime, 10); // Ensure it's an integer
+      const agreementDate = new Date(agreementTimeEpoch * 1000); // Convert seconds to milliseconds if necessary
+      
+      console.log('Scheduling Job for Agreement Deadline:', agreementDate);
+      
+      schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
+        console.log('Job Triggered at:', new Date());
+    
+        const currentMatch = await Match.findById(savedMatch._id);
+        if (currentMatch && currentMatch.status !== 'scheduled' && !currentMatch.agreement) {
+          currentMatch.status = 'cancelled';
+          console.log('Match cancelled due to no agreement within the time limit.');
+          await currentMatch.save();
+    
+          // Notify both teams about the match cancellation
+          const teams = await Team.find({ _id: { $in: currentMatch.teams.map(t => t.team) } });
+          const participants = teams.flatMap(team => team.participants);
+    
+          await Promise.all(participants.map(participantId => {
+            return Notification.create({
+              user: participantId,
+              type: 'match-cancelled',
+              message: `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`,
+              match: currentMatch._id
+            });
+          }));
+        }
+      });
+    }
 
     res.status(201).json(savedMatch);
   } catch (error) {
+    console.error('Error creating match:', error); // Log the error for debugging
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // Get all matches
 exports.getAllMatches = async (req, res) => {
@@ -126,10 +181,10 @@ exports.getMatchById = async (req, res) => {
     //       select: "_id name",
     //     },
     //   })
-    //   .populate({
-    //     path: "winner",
-    //     select: "_id name",
-    //   });
+      .populate({
+        path: "winner",
+        select: "_id name",
+      });
     if (!match) {
       return res.status(404).json({ message: "Match not found" });
     }
@@ -193,9 +248,19 @@ exports.updateMatch = async (req, res) => {
   }
 };
 
-//agreement to a match
+
+//when updating agreement
+// {
+//   "matchId": "66b6f482e477b41f1c93f476", 
+//   "teamId": "66b4ad4a7db1567036cf1b19" 
+// }
+//if agreement route is hit within the time, then match is scheduled, 
+//else cancelled
+
+//update agreement
 exports.updateAgreement = async (req, res) => {
   const { matchId, teamId } = req.body;
+
   try {
     const match = await Match.findById(matchId);
     if (!match) {
@@ -208,7 +273,7 @@ exports.updateAgreement = async (req, res) => {
       return res.status(400).json({ message: "Team not part of this match" });
     }
 
-    // If the team hasn't already agreed, add them to agreedTeams
+    // Add team to agreedTeams if they haven't already agreed
     if (!match.agreedTeams) {
       match.agreedTeams = [];
     }
@@ -216,43 +281,57 @@ exports.updateAgreement = async (req, res) => {
       match.agreedTeams.push(teamId);
     }
 
-    // Check if all teams have agreed
-    if (match.agreedTeams.length === match.teams.length) {
-        match.agreement = true;
-        match.status = 'scheduled';
-        
-        // Notify all participants about the match schedule
-        const teams = await Team.find({ _id: { $in: match.teams.map(t => t.team) } });
-        const participants = teams.flatMap(team => team.participants);
-  
-        // Create notifications for all participants
-        await Promise.all(participants.map(participantId => {
-          return Notification.create({
-            user: participantId,
-            type: 'match-scheduled',
-            message: `The match scheduled on ${match.date} has been confirmed. Details: ${match._id}.`,
-            match: match._id
-          });
-        }));
-      } else {
-        // Notify participants of the accepting team
-        const acceptingTeam = await Team.findById(teamId);
-        const adminIds = acceptingTeam.admins;
-        const participants = acceptingTeam.participants;
-  
-        // Create notifications for all participants of the accepting team
-        await Promise.all(participants.map(participantId => {
-          return Notification.create({
-            user: participantId,
-            type: 'match-accepted',
-            message: `The match with team ID: ${match._id} has been accepted by your team.`,
-            match: match._id
-          });
-        }));
+    await match.save();
+
+    // Get the current time in epoch seconds
+    const nowEpoch = Math.floor(Date.now() / 1000);
+
+    console.log('Current Time (Epoch):', nowEpoch);
+    console.log('Agreement Time (Epoch):', match.agreementTime);
+
+    // Check if all teams have agreed and the current time is within the agreementTime
+    if (match.agreedTeams.length === match.teams.length && nowEpoch <= match.agreementTime) {
+      match.agreement = true;
+      match.status = 'scheduled';
+      console.log('Match scheduled');
+
+      // Notify all participants about the match schedule
+      const teams = await Team.find({ _id: { $in: match.teams.map(t => t.team) } });
+      const participants = teams.flatMap(team => team.participants);
+
+      await Promise.all(participants.map(participantId => {
+        return Notification.create({
+          user: participantId,
+          type: 'match-scheduled',
+          message: `The match scheduled on ${match.date} has been confirmed. Details: ${match._id}.`,
+          match: match._id
+        });
+      }));
+
+      // Cancel any previously scheduled job for this match
+      const job = schedule.scheduledJobs[matchId];
+      if (job) {
+        job.cancel();
+        console.log(`Scheduled job for match ${matchId} has been canceled.`);
       }
+    } else {
+      // Notify participants of the accepting team
+      const acceptingTeam = await Team.findById(teamId);
+      const participants = acceptingTeam.participants;
+
+      await Promise.all(participants.map(participantId => {
+        return Notification.create({
+          user: participantId,
+          type: 'match-accepted',
+          message: `The match with team ID: ${match._id} has been accepted by your team.`,
+          match: match._id
+        });
+      }));
+    }
 
     await match.save();
     res.status(200).json(match);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

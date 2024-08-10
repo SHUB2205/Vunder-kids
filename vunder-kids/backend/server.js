@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb://localhost:27017/Vunder-Kids", {
+mongoose.connect("mongodb://127.0.0.1:27017/Vunder-Kids", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false
