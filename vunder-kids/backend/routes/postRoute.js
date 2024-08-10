@@ -37,6 +37,6 @@ router.put('/toggle-follow', isAuth, [
   ], postController.toggleFollow);
   
 
-router.post('/matches/:matchId/post-result', auth, postController.postMatchResult);
+router.post('/matches/:matchId/post-result', isAuth, postController.postMatchResult);
 
 module.exports = router;
