@@ -1,6 +1,7 @@
 const Post = require('../models/post');
 const Comment = require('../models/comment');
 const User = require('../models/User');
+const Match = require('../models/Match');
 //adding cloudinary integration at time of frontend
 // const upload = require('../cloudinary');
 const { validationResult } = require('express-validator');
@@ -270,6 +271,72 @@ exports.toggleFollow = async (req, res, next) => {
     }
 
     res.status(200).json({ message: 'Follow status updated!' });
+  } catch (err) {
+    next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
+};
+
+exports.postMatchResult = async (req, res, next) => {
+  const { matchId } = req.params;
+  const { title, additionalContent } = req.body;
+
+  try {
+    // Fetch the match
+    const match = await Match.findById(matchId)
+      .populate('sport', 'name')
+      .populate('teams.team', 'name')
+      .populate('winner', 'name')
+      .populate('location', 'name');
+
+    if (!match) {
+      const error = new Error('Match not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Check if the match is completed
+    if (match.status !== 'completed') {
+      const error = new Error('Cannot post result for an incomplete match.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Generate content for the post
+    const matchContent = `
+    Match Result:
+    Sport: ${match.sport.name}
+    Location: ${match.location.name}
+    Date: ${match.date.toDateString()}
+    Time: ${match.date.toTimeString().split(' ')[0]}
+
+    Teams:
+    ${match.teams.map(team => `${team.team.name}: ${team.score}`).join('\n')}
+
+    Winner: ${match.winner.name}
+        `.trim();
+
+    const content = additionalContent 
+      ? `${matchContent}\n\n${additionalContent}`
+      : matchContent;
+
+    // Create the post
+    const post = new Post({
+      title: title || `Match Result: ${match.sport.name}`,
+      content,
+      creator: req.user.id,
+      tags: ['match result', match.sport.name],
+      // The mediaURL and mediaType will be added later on 
+      mediaURL: '',
+      mediaType: 'image'
+    });
+
+    const savedPost = await post.save();
+
+    res.status(201).json({ 
+      message: 'Match result posted successfully!', 
+      post: savedPost 
+    });
+
   } catch (err) {
     next(err.statusCode ? err : { ...err, statusCode: 500 });
   }

@@ -36,4 +36,7 @@ router.put('/toggle-follow', isAuth, [
     body('followId').isMongoId().withMessage('Invalid user ID')
   ], postController.toggleFollow);
   
+
+router.post('/matches/:matchId/post-result', isAuth, postController.postMatchResult);
+
 module.exports = router;
