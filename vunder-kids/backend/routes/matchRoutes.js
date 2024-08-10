@@ -1,13 +1,13 @@
 const express = require('express');
 const matchController = require('../controllers/matchController');
 const {isAuth} = require('../middleware/is-Auth');
-const  {getAllMatches} = require ('../controllers/matchController');
+// const  {getAllMatches} = require ('../controllers/matchController');
 const router = express.Router();
 
 // Create a new match
 router.post('/create', isAuth, matchController.createMatch);
 // Get all matches
-router.get('/all/:userid', isAuth, getAllMatches);
+router.get('/all/:userid', isAuth, matchController.getAllMatches);
 
 // Get a match by ID
 router.get('/:id', isAuth, matchController.getMatchById);
