@@ -9,4 +9,7 @@ router.get('/chats', isAuth, messageController.getUserChats);
 router.post('/send', isAuth, messageController.sendMessage);
 router.post('/group/create', isAuth, messageController.createGroup);
 
+router.post('/notify', isAuth, messageController.notifyFollowers);
+
+
 module.exports = router;

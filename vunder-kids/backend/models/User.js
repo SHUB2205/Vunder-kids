@@ -71,6 +71,7 @@ const UserSchema = new mongoose.Schema({
       ref: "Post",
     },
   ],
+  //notification for free play
   following: [
     {
       type: Schema.Types.ObjectId,
