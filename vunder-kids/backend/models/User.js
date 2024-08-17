@@ -96,6 +96,10 @@ const UserSchema = new mongoose.Schema({
       ref: "Group",
     },
   ],
+  invitedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }
 });
 
 UserSchema.pre("save", async function (next) {

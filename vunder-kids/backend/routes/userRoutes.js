@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser ,requestResetPassword , resetPassword ,userId,sendVerificationEmail,verifyEmail} = require('../controllers/userController');
+const { registerUser, loginUser ,requestResetPassword , resetPassword ,userId,sendVerificationEmail,verifyEmail , inviteUser} = require('../controllers/userController');
 const router = express.Router();
 const { body } = require('express-validator');
 const Limiter = require('../middleware/Limiter');
@@ -39,6 +39,25 @@ router.post('/register',
       })
   ], registerUser);
 
+  router.post('/register/:userid',
+    [
+    body('email')
+      .isEmail()
+      .withMessage('Please enter a valid email.')
+      .normalizeEmail(),
+    body('password', 'Please enter a password of at least 5 characters.')
+      .isLength({ min: 5 })
+      .trim(),
+    body('confirmPassword')
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error('Passwords have to match!');
+        }
+        return true;
+      })
+  ], registerUser);
+
   
 router.post('/login', [
     body('email')
@@ -61,7 +80,7 @@ router.get('/verify-email/:token', verifyEmail);
 router.post("/request-reset-password",isAuth,requestResetPassword);
 router.get("/reset-password/:token",isAuth,resetPassword);
 router.get("/userId",isAuth,userId);
-
+router.post("/inviteUser",isAuth,inviteUser);
 
 module.exports = router;
 

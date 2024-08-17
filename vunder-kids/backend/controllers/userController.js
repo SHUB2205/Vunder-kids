@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const Notification = require('../models/Notifiication');
+const Progress = require('../models/Progress')
 
 //  For the Unique Name
 const { v4: uuidv4 } = require('uuid');
@@ -32,6 +33,7 @@ const generateToken = (id, isVerified) => {
 
 const registerUser = async (req, res, next) => {
   const { name, school, userClass  , email, phoneNumber, password } = req.body;
+  const invitedBy = req.params.userid;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -57,6 +59,7 @@ const registerUser = async (req, res, next) => {
       email,
       phoneNumber,
       password,
+      invitedBy: invitedBy || null, // Set invitedBy if provided, otherwise null
     });
 
     if (user) {
@@ -165,6 +168,7 @@ const sendVerificationEmail = async (req, res, next) => {
   }
 };
 
+
 const verifyEmail = async (req, res, next) => {
   const token = req.params.token;
   try {
@@ -182,6 +186,38 @@ const verifyEmail = async (req, res, next) => {
     user.verifyToken = undefined;
     user.tokenExpiration = undefined;
     user.isVerified = true;
+
+    // Create a new Progress document
+    const progress = await Progress.create({ overallScore: 0, sportScores: [] , userAchievements : [] });
+    user.progress = progress._id;
+
+    // Check if the user was invited and update scores
+    if (user.invitedBy) {
+      const inviter = await User.findById(user.invitedBy).populate('progress');
+      if (inviter) {
+
+        // Update inviter's score
+        inviter.progress.overallScore += 15;
+        await inviter.progress.save();
+
+        // Update invited user's score
+        progress.overallScore += 5;
+        await progress.save();
+
+        // Create notifications for both users
+        await Notification.create({
+          user: inviter._id,
+          type: 'invitation',
+          message: `You earned 5 points for inviting ${user.name}.`,
+        });
+
+        await Notification.create({
+          user: user._id,
+          type: 'invitation',
+          message: `You earned 15 points for joining through an invitation.`,
+        });
+      }
+    }
 
     await user.save();
     await Notification.create({
@@ -299,6 +335,51 @@ const userId = async (req, res) => {
   }
 };
 
+const inviteUser = async (req, res, next) => {
+  const { email } = req.body;
+  const inviterId = req.user.id;
+
+  try {
+    
+
+    const inviteLink = `${process.env.CORS_ORIGIN}/register/${inviterId}`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Join Our Platform</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f4f4f4; border-radius: 5px; padding: 20px; text-align: center;">
+          <h1 style="color: #2c3e50;">You're Invited!</h1>
+          <p style="font-size: 16px;">You've been invited to join our amazing platform.</p>
+          <div style="margin: 30px 0;">
+            <a href="${inviteLink}" style="background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Join Now</a>
+          </div>
+          <p style="font-size: 14px; color: #7f8c8d;">This invitation expires in 7 days.</p>
+        </div>
+        <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #95a5a6;">
+          <p>If you didn't request this invitation, please ignore this email.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      to: email,
+      subject: "You're invited to join our platform!",
+      html: htmlContent
+    });
+
+    res.status(200).json({ message: 'Invitation sent successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 module.exports = {
   registerUser,
@@ -307,5 +388,6 @@ module.exports = {
   resetPassword,
   userId,
   verifyEmail,
-  sendVerificationEmail
+  sendVerificationEmail,
+  inviteUser
 };

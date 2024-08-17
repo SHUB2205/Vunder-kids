@@ -258,6 +258,7 @@ exports.updateMatch = async (req, res) => {
 //else cancelled
 
 //update agreement
+
 exports.updateAgreement = async (req, res) => {
   const { matchId, teamId } = req.body;
 
