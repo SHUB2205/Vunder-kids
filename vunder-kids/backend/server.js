@@ -19,11 +19,9 @@ const editRoute = require("./routes/editRoute");
 //for google calender
 const { google } = require('googleapis');
 const dayjs = require('dayjs')
-const calendar = google.calendar({
-  version: 'v3',
-  // CALENDAR_API
-  auth: 'ID' // specify your API key here
-});
+const User = require('./models/User');
+const { isAuth } = require('./middleware/is-Auth');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -67,9 +65,10 @@ app.use('/api/messages', messageRoutes);
 
 // For Google Calendar
 // Google OAuth2 credentials
-const CLIENT_ID = 'ID';
-const CLIENT_SECRET = 'ID';
-const REDIRECT_URL = 'ID';
+// const CLIENT_ID = 'ID';
+// const CLIENT_SECRET = 'ID';
+// const REDIRECT_URL = 'ID';
+
 
 const oauth2Client = new google.auth.OAuth2({
   clientId: CLIENT_ID,
@@ -77,74 +76,132 @@ const oauth2Client = new google.auth.OAuth2({
   redirectUri: REDIRECT_URL
 });
 
+const calendar = google.calendar({
+  version: 'v3',
+  // CALENDAR_API
+  // auth: 'ID' // specify your API key here
+});
+
 // Specify the required scopes
 const scopes = ['https://www.googleapis.com/auth/calendar'];
 
 // Route to initiate the OAuth flow
-app.get('/google', (req, res) => {
-  console.log('Google OAuth route hit');
-  const url = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: scopes
-  });
-  res.redirect(url);
+app.get('/google', isAuth, (req, res) => {
+  try {
+    console.log('Google OAuth route hit');
+
+    const url = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      prompt: 'consent', // Force consent screen to get a refresh token
+      scope: scopes,
+      state: req.user.id, // Access the user ID here
+    });
+
+    console.log("OAuth URL generated:", url);
+
+    // Send the URL as a response
+    return res.status(200).json({
+      message: "OAuth URL generated successfully",
+      url: url
+    });
+
+  } catch (error) {
+    console.error("Error in /google route:", error.message);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
 });
 
 // Callback route to handle the OAuth response
 app.get('/google/redirect', async (req, res) => {
+  const code = req.query.code;
+  const userId = req.query.state; // Retrieve the user ID from the state
+
+  if (!code) {
+    return res.status(400).send('Authorization code is missing');
+  }
+
   try {
-    console.log("here")
-    const code = req.query.code;
-    if (!code) {
-      return res.status(400).send('Authorization code is missing');
-    }
-    console.log("where")
-    // Exchange the authorization code for an access token
     const { tokens } = await oauth2Client.getToken(code);
-    console.log(code)
-    oauth2Client.setCredentials(tokens);
-    console.log("hiiiiiiiii")
-
-    // Save the tokens for future use
-    const TOKEN_PATH = path.join(__dirname, 'token.json');
-    fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
-
-    console.log('Authorization code:', code);
-    console.log('Tokens:', tokens);
-
-    res.send({
-      msg: "you have sucessfuly logged in"
+    oauth2Client.setCredentials({
+      ...tokens,
+      userId: userId, // Include the user ID in credentials
     });
+
+    await User.findByIdAndUpdate(userId, {
+      google: {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token || user.google.refreshToken, // Preserve the existing refresh token if not provided
+      },
+    });
+
+    res.send('Successfully authenticated with Google!');
   } catch (error) {
     console.error('Error retrieving tokens:', error);
     res.status(500).send('Internal Server Error');
   }
 });
 
-app.get("/schedule_event", async (req, res) => {
-  console.log("here i am")
-  console.log(oauth2Client.credentials.access_token);
-  console.log("how here i am standing")
-  await calendar.events.insert({
-    calendarId: "primary",
-    auth: oauth2Client,
-    requestBody: {
-      summary: "This is a test event",
-      description: "something important",
-      start: {
-        dateTime: dayjs(new Date()).add(1, "day").toISOString(),
-        timeZone: "Asia/Kolkata"
+app.post('/schedule_event', isAuth, async (req, res) => {
+  try {
+    // Fetch the user from the database using the authenticated user's ID
+    const user = await User.findById(req.user.id);
+    
+    if (!user.google.accessToken || !user.google.refreshToken) {
+      return res.status(400).send('User has not authenticated with Google');
+    }
+
+    // Set credentials for the current user
+    oauth2Client.setCredentials({
+      access_token: user.google.accessToken,
+      refresh_token: user.google.refreshToken,
+    });
+
+    // Now, you can proceed to schedule the event
+    await calendar.events.insert({
+      calendarId: 'primary',
+      auth: oauth2Client,
+      requestBody: {
+        summary: req.body.summary,
+        description: req.body.description,
+        start: {
+          dateTime: dayjs(req.body.startDateTime).toISOString(),
+          timeZone: req.body.timeZone || 'Asia/Kolkata',
+        },
+        end: {
+          dateTime: dayjs(req.body.endDateTime).toISOString(),
+          timeZone: req.body.timeZone || 'Asia/Kolkata',
+        },
       },
-      end: {
-        dateTime: dayjs(new Date()).add(1, "day").add(1, "hour").toISOString(),
-        timeZone: "Asia/Kolkata"
-      },
-    },
-  });
-  console.log("after calenddar")
-  res.send({
-    msg: "DONE"
-  });
+    });
+
+    res.status(200).send({ message: 'Event scheduled successfully' });
+  } catch (error) {
+    console.error('Error scheduling event:', error);
+    res.status(500).send('Error scheduling event');
+  }
+});
+
+// Automatically refresh tokens when needed
+oauth2Client.on('tokens', async (tokens) => {
+  try {
+    const userId = oauth2Client.credentials.userId; // Access the stored user ID
+
+    if (tokens.refresh_token) {
+      await User.findByIdAndUpdate(userId, {
+        'google.refreshToken': tokens.refresh_token,
+      });
+    }
+    if (tokens.access_token) {
+      await User.findByIdAndUpdate(userId, {
+        'google.accessToken': tokens.access_token,
+      });
+    }
+  } catch (error) {
+    console.error('Error saving tokens:', error);
+  }
 });
 
 
@@ -165,7 +222,6 @@ app.use((error, req, res, next) => {
 
 const server = http.createServer(app);
 const io = socketIo.init(server);
-
 socketHandler(io);
 
 // Start the server
