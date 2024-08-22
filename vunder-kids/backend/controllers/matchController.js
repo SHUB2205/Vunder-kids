@@ -1,9 +1,10 @@
 const Match = require("../models/Match");
 const Team = require("../models/Team");
-const Notification=require("../models/Notifiication");
+const Notification = require("../models/Notifiication");
 const schedule = require('node-schedule');
 const mongoose = require('mongoose');
-const {CronJob} = require ('cron')
+const { CronJob } = require('cron');
+const CalendarEvent = require("../models/calendarEvent");
 
 //when creating a match
 // {
@@ -69,7 +70,7 @@ exports.createMatch = async (req, res) => {
     }
 
     // Set default match properties
-    newMatchData.status = "in-progress"; 
+    newMatchData.status = "in-progress";
     newMatchData.agreedTeams = [teamId];
     newMatchData.winner = null;
 
@@ -93,22 +94,22 @@ exports.createMatch = async (req, res) => {
     if (newMatchData.agreementTime) {
       const agreementTimeEpoch = parseInt(newMatchData.agreementTime, 10); // Ensure it's an integer
       const agreementDate = new Date(agreementTimeEpoch * 1000); // Convert seconds to milliseconds if necessary
-      
+
       console.log('Scheduling Job for Agreement Deadline:', agreementDate);
-      
+
       schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
         console.log('Job Triggered at:', new Date());
-    
+
         const currentMatch = await Match.findById(savedMatch._id);
         if (currentMatch && currentMatch.status !== 'scheduled' && !currentMatch.agreement) {
           currentMatch.status = 'cancelled';
           console.log('Match cancelled due to no agreement within the time limit.');
           await currentMatch.save();
-    
+
           // Notify both teams about the match cancellation
           const teams = await Team.find({ _id: { $in: currentMatch.teams.map(t => t.team) } });
           const participants = teams.flatMap(team => team.participants);
-    
+
           await Promise.all(participants.map(participantId => {
             return Notification.create({
               user: participantId,
@@ -172,15 +173,15 @@ exports.getAllMatches = async (req, res) => {
 exports.getMatchById = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id)
-    //   .populate("location sport teams.team")
-    //   .populate({
-    //     path: "teams.team",
-    //     populate: {
-    //       path: "participants.user",
-    //       model: "User",
-    //       select: "_id name",
-    //     },
-    //   })
+      //   .populate("location sport teams.team")
+      //   .populate({
+      //     path: "teams.team",
+      //     populate: {
+      //       path: "participants.user",
+      //       model: "User",
+      //       select: "_id name",
+      //     },
+      //   })
       .populate({
         path: "winner",
         select: "_id name",
@@ -205,8 +206,8 @@ exports.updateMatch = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id);
     if (!match.agreement) {
-        return res.status(400).json({ error: "Match agreement is not finalized. Update not allowed." });
-      }  
+      return res.status(400).json({ error: "Match agreement is not finalized. Update not allowed." });
+    }
     const updatedMatchData = req.body;
 
     // Find the team with the highest score
@@ -214,7 +215,7 @@ exports.updateMatch = async (req, res) => {
       (prev, current) => {
         return prev.score > current.score ? prev : current;
       }
-    );  
+    );
 
     // Set the winner field to the team with the highest score
     updatedMatchData.winner = highestScoringTeam.team;
@@ -258,11 +259,96 @@ exports.updateMatch = async (req, res) => {
 //else cancelled
 
 //update agreement
+// exports.updateAgreement = async (req, res) => {
+//   const { matchId, teamId } = req.body;
+
+//   try {
+//     const match = await Match.findById(matchId);
+//     if (!match) {
+//       return res.status(404).json({ message: "Match not found" });
+//     }
+
+//     // Ensure the team is part of the match
+//     const isTeamPartOfMatch = match.teams.some((t) => t.team.equals(teamId));
+//     if (!isTeamPartOfMatch) {
+//       return res.status(400).json({ message: "Team not part of this match" });
+//     }
+
+//     // Add team to agreedTeams if they haven't already agreed
+//     if (!match.agreedTeams) {
+//       match.agreedTeams = [];
+//     }
+//     if (!match.agreedTeams.includes(teamId)) {
+//       match.agreedTeams.push(teamId);
+//     }
+
+//     await match.save();
+
+//     // Get the current time in epoch seconds
+//     const nowEpoch = Math.floor(Date.now() / 1000);
+
+//     console.log('Current Time (Epoch):', nowEpoch);
+//     console.log('Agreement Time (Epoch):', match.agreementTime);
+
+//     // Check if all teams have agreed and the current time is within the agreementTime
+//     if (match.agreedTeams.length === match.teams.length && nowEpoch <= match.agreementTime) {
+//       match.agreement = true;
+//       match.status = 'scheduled';
+//       //create event after match s scheduled
+//       console.log('Match scheduled');
+
+//       // Notify all participants about the match schedule
+//       const teams = await Team.find({ _id: { $in: match.teams.map(t => t.team) } });
+//       const participants = teams.flatMap(team => team.participants);
+
+//       await Promise.all(participants.map(participantId => {
+//         return Notification.create({
+//           user: participantId,
+//           type: 'match-scheduled',
+//           message: `The match scheduled on ${match.date} has been confirmed. Details: ${match._id}.`,
+//           match: match._id
+//         });
+//       }));
+
+//       // Cancel any previously scheduled job for this match
+//       const job = schedule.scheduledJobs[matchId];
+//       if (job) {
+//         job.cancel();
+//         console.log(`Scheduled job for match ${matchId} has been canceled.`);
+//       }
+//     } else {
+//       // Notify participants of the accepting team
+//       const acceptingTeam = await Team.findById(teamId);
+//       const participants = acceptingTeam.participants;
+
+//       await Promise.all(participants.map(participantId => {
+//         return Notification.create({
+//           user: participantId,
+//           type: 'match-accepted',
+//           message: `The match with team ID: ${match._id} has been accepted by your team.`,
+//           match: match._id
+//         });
+//       }));
+//     }
+
+//     await match.save();
+//     res.status(200).json(match);
+
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
+
+
 exports.updateAgreement = async (req, res) => {
   const { matchId, teamId } = req.body;
 
   try {
-    const match = await Match.findById(matchId);
+    // Find the match by ID
+    const match = await Match.findById(matchId).populate('teams.team'); // Populate the teams
+
     if (!match) {
       return res.status(404).json({ message: "Match not found" });
     }
@@ -274,9 +360,6 @@ exports.updateAgreement = async (req, res) => {
     }
 
     // Add team to agreedTeams if they haven't already agreed
-    if (!match.agreedTeams) {
-      match.agreedTeams = [];
-    }
     if (!match.agreedTeams.includes(teamId)) {
       match.agreedTeams.push(teamId);
     }
@@ -295,16 +378,33 @@ exports.updateAgreement = async (req, res) => {
       match.status = 'scheduled';
       console.log('Match scheduled');
 
+
       // Notify all participants about the match schedule
       const teams = await Team.find({ _id: { $in: match.teams.map(t => t.team) } });
       const participants = teams.flatMap(team => team.participants);
 
+      // Create and schedule the eventy
+      const event = new CalendarEvent({
+        title: `match Scheduled`,
+        //error in here, the teams names are not displaying in the events
+        description: `The match between ${match.teams.map(t => t.team.name).join(' and ')} has been scheduled.`,
+        location: match.location,
+        organizer: match.matchmakingTeam,  // Matchmaking team is the organizer
+        participants,
+        startDate: new Date(), // Start time is the current time when the match is scheduled
+        endDate: new Date(match.agreementTime * 1000) // Convert epoch time to milliseconds and set as the end date
+      });
+
+      const savedEvent = await event.save();
+      console.log("events:",event)
+
+      // Notify all participants about the new event
       await Promise.all(participants.map(participantId => {
         return Notification.create({
           user: participantId,
           type: 'match-scheduled',
-          message: `The match scheduled on ${match.date} has been confirmed. Details: ${match._id}.`,
-          match: match._id
+          message: `A new match event has been scheduled on ${match.date}. Details: ${savedEvent._id}.`,
+          event: savedEvent._id
         });
       }));
 
@@ -336,3 +436,4 @@ exports.updateAgreement = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+

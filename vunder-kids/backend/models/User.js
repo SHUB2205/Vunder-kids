@@ -98,9 +98,18 @@ const UserSchema = new mongoose.Schema({
   ],
   //for gogle calendar
   google: {
-    accessToken: { type: String },
-    refreshToken: { type: String },
+    accessToken: {
+      type: String
+    },
+    refreshToken: {
+      type: String
+    },
   },
+  //for own calendar
+  calendarEvents: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event'
+  }]
 });
 
 UserSchema.pre("save", async function (next) {
