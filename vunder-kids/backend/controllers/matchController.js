@@ -386,7 +386,6 @@ exports.updateAgreement = async (req, res) => {
       // Create and schedule the eventy
       const event = new CalendarEvent({
         title: `match Scheduled`,
-        //error in here, the teams names are not displaying in the events
         description: `The match between ${match.teams.map(t => t.team.name).join(' and ')} has been scheduled.`,
         location: match.location,
         organizer: match.matchmakingTeam,  // Matchmaking team is the organizer
