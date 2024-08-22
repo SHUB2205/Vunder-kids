@@ -118,6 +118,11 @@ const MatchSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+        //link calendar here for schedule, complete, cancle
+    CalendarEvent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'CalendarEvent'
+    }
 });
 
 const Match = mongoose.model('Match', MatchSchema);

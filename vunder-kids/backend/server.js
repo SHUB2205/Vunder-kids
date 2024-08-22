@@ -15,6 +15,7 @@ const userRoutes = require('./routes/userRoutes');
 const progressRoutes = require('./routes/progressRoute');
 const searchRoute = require('./routes/searchRoute');
 const editRoute = require("./routes/editRoute");
+const calendarRoutes = require ("./routes/calendarRoute")
 
 //for google calender
 const { google } = require('googleapis');
@@ -62,12 +63,15 @@ app.use("/api/edit", editRoute);
 
 app.use('/api/messages', messageRoutes);
 
+//for website calendar
+app.use('/api/calendar', calendarRoutes);
+
 
 // For Google Calendar
 // Google OAuth2 credentials
-// const CLIENT_ID = 'ID';
-// const CLIENT_SECRET = 'ID';
-// const REDIRECT_URL = 'ID';
+const CLIENT_ID = 'ID';
+const CLIENT_SECRET = 'ID';
+const REDIRECT_URL = 'ID';
 
 
 const oauth2Client = new google.auth.OAuth2({
@@ -79,13 +83,13 @@ const oauth2Client = new google.auth.OAuth2({
 const calendar = google.calendar({
   version: 'v3',
   // CALENDAR_API
-  // auth: 'ID' // specify your API key here
+  auth: 'ID' // specify your API key here
 });
 
 // Specify the required scopes
 const scopes = ['https://www.googleapis.com/auth/calendar'];
 
-// Route to initiate the OAuth flow
+// // Route to initiate the OAuth flow
 app.get('/google', isAuth, (req, res) => {
   try {
     console.log('Google OAuth route hit');
