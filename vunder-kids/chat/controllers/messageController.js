@@ -1,4 +1,3 @@
-const Notification = require('../models/Notifiication');
 const User = require('../models/User');
 const Group = require('../models/Group');
 const Message = require('../models/Message');
