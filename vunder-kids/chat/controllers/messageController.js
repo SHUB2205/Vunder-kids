@@ -1,7 +1,7 @@
+const Notification = require('../models/Notifiication');
 const User = require('../models/User');
 const Group = require('../models/Group');
 const Message = require('../models/Message');
-
 
 exports.getPrivateMessages = async (req, res) => {
   try {
@@ -180,5 +180,48 @@ exports.createGroup = async (req, res) => {
   } catch (error) {
     console.error('Error creating group:', error);
     res.status(500).json({ message: 'Error creating group' });
+  }
+};
+
+
+// POST endpoint to notify followers to play match
+exports.notifyFollowers = async (req, res) => {
+  try {
+    const { userId, time, location } = req.body;
+
+    // Ensure required fields are provided
+    if (!userId || !time || !location) {
+      return res.status(400).json({ message: 'userId, time, and location are required' });
+    }
+
+    // Find the user and their followers
+    const user = await User.findById(userId).populate('followers', 'name email');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prepare the notification message
+    const message = `Hey! ${user.name} is planning to play a match at ${location} on ${new Date(time).toLocaleString()}.`;
+
+    // Create notifications for each follower
+    const notifications = user.followers.map(follower => {
+      return {
+        user: follower._id,
+        message,
+        type: 'matchmaking', // or another type depending on your use case
+      };
+    });
+
+    // Save notifications to the database
+    await Notification.insertMany(notifications);
+
+    // Optionally, you can log or perform additional actions
+    console.log('All followers notified successfully');
+    console.log(message)
+    res.status(200).json({ message: message});
+  } catch (error) {
+    console.error('Error notifying followers:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
