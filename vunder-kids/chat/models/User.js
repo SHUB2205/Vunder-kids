@@ -70,7 +70,6 @@ const UserSchema = new mongoose.Schema({
       ref: "Post",
     },
   ],
-  //notification for free play
   following: [
     {
       type: Schema.Types.ObjectId,
@@ -95,20 +94,6 @@ const UserSchema = new mongoose.Schema({
       ref: "Group",
     },
   ],
-  //for gogle calendar
-  google: {
-    accessToken: {
-      type: String
-    },
-    refreshToken: {
-      type: String
-    },
-  },
-  //for own calendar
-  calendarEvents: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Event'
-  }]
 });
 
 UserSchema.pre("save", async function (next) {

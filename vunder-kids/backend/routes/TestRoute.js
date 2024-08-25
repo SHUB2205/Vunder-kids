@@ -1,81 +1,39 @@
 const mongoose = require('mongoose');
-const Sport = require('../models/Sport.js'); // Adjust the path to your Sport model
-const Match = require('../models/Match'); // Adjust path as necessary
-const Team = require('../models/Team'); // Adjust path as necessary
+const User=require("../models/User");
 
 
-async function seedSports() {
-    try {
-      // Connect to MongoDB
-      await mongoose.connect('mongodb://localhost:27017/Vunder-Kids', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-      });
-  
-      // Sample data
-      const sports = [
-        { name: 'Football', description: 'A team sport played with a round ball.' },
-        { name: 'Basketball', description: 'A team sport where players score points by shooting a ball through a hoop.' },
-        { name: 'Cricket', description: 'A bat-and-ball game played between two teams of eleven players.' }
-      ];
-  
-      // Insert sample data into the database
-      await Sport.insertMany(sports);
-  
-      console.log('Sports data seeded successfully.');
-  
-    } catch (error) {
-      console.error('Error seeding sports data:', error);
-    } finally {
-      // Close the connection
-      mongoose.connection.close();
-    }
-  }
-  
+const userId = '66cba2c29fd96388c0e9c078';
+const followersToAdd = [
+  { _id: '66afc54d7be83c2bf8154ec5' },
+  { _id: '66b0e75a9751c1602ce93ea8' },
+  { _id: '66b7de57e213f457346a1de7' },
+  {_id:  '66b7dea3e213f457346a1ded' }
+];
 
-async function seedData() {
+async function addFollowers() {
   try {
-    await mongoose.connect('mongodb://localhost:27017/Vunder-Kids', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    const result = await User.findByIdAndUpdate(
+      userId,
+      {
+        $addToSet: { followers: { $each: followersToAdd } }
+      },
+      { new: true, runValidators: true }
+    );
 
-    const teamA = await Team.create({
-      name: 'Team A',
-      participants: [{ user: '66a8a03673fa0b5068b75e03' }]
-    });
-
-    const teamB = await Team.create({
-      name: 'Team B',
-      participants: [{ user: '66a8a06c73fa0b5068b75e07' }]
-    });
-
-    // const teamC = await Team.create({
-    //   name: 'Team B',
-    //   participants: [{ user: '66a8a08273fa0b5068b75e0a' }]
-    // });
-
-    const match = await Match.create({
-      date: '2024-08-01T15:00:00Z',
-      location: '64e88d9d73a5d5b10f3423b1',
-      sport: '66a8a63b49145b44c8398efd',
-      teams: [
-        { team: teamA._id, score: 2 },
-        { team: teamB._id, score: 1 }
-      ],
-      winner: teamA._id
-    });     
-    console.log('Data seeded successfully:');
+    if (!result) {
+      console.log('User not found');
+    } else {
+      console.log('Updated User:', result);
+    }
   } catch (error) {
-    console.error('Error seeding data:', error);
-  } finally {
-    mongoose.connection.close();
+    console.error('Error updating user:', error);
   }
 }
 
+addFollowers();
+
 module.exports = {
-    seedData,
-    seedSports
+  addFollowers
     
   };
 

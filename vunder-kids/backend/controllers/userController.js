@@ -5,7 +5,8 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const Notification = require('../models/Notifiication');
-
+// console.log(process.env.EMAIL);
+// console.log(process.env.APP_PASSWORD);
 //  For the Unique Name
 const { v4: uuidv4 } = require('uuid');
 // Middleware to generate unique username
@@ -213,7 +214,6 @@ const requestResetPassword = async (req, res) => {
     await transporter.sendMail({
       // to check
       to: req.body.email, 
-      // to: user.email,
       subject: "Password Reset Request",
       html: `
         <p>Click this <a href="http://localhost:5000/api/reset-password/${token}">link</a> to reset your password.</p>
@@ -281,9 +281,30 @@ const resetPassword = async (req, res) => {
   }
 };
 
+//  fetching the inforamtion of the user by his id
+
+const userInfo=async(req,res)=>{
+  try {
+    let userId = req.params.id;
+    if(userId==undefined){
+      userId=await getUserId();
+    }
+    const user = await User.findById(userId)
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'An error occurred' });
+  }
+}
+
 //  To get the User Id Form the Token in the localStorage //
 
-const userId = async (req, res) => {
+const getUserId = async (req, res) => {
   try {
     let userId = req.user.id;
     const client = await User.findById(userId).select("-password");
@@ -305,7 +326,8 @@ module.exports = {
   loginUser,
   requestResetPassword,
   resetPassword,
-  userId,
+  getUserId,
   verifyEmail,
-  sendVerificationEmail
+  sendVerificationEmail,
+  userInfo
 };

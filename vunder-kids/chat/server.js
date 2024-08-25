@@ -1,0 +1,122 @@
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const http = require("http");
+const Message = require("./models/Message");
+const Group = require("./models/Group");
+const messageRoutes = require("./routes/messageRoutes");
+const socketAuth=require("./middleware/socketAuth");
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/Vunder-Kids", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB", err);
+  });
+
+// Routes
+app.use("/api/messages", messageRoutes);
+
+// 404 Error Handler
+app.use((req, res, next) => {
+  const error = new Error("Not Found");
+  error.status = 404;
+  next(error);
+});
+
+// General Error Handler
+app.use((error, req, res, next) => {
+  res.status(error.status || 500).json({
+    message: error.message,
+    data: error.data || null,
+  });
+});
+
+// Create HTTP Server and Socket.IO Initialization
+const server = http.createServer(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+
+// Socket.IO Middleware 
+io.use(socketAuth);
+
+io.on("connection", (socket) => {
+  console.log(`Client connected: ${socket.id}`);
+
+  socket.on("join room", (roomId) => socket.join(roomId));
+
+  socket.on("leave room", (roomId) => socket.leave(roomId));
+
+  socket.on("private message", async (data, callback) => {
+    try {
+      const { recipientId, content } = data;
+      const senderId = socket.user.id;
+
+      const message = new Message({
+        sender: senderId,
+        recipient: recipientId,
+        content,
+      });
+      await message.save();
+      await message.populate("sender", "name");
+
+      io.to(recipientId).emit("new message", message);
+      callback({ success: true, message });
+    } catch (error) {
+      console.error("Error sending private message:", error);
+      callback({ success: false, error: "Failed to send message" });
+    }
+  });
+
+  socket.on("group message", async (data, callback) => {
+    try {
+      const { groupId, content } = data;
+      const senderId = socket.user.id;
+
+      const group = await Group.findById(groupId);
+      if (!group || !group.members.includes(senderId)) {
+        return callback({ success: false, error: "Access denied" });
+      }
+
+      const message = new Message({
+        sender: senderId,
+        group: groupId,
+        content,
+      });
+      await message.save();
+      await message.populate("sender", "name");
+
+      io.to(groupId).emit("new group message", message);
+      callback({ success: true, message });
+    } catch (error) {
+      console.error("Error sending group message:", error);
+      callback({ success: false, error: "Failed to send message" });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`Client disconnected: ${socket.id}`);
+  });
+});
+
+// Start Server
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

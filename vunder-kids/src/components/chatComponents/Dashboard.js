@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import io from 'socket.io-client';
-import UserList from './UserList';
-import GroupList from './GroupList';
-import ChatWindow from './ChatWindow';
-import CreateGroupModal from './CreateGroupModal';
-import './Dashboard.css';
+import React, { useState, useEffect, useCallback } from "react";
+import io from "socket.io-client";
+import UserList from "./UserList";
+import GroupList from "./GroupList";
+import ChatWindow from "./ChatWindow";
+import CreateGroupModal from "./CreateGroupModal";
+import "./Dashboard.css";
 
 const Dashboard = () => {
+  const SERVER_URL = "http://localhost:4000";
   const [socket, setSocket] = useState(null);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -15,22 +16,22 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const newSocket = io('http://localhost:5000', {
-      query: { token }
+    const token = localStorage.getItem("token");
+    const newSocket = io(SERVER_URL, {
+      query: { token },
     });
 
-    newSocket.on('connect', () => {
-      console.log('Connected to socket server');
+    newSocket.on("connect", () => {
+      console.log("Connected to socket server");
     });
 
-    newSocket.on('connect_error', (err) => {
-      console.error('Socket connection error:', err);
-      setError('Failed to connect to chat server. Please try again later.');
+    newSocket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
+      setError("Failed to connect to chat server. Please try again later.");
     });
 
-    newSocket.on('new message', handleNewMessage);
-    newSocket.on('new group message', handleNewMessage);
+    newSocket.on("new message", handleNewMessage);
+    newSocket.on("new group message", handleNewMessage);
 
     setSocket(newSocket);
 
@@ -45,93 +46,101 @@ const Dashboard = () => {
     if (activeChat) {
       fetchMessages(activeChat.id, activeChat.type);
       if (socket) {
-        socket.emit('join room', activeChat.id);
+        socket.emit("join room", activeChat.id);
       }
     }
     return () => {
       if (socket && activeChat) {
-        socket.emit('leave room', activeChat.id);
+        socket.emit("leave room", activeChat.id);
       }
     };
   }, [activeChat, socket]);
 
-  const fetchChats = useCallback(async () => {
-    try {
-      const response = await fetch('/api/messages/chats', {
-        headers: {
-          'token': localStorage.getItem('token')
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch chats');
-      const data = await response.json();
-      setChats({
-        users: data.filter(chat => chat.type === 'user'),
-        groups: data.filter(chat => chat.type === 'group')
-      });
-    } catch (error) {
-      console.error('Error fetching chats:', error);
-      setError('Failed to load chats. Please refresh the page.');
-    }
-  }, []);
-
-  const fetchMessages = async (chatId, chatType) => {
-    try {
-      const endpoint = chatType === 'user' ? `/api/messages/private/${chatId}` : `/api/messages/group/${chatId}`;
-      const response = await fetch(endpoint, {
-        headers: {
-          'token': localStorage.getItem('token')
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch messages');
-      const data = await response.json();
-      setMessages(data);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      setError('Failed to load messages. Please try again.');
-    }
-  };
-
+  // How Does This Is Called?
   const handleNewMessage = useCallback((message) => {
-    setMessages(prevMessages => [...prevMessages, message]);
+    setMessages((prevMessages) => [...prevMessages, message]);
   }, []);
 
   const sendMessage = (content) => {
     if (!socket || !activeChat) return;
 
-    const eventName = activeChat.type === 'user' ? 'private message' : 'group message';
-    const payload = activeChat.type === 'user' 
-      ? { recipientId: activeChat.id, content }
-      : { groupId: activeChat.id, content };
+    const eventName =
+      activeChat.type === "user" ? "private message" : "group message";
+    const payload =
+      activeChat.type === "user"
+        ? { recipientId: activeChat.id, content }
+        : { groupId: activeChat.id, content };
 
     socket.emit(eventName, payload, (response) => {
       if (response.error) {
-        console.error('Error sending message:', response.error);
-        setError('Failed to send message. Please try again.');
+        console.error("Error sending message:", response.error);
+        setError("Failed to send message. Please try again.");
       }
-      
     });
   };
 
+  //  All The Route Request
+  const fetchMessages = async (chatId, chatType) => {
+    try {
+      const endpoint =
+        chatType === "user"
+          ? `${SERVER_URL}/api/messages/private/${chatId}`
+          : `${SERVER_URL}/api/messages/group/${chatId}`;
+      const response = await fetch(endpoint, {
+        headers: {
+          token: localStorage.getItem("token"),
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch messages");
+      const data = await response.json();
+      setMessages(data);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      setError("Failed to load messages. Please try again.");
+    }
+  };
+  const fetchChats = useCallback(async () => {
+    try {
+      const response = await fetch(`${SERVER_URL}/api/messages/chats`, {
+        headers: {
+          token: localStorage.getItem("token"),
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch chats");
+      const data = await response.json();
+      setChats({
+        users: data.filter((chat) => chat.type === "user"),
+        groups: data.filter((chat) => chat.type === "group"),
+      });
+    } catch (error) {
+      console.error("Error fetching chats:", error);
+      setError("Failed to load chats. Please refresh the page.");
+    }
+  }, []);
   const createGroup = async (name, memberIds) => {
     try {
-      const response = await fetch('/api/messages/group/create', {
-        method: 'POST',
+      console.log(name, memberIds);
+      const response = await fetch(`${SERVER_URL}/api/messages/group/create`, {
+        method: "POST",
         headers: {
-          'token': localStorage.getItem('token'),
-          'Content-Type': 'application/json',
+          token: localStorage.getItem("token"),
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, members: memberIds }),
       });
-      if (!response.ok) throw new Error('Failed to create group');
+      if (!response.ok) throw new Error("Failed to create group");
       const newGroup = await response.json();
-      setChats(prevChats => ({
+      setChats((prevChats) => ({
         ...prevChats,
-        groups: [...prevChats.groups, { type: 'group', id: newGroup._id, name: newGroup.name }]
+        groups: [
+          ...prevChats.groups,
+          { type: "group", id: newGroup._id, name: newGroup.name },
+        ],
       }));
       setShowCreateGroup(false);
     } catch (error) {
-      console.error('Error creating group:', error);
-      setError('Failed to create group. Please try again.');
+      console.error("Error creating group:", error);
+      setError("Failed to create group. Please try again.");
     }
   };
 
@@ -139,21 +148,28 @@ const Dashboard = () => {
     <div className="dashboard">
       {error && <div className="error-banner">{error}</div>}
       <div className="sidebar">
-        <UserList 
+        <UserList
           users={chats.users}
-          onSelectUser={(user) => setActiveChat({ type: 'user', id: user.id, name: user.name })}
+          onSelectUser={(user) =>
+            setActiveChat({ type: "user", id: user.id, name: user.name })
+          }
         />
-        <GroupList 
+        <GroupList
           groups={chats.groups}
-          onSelectGroup={(group) => setActiveChat({ type: 'group', id: group.id, name: group.name })}
+          onSelectGroup={(group) =>
+            setActiveChat({ type: "group", id: group.id, name: group.name })
+          }
         />
-        <button onClick={() => setShowCreateGroup(true)} className="create-group-button">
+        <button
+          onClick={() => setShowCreateGroup(true)}
+          className="create-group-button"
+        >
           Create Group
         </button>
       </div>
       <div className="chat-area">
         {activeChat ? (
-          <ChatWindow 
+          <ChatWindow
             activeChat={activeChat}
             messages={messages}
             onSendMessage={sendMessage}
@@ -165,7 +181,7 @@ const Dashboard = () => {
         )}
       </div>
       {showCreateGroup && (
-        <CreateGroupModal 
+        <CreateGroupModal
           onCreateGroup={createGroup}
           onClose={() => setShowCreateGroup(false)}
         />

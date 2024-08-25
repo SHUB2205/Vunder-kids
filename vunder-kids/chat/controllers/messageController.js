@@ -1,7 +1,7 @@
 const Notification = require('../models/Notifiication');
 const User = require('../models/User');
-const Group = require('../models/chatModels/Group');
-const Message = require('../models/chatModels/Message');
+const Group = require('../models/Group');
+const Message = require('../models/Message');
 
 exports.getPrivateMessages = async (req, res) => {
   try {
@@ -54,7 +54,7 @@ exports.getUserChats = async (req, res) => {
         populate: {
           path: 'sender recipient',
           select: 'name'
-        }
+        } 
       })
       .populate({
         path: 'groups',
@@ -67,12 +67,12 @@ exports.getUserChats = async (req, res) => {
             select: 'name'
           }
         }
-      });
-
+      }).select("-password");
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    //  How this is working?
     const privateChats = user.messages.reduce((chats, message) => {
       const otherUser = message.sender._id.toString() === userId ? message.recipient : message.sender;
       const existingChat = chats.find(chat => chat.id === otherUser._id.toString());
@@ -158,6 +158,7 @@ exports.createGroup = async (req, res) => {
     const { name, members } = req.body;
     const creatorId = req.user.id;
 
+    // why?
     if (!members.includes(creatorId)) {
       members.push(creatorId);
     }
