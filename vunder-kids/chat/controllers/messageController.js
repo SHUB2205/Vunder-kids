@@ -1,6 +1,8 @@
-const User = require("../models/User");
-const Group = require("../models/Group");
-const Message = require("../models/Message");
+
+const User = require('../models/User');
+const Group = require('../models/Group');
+const Message = require('../models/Message');
+
 
 exports.getPrivateMessages = async (req, res) => {
   try {
