@@ -6,7 +6,7 @@ const { isAuth } = require('../middleware/is-Auth');
 router.get('/private/:otherUserId', isAuth, messageController.getPrivateMessages);
 router.get('/group/:groupId', isAuth, messageController.getGroupMessages);
 router.get('/chats', isAuth, messageController.getUserChats);
-router.post('/send', isAuth, messageController.sendMessage);
+// router.post('/send', isAuth, messageController.sendMessage);
 router.post('/group/create', isAuth, messageController.createGroup);
 
 router.post('/notify', isAuth, messageController.notifyFollowers);
