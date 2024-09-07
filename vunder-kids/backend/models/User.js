@@ -122,6 +122,22 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+UserSchema.methods.getProfileCompletion = function () {
+  const fields = [
+    this.userName,
+    this.name,
+    this.school,
+    this.userClass,
+    this.email,
+    this.phoneNumber
+  ];
+
+  const totalFields = fields.length;
+  const filledFields = fields.filter(field => field && field.trim() !== "").length;
+  return (filledFields / totalFields) * 100;
+};
+
+
 const User = mongoose.model("User", UserSchema);
 
 module.exports = User;
