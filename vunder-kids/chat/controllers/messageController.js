@@ -1,6 +1,8 @@
-const User = require("../models/User");
-const Group = require("../models/Group");
-const Message = require("../models/Message");
+
+const User = require('../models/User');
+const Group = require('../models/Group');
+const Message = require('../models/Message');
+
 
 exports.getPrivateMessages = async (req, res) => {
   try {
@@ -116,50 +118,50 @@ exports.getUserChats = async (req, res) => {
   }
 };
 
-// exports.sendMessage = async (req, res) => {
-//   try {
-//     const { recipientId, groupId, content } = req.body;
-//     const senderId = req.user.id;
+exports.sendMessage = async (req, res) => {
+  try {
+    const { recipientId, groupId, content } = req.body;
+    const senderId = req.user.id;
 
-//     let message;
-//     if (recipientId) {
-//       message = new Message({
-//         sender: senderId,
-//         recipient: recipientId,
-//         content
-//       });
-//       await message.save();
+    let message;
+    if (recipientId) {
+      message = new Message({
+        sender: senderId,
+        recipient: recipientId,
+        content
+      });
+      await message.save();
 
-//       await User.updateMany(
-//         { _id: { $in: [senderId, recipientId] } },
-//         { $push: { messages: message._id } }
-//       );
-//     } else if (groupId) {
-//       const group = await Group.findById(groupId);
-//       if (!group || !group.members.includes(senderId)) {
-//         return res.status(403).json({ message: 'Access denied' });
-//       }
-//       message = new Message({
-//         sender: senderId,
-//         group: groupId,
-//         content
-//       });
-//       await message.save();
+      await User.updateMany(
+        { _id: { $in: [senderId, recipientId] } },
+        { $push: { messages: message._id } }
+      );
+    } else if (groupId) {
+      const group = await Group.findById(groupId);
+      if (!group || !group.members.includes(senderId)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      message = new Message({
+        sender: senderId,
+        group: groupId,
+        content
+      });
+      await message.save();
 
-//       await Group.updateOne(
-//         { _id: groupId },
-//         { $push: { messages: message._id } }
-//       );
-//     } else {
-//       return res.status(400).json({ message: 'Invalid request' });
-//     }
+      await Group.updateOne(
+        { _id: groupId },
+        { $push: { messages: message._id } }
+      );
+    } else {
+      return res.status(400).json({ message: 'Invalid request' });
+    }
 
-//     res.status(201).json(message);
-//   } catch (error) {
-//     console.error('Error sending message:', error);
-//     res.status(500).json({ message: 'Error sending message' });
-//   }
-// };
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ message: 'Error sending message' });
+  }
+};
 
 exports.createGroup = async (req, res) => {
   try {
