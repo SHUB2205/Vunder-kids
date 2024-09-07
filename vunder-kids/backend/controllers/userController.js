@@ -308,7 +308,8 @@ const getUserId = async (req, res) => {
   try {
     let userId = req.user.id;
     const client = await User.findById(userId).select("-password");
-    res.json({ msg: "Id of the user", client, success: true });
+    const profileCompletion = client.getProfileCompletion();
+    res.json({ msg: "Id of the user", client,profileCompletion: profileCompletion.toFixed(2), success: true });
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({ error: "Token has expired" });
@@ -317,6 +318,51 @@ const getUserId = async (req, res) => {
     } else {
       return res.status(400).json({ error: error.message });
     }
+  }
+};
+
+const inviteUser = async (req, res, next) => {
+  const { email } = req.body;
+  const inviterId = req.user.id;
+
+  try {
+    
+
+    const inviteLink = `${process.env.CORS_ORIGIN}/register/${inviterId}`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Join Our Platform</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f4f4f4; border-radius: 5px; padding: 20px; text-align: center;">
+          <h1 style="color: #2c3e50;">You're Invited!</h1>
+          <p style="font-size: 16px;">You've been invited to join our amazing platform.</p>
+          <div style="margin: 30px 0;">
+            <a href="${inviteLink}" style="background-color: #3498db; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Join Now</a>
+          </div>
+          <p style="font-size: 14px; color: #7f8c8d;">This invitation expires in 7 days.</p>
+        </div>
+        <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #95a5a6;">
+          <p>If you didn't request this invitation, please ignore this email.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      to: email,
+      subject: "You're invited to join our platform!",
+      html: htmlContent
+    });
+
+    res.status(200).json({ message: 'Invitation sent successfully' });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -329,5 +375,6 @@ module.exports = {
   getUserId,
   verifyEmail,
   sendVerificationEmail,
-  userInfo
+  userInfo,
+  inviteUser
 };
