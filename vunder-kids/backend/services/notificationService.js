@@ -1,13 +1,14 @@
 // notificationService.js
-const Notification = require('../');
+const Notification = require('../models/Notifiication');
 
 // Simulate a service worker that runs in the background
+// users should be the id not the complete user
 const notificationService = (users, type, message, matchId) => {
   // Use setImmediate to ensure non-blocking behavior
   setImmediate(async () => {
     try {
       const notifications = users.map(user => ({
-        user: user._id,
+        user: user,
         type: type,
         message: message,
         match: matchId
@@ -22,4 +23,4 @@ const notificationService = (users, type, message, matchId) => {
   });
 };
 
-module.exports = { notificationService };
+module.exports =  notificationService ;
