@@ -34,6 +34,7 @@ function App() {
           <Route path="/googleLogin" Component={GoogleLogin} />
           <Route path="/chat" Component={Dashboard} />
           <Route path="/verify" element={<Verify />} />
+          <Route path="/articles" element={<Articles />} />
 
         </Routes>
       </div>

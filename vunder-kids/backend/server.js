@@ -22,7 +22,8 @@ const { isAuth } = require('./middleware/is-Auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+// For fireBase Admin
+// const { adminApp } = require('./services/fireBase'); 
 
 app.use(cors());
 app.use(express.json());
