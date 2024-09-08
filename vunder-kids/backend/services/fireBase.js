@@ -8,4 +8,5 @@ const adminApp = initializeApp({
 });
 
 // Export the initialized app and messaging functions
+
 module.exports = { adminApp };
