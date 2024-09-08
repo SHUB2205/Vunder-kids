@@ -1,4 +1,3 @@
-const { adminApp } = require('./fireBase'); 
 const { getMessaging } = require("firebase-admin/messaging");
 // Send FCM notification function
 const sendNotification = async (fcmToken, notificationTitle, notificationBody) => {
