@@ -23,8 +23,15 @@ const { isAuth } = require('./middleware/is-Auth');
 const app = express();
 const PORT = process.env.PORT || 5000;
 // For fireBase Admin
-// const { adminApp } = require('./services/fireBase'); 
 
+const admin = require('firebase-admin');
+
+const serviceAccount = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  projectId: 'vunder-kids-bb948',
+});
 app.use(cors());
 app.use(express.json());
 
