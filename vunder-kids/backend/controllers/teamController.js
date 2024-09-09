@@ -1,5 +1,5 @@
 const Team = require("../models/Team");
-const notificationService=require('../services/notificationService.js');
+const notificationService=require('../services/notification/notificationService.js');
 
 // Create a new team
 exports.createTeam = async (req, res) => {
