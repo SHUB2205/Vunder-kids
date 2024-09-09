@@ -3,7 +3,7 @@ const Team = require("../models/Team");
 const schedule = require('node-schedule');
 const { CronJob } = require('cron');
 const CalendarEvent = require("../models/calendarEvent");
-const notificationService=require('../services/notificationService.js');
+const notificationService=require('../services/notification/notificationService.js');
 //when creating a match
 // {
 //   "date": "2024-08-10T14:00:00Z",
