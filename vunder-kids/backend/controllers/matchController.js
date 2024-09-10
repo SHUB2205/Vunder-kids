@@ -1,11 +1,9 @@
 const Match = require("../models/Match");
 const Team = require("../models/Team");
-const Notification = require("../models/Notifiication");
 const schedule = require('node-schedule');
-const mongoose = require('mongoose');
 const { CronJob } = require('cron');
 const CalendarEvent = require("../models/calendarEvent");
-const notificationService=require('../services/notificationService.js');
+const notificationService=require('../services/notification/notificationService.js');
 //when creating a match
 // {
 //   "date": "2024-08-10T14:00:00Z",

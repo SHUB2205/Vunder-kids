@@ -1,20 +1,33 @@
 const Team = require("../models/Team");
+const notificationService=require('../services/notification/notificationService.js');
 
 // Create a new team
 exports.createTeam = async (req, res) => {
   try {
     const { name, participants } = req.body;
     const admin = req.user.id; // Extract the admin from req.user.id
-
+    
+    // Add the admin to the participants list if not already present
+    if (!participants.includes(admin)) {
+      participants.push(admin);
+    }
+    
     // Create a new team with the admins field as an array containing the current admin
     const newTeam = new Team({
       name,
       participants,
       admins: [admin], // Initialize the admins array with the current admin
     });
-
+    
     // Save the new team to the database
     await newTeam.save();
+
+    notificationService(
+      participants, 
+      'matchmaking', 
+      `You Have been added in the team`,
+      newTeam._id
+    );
 
     //  For understnading to how to get the user info
     //   const populatedTeam = await Team.findById(newTeam._id)
