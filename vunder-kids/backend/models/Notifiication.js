@@ -17,6 +17,7 @@ const NotificationSchema = new mongoose.Schema({
       'matchmaking',
       'match-scheduled',
       'match-accepted',
+      'match-reminder',
       'user',
       'match-cancelled',
       'event-scheduled',
