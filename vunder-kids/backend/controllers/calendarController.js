@@ -1,8 +1,8 @@
 const CalendarEvent = require('../models/calendarEvent');
-const Notification = require('../models/Notifiication');
 const Location = require("../models/Location")
 const User = require('../models/User');
 const schedule = require('node-schedule');
+const notificationService = require('../services/notification/notificationService');
 
 // Create a new calendar event
 exports.createEvent = async (req, res) => {
@@ -18,33 +18,42 @@ exports.createEvent = async (req, res) => {
       startDate,
       endDate
     });
-
+    console.log('i am standing in calendar controller')
     const savedEvent = await newEvent.save();
     const populatedEvent = await savedEvent.
-    populate('organizer', 'name')
-    .populate('participants', 'name')
-    .populate('location')
-    .execPopulate();
+      populate('organizer', 'name')
+      .populate('participants', 'name')
+      .populate('location')
+      .execPopulate();
 
     // Notify participants
-    await Promise.all(participants.map(async (participantId) => {
-      await Notification.create({
-        user: participantId,
-        type: 'event-scheduled',
-        message: `You have been invited to the event: ${savedEvent.title}`,
-        event: savedEvent._id
-      });
-    }));
+    notificationService(
+      participants,  // List of participants
+      'event-scheduled',  // Notification type
+      `You have been invited to the event: ${savedEvent.title}`,  // Message
+      savedEvent._id  // Event ID
+    );
+    console.log("event hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
 
-    // Schedule reminders or status updates if needed
-    if (startDate) {
-      const startTime = new Date(startDate);
+    // await Promise.all(participants.map(async (participantId) => {
+    //   await Notification.create({
+    //     user: participantId,
+    //     type: 'event-scheduled',
+    //     message: `You have been invited to the event: ${savedEvent.title}`,
+    //     event: savedEvent._id
+    //   });
+    // }));
 
-      schedule.scheduleJob(savedEvent._id.toString(), startTime, async () => {
-        console.log('Event started:', savedEvent.title);
-        // You can update the status here or trigger other notifications
-      });
-    }
+
+    // // Schedule reminders or status updates if needed
+    // if (startDate) {
+    //   const startTime = new Date(startDate);
+
+    //   schedule.scheduleJob(savedEvent._id.toString(), startTime, async () => {
+    //     console.log('Event started:', savedEvent.title);
+    //     // You can update the status here or trigger other notifications
+    //   });
+    // }
 
     res.status(201).json(savedEvent);
   } catch (error) {
@@ -59,29 +68,37 @@ exports.updateEvent = async (req, res) => {
     const { id } = req.params; // Get event ID from params
     console.log("id :", id)
     const calendarData = req.body; // Get update data from request body
-    console.log("calendar data : ",calendarData)
+    console.log("calendar data : ", calendarData)
 
     // Find the event by ID and update it with new data
     const updatedEvent = await CalendarEvent.findByIdAndUpdate(id, calendarData, { new: true })
       .populate('organizer', 'name')
       .populate('participants', 'name')
       .populate('location')
-      console.log("updatedEvent", updatedEvent)
+    console.log("updatedEvent", updatedEvent)
 
     if (!updatedEvent) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
     // Notify participants about the update
-    await Promise.all(updatedEvent.participants.map(async (participantId) => {
-      await Notification.create({
-        user: participantId,
-        type: 'event-update',
-        message: `The event "${updatedEvent.title}" has been updated.`,
-        event: updatedEvent._id
-      });
-    }));
 
+    notificationService(
+      updatedEvent.participants,  // List of participants
+      'event-update',  // Notification type
+      `The event ${updatedEvent.title} has been updated.`,  // Message
+      updatedEvent._id  // Event ID
+    );
+
+    // await Promise.all(updatedEvent.participants.map(async (participantId) => {
+    //   await Notification.create({
+    //     user: participantId,
+    //     type: 'event-update',
+    //     message: `The event "${updatedEvent.title}" has been updated.`,
+    //     event: updatedEvent._id
+    //   });
+    // }));
+console.log("updated event id is hereeeee")
     res.status(200).json(updatedEvent);
   } catch (error) {
     console.error('Error updating event:', error);
@@ -101,14 +118,21 @@ exports.deleteEvent = async (req, res) => {
     }
 
     // Notify participants about the cancellation before deletion
-    await Promise.all(event.participants.map(async (participantId) => {
-      await Notification.create({
-        user: participantId,
-        type: 'event-cancelled',
-        message: `The event "${event.title}" has been cancelled.`,
-        event: event._id
-      });
-    }));
+
+    notificationService(
+      event.participants,  // List of participants
+      'event-cancelled',  // Notification type
+      `The event ${event.title} has been cancelled.`,  // Message
+      event._id  // Event ID
+    );
+    // await Promise.all(event.participants.map(async (participantId) => {
+    //   await Notification.create({
+    //     user: participantId,
+    //     type: 'event-cancelled',
+    //     message: `The event "${event.title}" has been cancelled.`,
+    //     event: event._id
+    //   });
+    // }));
     // Delete the event from the database
     await CalendarEvent.findByIdAndDelete(id);
 
@@ -168,7 +192,7 @@ exports.getUserEvents = async (req, res) => {
     if (allEvents.length === 0) {
       return res.status(404).json({ message: 'No events found' });
     }
-    
+
     res.status(200).json(allEvents);
     console.log(allEvents);
   } catch (error) {
