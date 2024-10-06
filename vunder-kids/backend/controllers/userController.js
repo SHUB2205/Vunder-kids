@@ -308,7 +308,8 @@ const getUserId = async (req, res) => {
   try {
     let userId = req.user.id;
     const client = await User.findById(userId).select("-password");
-    res.json({ msg: "Id of the user", client, success: true });
+    const profileCompletion = client.getProfileCompletion();
+    res.json({ msg: "Id of the user", client,profileCompletion: profileCompletion.toFixed(2), success: true });
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({ error: "Token has expired" });
