@@ -31,9 +31,9 @@ function App() {
           />
           <Route path="/register" Component={Register} />
           <Route path="/login" Component={Login} />
-          <Route path="/googleLogin" Component={GoogleLogin} />
-          <Route path="/chat" Component={Dashboard} />
           <Route path="/verify" element={<Verify />} />
+          <Route path="/chat" Component={Dashboard} />
+          <Route path="/googleLogin" Component={GoogleLogin} />
           <Route path="/articles" element={<Articles />} />
 
         </Routes>

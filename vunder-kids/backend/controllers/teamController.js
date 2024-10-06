@@ -1,6 +1,6 @@
 const Team = require("../models/Team");
 const notificationService=require('../services/notification/notificationService.js');
-
+const User = require('../models/User'); 
 // Create a new team
 exports.createTeam = async (req, res) => {
   try {
@@ -22,24 +22,19 @@ exports.createTeam = async (req, res) => {
     // Save the new team to the database
     await newTeam.save();
 
+    // Update each participant's teamIds field
+    await User.updateMany(
+      { _id: { $in: participants } }, // Match all participants
+      { $addToSet: { teamIds: newTeam._id } } // Add the team ID to the user's teamIds array, avoiding duplicates
+    );
+
+    // Send notifications to participants
     notificationService(
       participants, 
       'matchmaking', 
-      `You Have been added in the team`,
+      `You have been added to the team "${newTeam.name}"`,
       newTeam._id
     );
-
-    //  For understnading to how to get the user info
-    //   const populatedTeam = await Team.findById(newTeam._id)
-    //   .populate({
-    //     path: 'participants', // Field to populate
-    //     select: '-password' // Optionally exclude the password field
-    //   })
-    //   .populate({
-    //     path: 'admins', // Ensure admins are populated if needed
-    //     select: '-password' // Optionally exclude the password field
-    //   })
-    //   .exec();
 
     // Respond with the created team
     res.status(201).json(newTeam);
@@ -47,28 +42,30 @@ exports.createTeam = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
 // Get all teams
 exports.getAllTeams = async (req, res) => {
   try {
     const userId = req.params.userid; // Get the user ID from the request parameters
 
-    // Find all teams where the user ID is in the participants list
-    const teams = await Team.find({
-        participants: userId // Check if userId is present in the participants array
-      })
-
-    // If no teams are found
-    if (teams.length === 0) {
+    // Retrieve the user document to get their teamIds
+    const user = await User.findById(userId).select('teamIds');
+    
+    // If the user does not exist or has no teams
+    if (!user || user.teamIds.length === 0) {
       return res.status(404).json({ message: "No teams found for this user." });
     }
 
+    // Fetch all teams where the teamId matches the user's teamIds
+    const teams = await Team.find({
+      _id: { $in: user.teamIds } // Fetch teams with IDs in the user's teamIds array
+    });
+
+    // Respond with the teams
     res.status(200).json(teams);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
-
 // Get a single team by ID
 exports.getTeamById = async (req, res) => {
   try {
