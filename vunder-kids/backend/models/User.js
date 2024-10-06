@@ -47,11 +47,11 @@ const UserSchema = new mongoose.Schema({
 
   totalMatches: {
     type: Number,
-    default: 0, // New field to track the total number of matches the user has participated in
+    default: 0, 
   },
   wonMatches: {
     type: Number,
-    default: 0, // New field to track the number of matches the user has won
+    default: 0, 
   },
   progress: {
     type: mongoose.Schema.Types.ObjectId,

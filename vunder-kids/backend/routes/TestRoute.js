@@ -8,6 +8,8 @@ const followersToAdd = [
   { _id: '66b0e75a9751c1602ce93ea8' },
   { _id: '66b7de57e213f457346a1de7' },
   {_id:  '66b7dea3e213f457346a1ded' }
+  {_id:  '66b7dea3e213f457346a1ded' }
+  {_id:  '66b7dea3e213f457346a1ded' }
 ];
 
 async function addFollowers() {
