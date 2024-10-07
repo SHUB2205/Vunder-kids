@@ -47,11 +47,11 @@ const UserSchema = new mongoose.Schema({
 
   totalMatches: {
     type: Number,
-    default: 0, 
+    default: 0,
   },
   wonMatches: {
     type: Number,
-    default: 0, 
+    default: 0,
   },
   progress: {
     type: mongoose.Schema.Types.ObjectId,
@@ -136,14 +136,15 @@ UserSchema.methods.getProfileCompletion = function () {
     this.school,
     this.userClass,
     this.email,
-    this.phoneNumber
+    this.phoneNumber,
   ];
 
   const totalFields = fields.length;
-  const filledFields = fields.filter(field => field && field.trim() !== "").length;
+  const filledFields = fields.filter(
+    (field) => field && field.trim() !== ""
+  ).length;
   return (filledFields / totalFields) * 100;
 };
-
 
 const User = mongoose.model("User", UserSchema);
 
