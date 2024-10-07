@@ -1,10 +1,11 @@
 const OpenAI = require('openai');
 
 
+
 const openai = new OpenAI({
-	apiKey: 'pk-ebmfPrdfXCdnkynWddxUpLdpdWGhpoqPrBFAxlsUJQVCLJMZ',
-	baseURL: "https://localhost:5000/v1",
-});
+        apiKey: "key"
+ });
+
 
 
 const fetchData=require('../services/openai/fetchData.js')
