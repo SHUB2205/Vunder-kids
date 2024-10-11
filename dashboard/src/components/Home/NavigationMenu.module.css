@@ -1,0 +1,46 @@
+.navigationMenu {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .menuItem {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .menuItem:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .menuIcon {
+    margin-right: 10px;
+    font-size: 20px;
+  }
+  
+  .menuLabel {
+    font-size: 16px;
+  }
+  
+  @media (max-width: 991px) {
+    .navigationMenu {
+      flex-direction: row;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+  
+    .menuItem {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .menuIcon {
+      margin-right: 0;
+      margin-bottom: 5px;
+    }
+  }

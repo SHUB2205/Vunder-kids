@@ -1,0 +1,40 @@
+.matchCard {
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .matchInfo {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .matchType,
+  .matchLocation {
+    font-size: 12px;
+    color: #888;
+  }
+  
+  .teamInfo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  
+  .teamLogo {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+  
+  .teamName {
+    font-size: 14px;
+  }
+  
+  .matchDate {
+    font-size: 12px;
+    color: #b78a3a;
+    text-align: right;
+  }

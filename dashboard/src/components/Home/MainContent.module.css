@@ -1,0 +1,16 @@
+/* .seprater{
+  display: flex;
+  flex-direction: column;
+
+  } */
+  .mainContent {
+    flex: 1;
+    padding: 20px;
+    flex: 0 0 44%; 
+  }
+  
+  @media (max-width: 991px) {
+    .mainContent {
+      order: -1;
+    }
+  }

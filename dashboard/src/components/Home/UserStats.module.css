@@ -1,0 +1,70 @@
+.userStats {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #e7e7e8;
+    border-radius: 10px;
+  }
+  
+  .statsTitle {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .playerInfo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .playerName {
+    font-size: 16px;
+    margin-right: 10px;
+  }
+  
+  .playerAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+  
+  .statsToggle {
+    display: flex;
+    margin-bottom: 15px;
+  }
+  
+  .activeToggle,
+  .inactiveToggle {
+    flex: 1;
+    padding: 5px;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+  
+  .activeToggle {
+    background-color: #e7e7e8;
+    border-radius: 5px;
+  }
+  
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .statItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .statIcon {
+    font-size: 24px;
+    margin-bottom: 5px;
+  }
+  
+  .statValue {
+    font-size: 18px;
+    font-weight: bold;
+  }

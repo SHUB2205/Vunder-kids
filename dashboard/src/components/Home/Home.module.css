@@ -1,0 +1,20 @@
+.homeContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fff;
+  margin: 0px 100px;
+  }
+  
+  .contentWrapper {
+    display: flex;
+    flex: 1;
+    /* justify-content: space-between;  */
+  }
+  
+  @media (max-width: 991px) {
+    .contentWrapper {
+      flex-direction: column;
+    }
+  }
+  

@@ -1,0 +1,145 @@
+.upcomingMatches {
+  background-color: #fff;
+  border: 1px solid #e7e7e8;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.matchesToggle {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.activeToggle,
+.inactiveToggle {
+  flex: 1;
+  padding: 5px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.activeToggle {
+  background-color: #e7e7e8;
+  border-radius: 15px;
+}
+
+.dateSelector {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.activeDate,
+.inactiveDate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.activeDate {
+  background-color: #e7e7e8;
+  border-radius: 5px;
+}
+
+.sportsFilter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.filterIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.sportsList {
+  display: flex;
+  overflow-x: auto;
+}
+
+.activeSport,
+.inactiveSport {
+  padding: 5px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.activeSport {
+  background-color: #e7e7e8;
+  border-radius: 15px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e7e7e8;
+  margin: 15px 0;
+}
+
+.stayUpdated {
+  background-color: #fff;
+  border: 1px solid #e7e7e8;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.userSuggestion {
+  display: flex;
+  align-items: center;
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.userInfo {
+  flex: 1;
+}
+
+.userName {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.userHandle {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+}
+
+.followButton {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 15px;
+  font-size: 14px;
+  cursor: pointer;
+}

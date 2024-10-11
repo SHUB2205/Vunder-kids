@@ -1,0 +1,83 @@
+.post {
+    background-color: #fff;
+    border: 1px solid #e7e7e8;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .postHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .authorAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .authorInfo {
+    flex: 1;
+  }
+  
+  .authorName {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .postTime {
+    font-size: 12px;
+    color: #888;
+  }
+  
+  .postOptions {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .postContent {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  .postImage {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .postFooter {
+    border-top: 1px solid #e7e7e8;
+    padding-top: 15px;
+  }
+  
+  .postActions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .actionButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .likesCount {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .viewComments {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 14px;
+  }
