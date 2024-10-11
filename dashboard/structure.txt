@@ -1,0 +1,30 @@
+Main Layout Components:
+
+Header: The section at the top (including user input like "Game face on! What's on your mind?").
+Sidebar: The left sidebar with menu options (Home, Search, Notifications, etc.).
+Main Content Area: The central feed area (posts and related actions).
+Right Sidebar: The section on the right (Upcoming Matches, Tip of the Day, etc.).
+Component Breakdown:
+
+Header Component:
+The part where the user can post or add content (Text input, buttons like "Post", "Add Score").
+Sidebar Component:
+A list of items (Home, Search, etc.). You can pass these as props to render dynamically.
+Post Component:
+For displaying each post in the feed (includes text, image, icons, and like/share/comment buttons).
+Match Card Component:
+For upcoming matches (team and individual matches). Each match could be a separate component.
+User Stats Component:
+For the game stats like trophies, coins, etc.
+Tip Component:
+To display the "Tip of the Day".
+Responsive Design Approach:
+
+Grid Layout: Use CSS Grid or Flexbox to manage the layout. The left and right sidebars can collapse on smaller screens, allowing the main content to take up more space.
+Media Queries: Adjust the size and layout of each component based on screen width. For example:
+On larger screens: Keep the three-column layout (Sidebar, Main Feed, Right Sidebar).
+On smaller screens: Collapse the sidebars into dropdown menus or slide-in panels and make the main content occupy the full width.
+Reusable Components:
+
+Icons and Buttons: Like the comment, like, and share buttons, could be their own reusable components.
+Match List: Create a list component to render each match card dynamically, based on the match data.

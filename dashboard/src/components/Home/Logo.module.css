@@ -1,0 +1,17 @@
+.logoContainer {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .logoImage {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+  }
+  
+  .logoText {
+    font-family: 'Audiowide', sans-serif;
+    font-size: 24px;
+    color: #333;
+  }
