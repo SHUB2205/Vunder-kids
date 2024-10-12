@@ -1,8 +1,9 @@
 .rightSidebar {
-  width: 28%;
-  padding: 1rem;
+  width: 29%;
+ padding-top: 20px;
+  /* padding: 1rem; */
   background-color: #ffffff;
-  border-left: 1px solid #e0e0e0;
+  /* border-left: 1px solid #e0e0e0; */
   display: flex;
   flex-direction: column;
   /* flex: 0 0 25%; */

@@ -1,6 +1,9 @@
 .navigationMenu {
     display: flex;
     flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    padding: 10px;
   }
   
   .menuItem {
@@ -15,7 +18,8 @@
   }
   
   .menuItem:hover {
-    background-color: #f0f0f0;
+    background-color: var(--hover-icon-color);
+    border-radius: var( --button-radius);
   }
   
   .menuIcon {

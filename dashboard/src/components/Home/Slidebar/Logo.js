@@ -1,11 +1,11 @@
 import React from 'react';
 import styles from './Logo.module.css';
+import LogoIcon from '../../images/Logo.png'
 
 function Logo() {
   return (
     <div className={styles.logoContainer}>
-      <img src="http://b.io/ext_20-" alt="Isiko logo" className={styles.logoImage} />
-      <h1 className={styles.logoText}>isiko</h1>
+      <img src={LogoIcon} alt="Isiko logo" className={styles.logoImage} />
     </div>
   );
 }

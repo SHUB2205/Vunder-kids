@@ -1,8 +1,8 @@
 import React from 'react';
 // import Header from './Header';
-import Sidebar from './Sidebar';
-import MainContent from './MainContent';
-import RightSidebar from './RightSidebar';
+import Sidebar from './Slidebar/Sidebar';
+import MainContent from './MainContent/MainContent';
+import RightSidebar from './RightSidebar/RightSidebar';
 import styles from './Home.module.css';
 
 function Home() {
