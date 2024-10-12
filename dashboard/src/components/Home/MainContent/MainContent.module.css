@@ -6,7 +6,7 @@
   .mainContent {
     flex: 1;
     padding: 20px;
-    flex: 0 0 44%; 
+    flex: 0 0 54%; 
   }
   
   @media (max-width: 991px) {

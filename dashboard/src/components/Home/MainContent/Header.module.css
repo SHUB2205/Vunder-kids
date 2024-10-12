@@ -1,8 +1,12 @@
 .header {
-    padding: 20px;
-    border: 1px solid #e7e7e8;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
   }
-  
+
+  .postarea{
+    padding: 6px;
+  }
   .postForm {
     display: flex;
     align-items: flex-start;
@@ -18,21 +22,24 @@
   .inputWrapper {
     flex: 1;
     position: relative;
+    padding-right: 8px;
   }
   
   .postInput {
     width: 100%;
-    min-height: 100px;
-    padding: 10px;
-    border: 1px solid #e7e7e8;
-    border-radius: 15px;
+    /* min-height: 100px; */
+    padding: 10px 62px 0px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
     resize: vertical;
+    resize: none; 
   }
   
   .postActions {
     display: flex;
     justify-content: space-between;
     margin-top: 10px;
+    padding-right: 6px;
   }
   
   .actionButton {
@@ -51,13 +58,13 @@
   
   .postButton {
     position: absolute;
-    right: 10px;
-    bottom: 10px;
-    padding: 5px 10px;
-    background-color: #333;
+    right: 15px;
+    bottom: 46px;
+    padding: 5px 20px;
+    background-color: var(--button-color-Post-Follow);
     color: #fff;
     border: none;
-    border-radius: 15px;
+    border-radius: var(--button-radius);
     cursor: pointer;
   }
   

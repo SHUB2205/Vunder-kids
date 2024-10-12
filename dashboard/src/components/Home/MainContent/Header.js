@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styles from './Header.module.css';
-
+import addPhoto from "../../images/addPhoto.png"
+import UserPhoto from '../../images/UserPhoto.png'
+import addScore from "../../images/addScore.png"
 function Header() {
   const [postContent, setPostContent] = useState('');
 
@@ -13,7 +15,7 @@ function Header() {
   return (
     <header className={styles.header}>
       <form onSubmit={handlePostSubmit} className={styles.postForm}>
-        <img src="http://b.io/ext_17-" alt="User avatar" className={styles.userAvatar} />
+        <img src={UserPhoto} alt="User avatar" className={styles.userAvatar} />
         <div className={styles.inputWrapper}>
           <textarea
             className={styles.postInput}
@@ -24,7 +26,7 @@ function Header() {
           />
           <div className={styles.postActions}>
             <button type="button" className={styles.actionButton}>
-              <img src="http://b.io/ext_18-" alt="" className={styles.actionIcon} />
+              <img src={addPhoto} alt="" className={styles.actionIcon} />
               <span>Photo/Video</span>
             </button>
             <button type="button" className={styles.actionButton}>
@@ -32,7 +34,7 @@ function Header() {
               <span>Set Match</span>
             </button>
             <button type="button" className={styles.actionButton}>
-              <img src="http://b.io/ext_19-" alt="" className={styles.actionIcon} />
+              <img src={addScore} alt="" className={styles.actionIcon} />
               <span>Add Score</span>
             </button>
           </div>

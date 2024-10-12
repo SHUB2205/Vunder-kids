@@ -1,9 +1,10 @@
 .post {
-    background-color: #fff;
-    border: 1px solid #e7e7e8;
+    background-color: var(--main-color);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
+    margin-top: 10px;
   }
   
   .postHeader {
@@ -52,7 +53,7 @@
   }
   
   .postFooter {
-    border-top: 1px solid #e7e7e8;
+    /* border-top: 1px solid #e7e7e8; */
     padding-top: 15px;
   }
   
@@ -60,6 +61,7 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
+    width: 18%;
   }
   
   .actionButton {
