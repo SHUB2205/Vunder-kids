@@ -1,5 +1,5 @@
 .rightSidebar {
-  width: 29%;
+  width: var(--rightContentWidth);
  padding-top: 20px;
   /* padding: 1rem; */
   background-color: #ffffff;

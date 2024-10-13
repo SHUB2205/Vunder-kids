@@ -5,7 +5,7 @@
   } */
   .mainContent {
     padding: 20px;
-
+    flex: var(--middleContentWidth);
   }
   
   /* @media (max-width: 991px) {

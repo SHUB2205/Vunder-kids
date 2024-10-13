@@ -4,12 +4,33 @@
   box-sizing: border-box;
 }
 :root {
+
+  /* BGcolor */
   --main-color: #ffffff;
-  --border-raduis: 15px;
+
+  /* Button Color */
   --hover-icon-color: #f0f0f0;
-  --border-color: #e7e7e8;
-  --button-radius: 8px;
   --button-color-Post-Follow: #333;
+
+  /* Radius */
+  --border-raduis: 15px;
+  --button-radius: 8px;
+
+  /* Border */
+  --border-color: #e7e7e8;
+
+  /* Content Width */
+  --middleContentWidth:  0 0 55%;
+  --rightContentWidth:29%;
+  --leftContentWidth:  17%
+
+  /* text property */
+  /* --font-heading: ;
+  --font-primary: ;
+  --font-caption */
+
+  
+  
 }
 
 .dashboard {
@@ -30,8 +51,4 @@
   .contentWrapper {
     flex-direction: column;
   }
-}
-
-.middleContentWidth {
-  flex: 0 0 54%;
 }

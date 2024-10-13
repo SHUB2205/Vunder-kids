@@ -1,6 +1,6 @@
 .tipOfTheDay {
-  background-color: #f0f0f0;
-  border-radius: 8px;
+  background-color: var(--hover-icon-color);
+  border-radius: var(-- --border-raduis);
   padding: 1rem;
   margin-bottom: 1rem;
 }
