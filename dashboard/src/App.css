@@ -3,3 +3,35 @@
   padding: 0;
   box-sizing: border-box;
 }
+:root {
+  --main-color: #ffffff;
+  --border-raduis: 15px;
+  --hover-icon-color: #f0f0f0;
+  --border-color: #e7e7e8;
+  --button-radius: 8px;
+  --button-color-Post-Follow: #333;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fff;
+  margin: 0px 100px;
+}
+
+.dashboardWrapper {
+  display: flex;
+  flex: 1;
+  /* justify-content: space-between;  */
+}
+
+@media (max-width: 991px) {
+  .contentWrapper {
+    flex-direction: column;
+  }
+}
+
+.middleContentWidth {
+  flex: 0 0 54%;
+}

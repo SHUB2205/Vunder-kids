@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from './Post.module.css';
-import likeImg from '../../images/like.png'
-import commentImg from '../../images/comment.png'
-import shareImg from '../../images/share.png'
+import likeImg from '../images/like.png'
+import commentImg from '../images/comment.png'
+import shareImg from '../images/share.png'
 function Post({ author, avatar, time, content, image, likes }) {
   return (
     <article className={styles.post}>

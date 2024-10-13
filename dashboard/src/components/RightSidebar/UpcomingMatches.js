@@ -1,11 +1,11 @@
 import React, { useRef, useState } from "react";
 import MatchCard from "./MatchCard";
-import moveLeftIcon from "../../images/moveLeftIcon.png";
-import moveRightIcon from "../../images/moveRightIcon.png";
 import styles from "./UpcomingMatches.module.css";
-import calendarIcon from "../../images/calendarIcon.png";
-import TeamIcon1 from "../../images/TeamIcon1.png"
-import TeamIcon2 from "../../images/TeamIcon2.png"
+import moveLeftIcon from "../images/moveLeftIcon.png";
+import moveRightIcon from "../images/moveRightIcon.png";
+import calendarIcon from "../images/calendarIcon.png";
+import TeamIcon1 from "../images/TeamIcon1.png"
+import TeamIcon2 from "../images/TeamIcon2.png"
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const sports = [
   "Football",
