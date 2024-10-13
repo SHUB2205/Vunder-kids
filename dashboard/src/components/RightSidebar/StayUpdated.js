@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './StayUpdated.module.css';
-import UserPhoto2 from '../../images/UserPhoto2.png';
-import UserPhoto3 from '../../images/UserPhoto3.png';
+import UserPhoto2 from '../images/UserPhoto2.png';
+import UserPhoto3 from '../images/UserPhoto3.png';
 function StayUpdated() {
   return (
     <section className={styles.stayUpdated}>

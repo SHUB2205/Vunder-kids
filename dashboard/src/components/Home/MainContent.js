@@ -18,7 +18,7 @@ function MainContent() {
   return (
     <>
     {/* <div className='seprater'> */}
-    <main className={styles.mainContent}>
+    <main className={`${styles.mainContent} middleContentWidth`}>
     <Header/>
       {posts.map(post => (
         <Post key={post.id} {...post} />

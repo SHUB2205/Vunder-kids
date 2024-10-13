@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import styles from './Header.module.css';
-import addPhoto from "../../images/addPhoto.png"
-import UserPhoto from '../../images/UserPhoto.png'
-import addScore from "../../images/addScore.png"
+import addPhoto from "../images/addPhoto.png"
+import UserPhoto from '../images/UserPhoto.png'
+import addScore from "../images/addScore.png"
 function Header() {
   const [postContent, setPostContent] = useState('');
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./UserStats.module.css";
-import UserPhoto from "../../images/UserPhoto.png";
+import UserPhoto from "../images/UserPhoto.png";
 const statItems = [
   { icon: "🤾‍♂️", value: "84", label: "Games Played" },
   { icon: "🏆", value: "56", label: "Trophies" },

@@ -2,7 +2,7 @@ import React from 'react';
 import Logo from './Logo';
 import NavigationMenu from './NavigationMenu';
 import UserStats from './UserStats';
-import styles from './Sidebar.module.css';
+import styles from './LeftSidebar.module.css';
 
 function Sidebar() {
   return (
