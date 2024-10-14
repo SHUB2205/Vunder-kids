@@ -1,0 +1,83 @@
+.header {
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+  }
+
+  .postarea{
+    padding: 6px;
+  }
+  .postForm {
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .userAvatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .inputWrapper {
+    flex: 1;
+    position: relative;
+    padding-right: 8px;
+  }
+  
+  .postInput {
+    width: 100%;
+    /* min-height: 100px; */
+    padding: 10px 62px 0px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    resize: vertical;
+    resize: none; 
+    font: var(--font-secondary);
+  }
+  
+  .postActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-right: 6px;
+  }
+  
+  .actionButton {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: var(--font-secondary);
+  }
+  
+  .actionIcon {
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+  }
+  
+  .postButton {
+    position: absolute;
+    right: 15px;
+    bottom: 46px;
+    padding: 5px 20px;
+    background-color: var(--button-color-Post-Follow);
+    color: #fff;
+    border: none;
+    border-radius: var(--button-radius);
+    cursor: pointer;
+    font: var(--font-secondary);
+  }
+  
+  
+  @media (max-width: 991px) {
+    .postActions {
+      flex-wrap: wrap;
+    }
+  
+    .actionButton {
+      margin-bottom: 10px;
+    }
+  }

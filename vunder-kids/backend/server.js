@@ -5,6 +5,7 @@ const cors = require('cors');
 const http = require('http');
 
 
+
 const matchRoutes = require('./routes/matchRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const postRoutes = require('./routes/postRoute');
@@ -13,6 +14,7 @@ const progressRoutes = require('./routes/progressRoute');
 const searchRoute = require('./routes/searchRoute');
 const editRoute = require("./routes/editRoute");
 const calendarRoutes = require ("./routes/calendarRoute")
+const openaiRoute=require("./routes/openaiRoute");
 
 //for google calender
 const { google } = require('googleapis');
@@ -59,12 +61,12 @@ app.use('/api/user-achievements', progressRoutes);
 app.use("/api/search", searchRoute);
 // editRoute
 app.use("/api/edit", editRoute);
-
+// OpenAi
+app.use("/api/ai", openaiRoute);
 
 
 //for website calendar
 app.use('/api/calendar', calendarRoutes);
-
 
 // For Google Calendar
 // Google OAuth2 credentials

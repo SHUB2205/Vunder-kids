@@ -1,0 +1,61 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+:root {
+  /* BGcolor */
+  --main-color: #ffffff;
+
+  /* Button Color */
+  --hover-icon-color: #f0f0f0;
+  --button-color-Post-Follow: #333;
+
+  /* Border Radius */
+  --border-raduis: 15px;
+  --button-radius: 8px;
+
+  /* Border Color */
+  --border-color: #e7e7e8;
+
+  /* Content Width */
+  --middleContentWidth: 0 0 55%;
+  --rightContentWidth: 29%;
+  --leftContentWidth: 17%;
+
+  /* p {
+    font: italic small-caps bold 16px/1.5 'Arial', sans-serif;
+    }
+  italic: Sets the font style to italic.
+  small-caps: Sets the font variant to small capital letters.
+  bold: Sets the font weight to bold (you can also use numeric values like 700).
+  16px/1.5: Sets the font size to 16px and the line height to 1.5 (ratio of the font size).
+  'Arial', sans-serif: Defines the font family, with Arial as the primary font and sans-serif as the fallback. */
+
+  /* text property */
+  --font-primary: 15px "Arial", sans-serif;
+  --font-heading: bold 18px "Arial", sans-serif;
+  --font-secondary: 13px "Arial", sans-serif;
+  --font-caption: 11px "Arial", sans-serif;
+  --font-icon: 19px;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fff;
+  margin: 0px 100px;
+}
+
+.dashboardWrapper {
+  display: flex;
+  flex: 1;
+  /* justify-content: space-between;  */
+}
+
+@media (max-width: 991px) {
+  .contentWrapper {
+    flex-direction: column;
+  }
+}

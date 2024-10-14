@@ -1,0 +1,16 @@
+.tipOfTheDay {
+  background-color: var(--hover-icon-color);
+  border-radius: var( --border-raduis);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tipTitle {
+  font:var(--font-heading);
+  margin-bottom: 0.5rem;
+}
+
+.tipContent {
+  font:var(--font-primary);
+  line-height: 1.4;
+}

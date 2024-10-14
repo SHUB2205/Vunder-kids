@@ -1,0 +1,84 @@
+.post {
+    background-color: var(--main-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    margin-top: 10px;
+  }
+  
+  .postHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .authorAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .authorInfo {
+    flex: 1;
+  }
+  
+  .authorName {
+    font: var(--font-heading);
+    margin: 0;
+  }
+  
+  .postTime {
+    font:var(--font-caption);
+    color: #888;
+  }
+  
+  .postOptions {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .postContent {
+    font:var(--font-primary);
+    margin-bottom: 15px;
+  }
+  
+  .postImage {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .postFooter {
+    /* border-top: 1px solid #e7e7e8; */
+    padding-top: 15px;
+  }
+  
+  .postActions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    width: 18%;
+  }
+  
+  .actionButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .likesCount {
+    font:var(--font-secondary);
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .viewComments {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font:var(--font-secondary);
+  }

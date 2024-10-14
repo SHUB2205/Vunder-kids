@@ -1,0 +1,73 @@
+.userStats {
+    margin-top: 20px;
+    /* padding: 20px; */
+  }
+  .statsContainer{
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    padding: 10px;
+  }
+  .statsTitle {
+    font: var(--font-heading);
+    margin-bottom: 10px;
+  }
+  
+  .playerInfo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    justify-content: space-around;
+  }
+  
+  .playerName {
+    font:var(--font-primary);
+    margin-right: 10px;
+  }
+  
+  .playerAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+  
+  .statsToggle {
+    display: flex;
+    margin-bottom: 15px;
+  }
+  
+  .activeToggle,
+  .inactiveToggle {
+    flex: 1;
+    padding: 5px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font: var(--font-secondary);
+  }
+  
+  .activeToggle {
+    background-color: var(--hover-icon-color);
+    border-radius: var(--button-radius);
+  }
+  
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .statItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .statIcon {
+    font-size:var(--font-icon);
+    margin-bottom: 5px;
+  }
+  
+  .statValue {
+    font: var(--font-secondary);
+    font-weight: bold;
+  }

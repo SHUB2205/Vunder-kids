@@ -1,0 +1,115 @@
+.upcomingMatches {
+  background-color: var(--main-color);
+  border-radius: var(--border-raduis);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.sectionTitle {
+  font:var(--font-heading);
+  margin-bottom: 1rem;
+}
+
+.matchesToggle {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.activeToggle,
+.inactiveToggle {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--button-radius);
+  font:var(--font-primary);
+}
+
+.activeToggle {
+  background-color: var(--hover-icon-color);
+  font:var(--font-primary);
+  font-weight: bold;
+}
+
+.dateSelector {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  align-items: center;
+  cursor:pointer;
+}
+.calendarIcon{
+  width: 25px;
+  height: 27px;
+}
+.activeDate,
+.inactiveDate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--button-radius);
+  font:var(--font-secondary);
+}
+
+.activeDate {
+  background-color: var(--hover-icon-color);
+  font-weight: bold;
+}
+.sportsFilter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  justify-content: space-around;
+}
+
+.filterIcon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.sportsList {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth; /* Enables smooth scrolling */
+  width: 200px; /* Adjust width as needed */
+}
+
+.activeSport,
+.inactiveSport {
+  font:var(--font-secondary);
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.activeSport {
+  background-color: var(--hover-icon-color);
+  font-weight: bold;
+  border-radius: var(--button-radius);
+}
+
+/* Optional: Hide the scrollbar */
+.sportsList::-webkit-scrollbar {
+  display: none;
+}
+
+.sportsList {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1rem 0;
+}

@@ -1,0 +1,41 @@
+.matchCard {
+    background-color: var(--hover-icon-color);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .matchInfo {
+    display: flex;
+    /* justify-content: space-between; */
+    margin-bottom: 10px;
+  }
+  
+  .matchType,
+  .matchLocation {
+    font:var(--font-caption);
+    color: #888;
+    margin-right: 12px;
+  }
+  
+  .teamInfo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  
+  .teamLogo {
+    width: 25px;
+    height: 22px;
+    margin-right: 10px;
+  }
+  
+  .teamName {
+    font:var(--font-secondary);
+  }
+  
+  .matchDate {
+    font:var(--font-caption);
+    color: #b78a3a;
+    text-align: right;
+  }

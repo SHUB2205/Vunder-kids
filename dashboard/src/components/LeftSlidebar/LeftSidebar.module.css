@@ -1,0 +1,15 @@
+.sidebar {
+    /* width: 300px; */
+    /* padding: 20px; */
+ width: var(--leftContentWidth);
+ padding-top: 20px;
+    /* border: 1px solid #e7e7e8; */
+  }
+  
+  @media (max-width: 991px) {
+    .sidebar {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--border-color);
+    }
+  }
