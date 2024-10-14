@@ -13,7 +13,7 @@
   
   .matchType,
   .matchLocation {
-    font-size: 12px;
+    font:var(--font-caption);
     color: #888;
     margin-right: 12px;
   }
@@ -31,11 +31,11 @@
   }
   
   .teamName {
-    font-size: 14px;
+    font:var(--font-secondary);
   }
   
   .matchDate {
-    font-size: 12px;
+    font:var(--font-caption);
     color: #b78a3a;
     text-align: right;
   }

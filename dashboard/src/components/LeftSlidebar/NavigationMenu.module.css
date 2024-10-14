@@ -29,11 +29,11 @@
   
   .menuIcon {
     margin-right: 10px;
-    font-size: 20px;
+    font-size:var(--font-icon);
   }
   
   .menuLabel {
-    font-size: 16px;
+    font:var(--font-primary);
   }
   
   @media (max-width: 991px) {
