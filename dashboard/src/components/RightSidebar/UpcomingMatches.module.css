@@ -7,7 +7,7 @@
 }
 
 .sectionTitle {
-  font-size: 1.2rem;
+  font:var(--font-heading);
   margin-bottom: 1rem;
 }
 
@@ -23,11 +23,13 @@
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: var(--button-radius)
+  border-radius: var(--button-radius);
+  font:var(--font-primary);
 }
 
 .activeToggle {
   background-color: var(--hover-icon-color);
+  font:var(--font-primary);
   font-weight: bold;
 }
 
@@ -51,7 +53,8 @@
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: var(--button-radius)
+  border-radius: var(--button-radius);
+  font:var(--font-secondary);
 }
 
 .activeDate {
@@ -80,6 +83,7 @@
 
 .activeSport,
 .inactiveSport {
+  font:var(--font-secondary);
   padding: 0.25rem 0.5rem;
   margin-right: 0.5rem;
   border: none;
