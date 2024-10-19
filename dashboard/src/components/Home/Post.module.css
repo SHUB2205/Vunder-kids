@@ -14,10 +14,10 @@
   }
   
   .authorAvatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
+    width: var(--avatar-width);
+  height: var(--avatar-height);
+  border-radius: var(--avatar-border-radius);
+  margin-right: var(--avatar-margin-right);
   }
   
   .authorInfo {

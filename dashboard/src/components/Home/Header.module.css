@@ -70,7 +70,9 @@
     cursor: pointer;
     font: var(--font-secondary);
   }
-  
+  .postButton:hover {
+    background-color: #555;
+  }
   
   @media (max-width: 991px) {
     .postActions {

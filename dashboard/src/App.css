@@ -17,6 +17,7 @@
 
   /* Border Color */
   --border-color: #e7e7e8;
+  --border-color-dark: #333;
 
   /* Content Width */
   --middleContentWidth: 0 0 55%;
@@ -33,11 +34,22 @@
   'Arial', sans-serif: Defines the font family, with Arial as the primary font and sans-serif as the fallback. */
 
   /* text property */
-  --font-primary: 15px "Arial", sans-serif;
   --font-heading: bold 18px "Arial", sans-serif;
+  --font-primary: 15px "Arial", sans-serif;
   --font-secondary: 13px "Arial", sans-serif;
   --font-caption: 11px "Arial", sans-serif;
   --font-icon: 19px;
+
+  /* font color */
+  --text-color: #333;
+  
+  /*  Avatar(Profile) Property */
+    --avatar-width: 40px;
+    --avatar-height: 40px;
+    --avatar-border-radius: 50%;
+    --avatar-margin-right: 10px;
+
+  
 }
 
 .dashboard {
@@ -54,8 +66,16 @@
   /* justify-content: space-between;  */
 }
 
+@media (max-width: 1250px) {
+  .dashboard {
+    margin: 0px 60px;
+  }
+}
 @media (max-width: 991px) {
   .contentWrapper {
     flex-direction: column;
+  }
+  .dashboard {
+    margin: 0px 40px;
   }
 }

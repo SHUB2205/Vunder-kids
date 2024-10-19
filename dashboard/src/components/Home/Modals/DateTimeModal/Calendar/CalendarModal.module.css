@@ -1,0 +1,116 @@
+.calendar {
+  border-radius: 25px;
+  background-color: var(--main-color);
+  display: flex;
+  margin-top: 20px;
+  width: 365px;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border: 1px solid var( --border-color);
+}
+
+.calendarHeader {
+  display: flex;
+  width: 100%;
+  gap: 20px;
+  /* color: #333; */
+  white-space: nowrap;
+  justify-content: space-between;
+  /* font: 400 18px Roboto, sans-serif; */
+}
+
+@media (max-width: 991px) {
+  .calendarHeader {
+    white-space: initial;
+  }
+}
+
+.calendarTitle {
+  margin: 0;
+  font: inherit;
+  font: var( --font-heading);
+}
+
+
+.monthSelector {
+  display: flex;
+  margin-top: 21px;
+  width: 100%;
+  max-width: 324px;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.monthYear {
+  color: var(--text-color);
+  font: var(--font-primary);
+}
+
+.navigationIcons {
+  display: flex;
+  gap: 16px;
+}
+
+.navIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 16px;
+  cursor: pointer;
+}
+
+.weekDays {
+  display: flex;
+  margin-top: 21px;
+  width: 100%;
+  gap: 20px;
+  color: var(--text-color);
+  white-space: nowrap;
+  text-align: center;
+  justify-content: space-between;
+  font: var(--font-secondary);
+}
+
+@media (max-width: 991px) {
+  .weekDays {
+    white-space: initial;
+  }
+}
+
+.weekDay {
+  flex: 1;
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* Ensure 7 equal-width columns */
+  gap: 14px; /* Adjust as needed */
+  
+  text-align: center;
+  justify-items: center;
+}
+
+.day {
+  width: 100%; /* Ensures each day takes full width in the grid */
+  padding: 10px;
+  text-align: center;
+  border-radius: 50%; /* To ensure circular shape */
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-color);
+  font: var(--font-secondary)
+}
+
+.day:disabled {
+  visibility: hidden; /* Hide empty days */
+}
+
+.activeDay {
+  border-radius: 50%;
+  border: 1px solid var(--border-color-dark);
+  background-color: var(--hover-icon-color); /* Optional: visual highlight for active day */
+}
