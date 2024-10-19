@@ -1,0 +1,118 @@
+
+  
+  .captionContainer {
+    align-self: stretch;
+    z-index: 0;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+  }
+  
+  @media (max-width: 991px) {
+    .captionContainer {
+      max-width: 100%;
+    }
+  }
+  
+  .captionWrapper {
+    align-self: stretch;
+    display: flex;
+    min-width: 240px;
+    width: 414px;
+    align-items: center;
+    gap: 9px;
+    justify-content: start;
+    margin: auto 0;
+  }
+  
+  .profileImage {
+    aspect-ratio: 1;
+    object-fit: cover; /* Ensure the image fully covers the container */
+    object-position: center;
+    width: var(--avatar-width);
+    height: var(--avatar-height);
+    border-radius: var(--avatar-border-radius); /* This ensures it's circular */
+    margin-right: var(--avatar-margin-right);
+    align-self: stretch;
+  }
+  
+  .captionInput {
+    border-radius: 10px;
+    border: 1px solid var(--border-color-dark);
+    align-self: stretch;
+    min-width: 240px;
+    flex: 1;
+    margin: auto 0;
+    padding: 11px 10px 31px;
+    font: var(--font-secondary);
+  }
+  
+  @media (max-width: 991px) {
+    .captionInput {
+      padding-right: 20px;
+    }
+  }
+  
+  .matchTypeContainer {
+    z-index: 0;
+    display: flex;
+    margin-top: 20px;
+    width: 100%;
+    flex-direction: column;
+    justify-content: start;
+  }
+  
+  .matchTypeWrapper {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: start;
+  }
+  
+  @media (max-width: 991px) {
+    .matchTypeWrapper {
+      max-width: 100%;
+    }
+  }
+  
+  .matchTypeOptions {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 7px;
+    justify-content: start;
+  }
+  
+  @media (max-width: 991px) {
+    .matchTypeOptions {
+      max-width: 100%;
+    }
+  }
+  
+  .matchTypeIcon {
+    align-self: stretch;
+    display: flex;
+    width: 20px;
+    height: 20px;
+    margin: auto 0;
+  }
+  
+  .matchTypeButton {
+    align-self: stretch;
+    border-radius: 10px;
+    flex: 1;
+    margin: auto 0;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font: var(--font-secondary);
+  }
+  
+  .matchTypeButtonActive {
+    background-color: var(--hover-icon-color);
+  }
+  
