@@ -82,4 +82,7 @@
     .actionButton {
       margin-bottom: 10px;
     }
+    .postButton{
+      bottom: 57px;
+    }
   }
