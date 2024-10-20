@@ -4,10 +4,13 @@
  width: var(--leftContentWidth);
  padding-top: 20px;
     /* border: 1px solid #e7e7e8; */
+    background-color: var(--main-color);
   }
   
   @media (max-width: 991px) {
     .sidebar {
+      padding-top: 0px;
+      position: fixed;
       width: 100%; /* Full width on smaller screens */
       height: auto; /* Adjust height so it doesn't cover full screen */
       bottom: 0; /* Fix it to the bottom of the screen */
