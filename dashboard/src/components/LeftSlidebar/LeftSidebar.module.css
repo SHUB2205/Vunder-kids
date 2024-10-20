@@ -8,8 +8,12 @@
   
   @media (max-width: 991px) {
     .sidebar {
-      width: 100%;
+      width: 100%; /* Full width on smaller screens */
+      height: auto; /* Adjust height so it doesn't cover full screen */
+      bottom: 0; /* Fix it to the bottom of the screen */
+      top: unset; /* Unset the top property so it doesn't conflict */
+      left: 0; /* Keep it aligned to the left */
       border-right: none;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: none; /* No bottom border since it's at the bottom */
     }
   }

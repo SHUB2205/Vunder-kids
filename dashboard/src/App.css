@@ -42,14 +42,22 @@
 
   /* font color */
   --text-color: #333;
-  
-  /*  Avatar(Profile) Property */
-    --avatar-width: 40px;
-    --avatar-height: 40px;
-    --avatar-border-radius: 50%;
-    --avatar-margin-right: 10px;
 
-  
+  /*  Avatar(Profile) Property */
+  --avatar-width: 40px;
+  --avatar-height: 40px;
+  --avatar-border-radius: 50%;
+  --avatar-margin-right: 10px;
+}
+
+@media (max-width: 991px) {
+  /* :root { */
+
+    /* Content width */
+    /* --middleContentWidth: 0 0 55%;
+    --rightContentWidth: 29%;
+    --leftContentWidth: 17%; */
+  /* } */
 }
 
 .dashboard {
@@ -76,6 +84,9 @@
     flex-direction: column;
   }
   .dashboard {
-    margin: 0px 40px;
+    margin: 0px 0px;
+  }
+  .dashboardWrapper{
+    flex-direction: column-reverse;
   }
 }
