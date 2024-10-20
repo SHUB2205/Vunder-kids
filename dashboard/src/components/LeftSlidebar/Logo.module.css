@@ -9,3 +9,8 @@
     height: 49px;
     margin-right: 10px;
   }
+  @media (max-width: 991px) {
+    .logoContainer{
+      display: none;
+    }
+  }
