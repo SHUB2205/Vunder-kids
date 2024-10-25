@@ -50,6 +50,9 @@
     border: none;
     cursor: pointer;
     font: var(--font-secondary);
+    align-items: center;
+    justify-content: center;
+
   }
   
   .actionIcon {
@@ -85,4 +88,25 @@
     .postButton{
       bottom: 57px;
     }
+  }
+  
+  @media (max-width: 450px) {
+     .actionButton{
+      border: 1px solid var(--border-color);
+      border-radius: 7px;
+      padding: 1px 6px;
+     }
+     .userAvatar{
+      display: none;
+     }
+     .inputWrapper{
+      padding: 0px;
+     }
+     .postButton{
+      bottom: 60px;
+      right: 7px;
+     }
+     .postInput{
+      padding: 10px 76px 0px 8px;
+     }
   }

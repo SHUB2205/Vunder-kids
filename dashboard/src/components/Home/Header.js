@@ -58,6 +58,7 @@ function Header() {
                   className={styles.actionIcon}
                   role="img"
                   aria-label="Basketball"
+                  style={{fontSize:'16px'}}
                 >
                   🏀
                 </span>
