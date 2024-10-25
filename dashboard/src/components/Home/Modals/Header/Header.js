@@ -10,12 +10,9 @@ export default function Header({
   return (
     <>
       <section
-        className={styles.captionContainer}
-        style={{
-          flexDirection: matchType === "1on1" ? "column" : "row",
-        }}
+     className={`${styles.captionContainer} ${matchType === "1on1" ? styles.matchType1on1 : styles.matchTypeTeam}`}
       >
-        <div className={styles.captionWrapper} style={{ width: matchType === "1on1" ?"100%":'50%' }}>
+        <div className={`${styles.captionWrapper} ${matchType==='1on1' ? styles.matchType1on1Width : styles.matchTypeTeam}`}>
           <img
             src={UserPhoto}
             alt="User profile"
@@ -31,7 +28,7 @@ export default function Header({
             aria-label="Write caption"
           />
         </div>
-        <div className={styles.captionWrapper} style={{ width: matchType === "1on1" ?"100%":'50%' }}>
+        <div className={`${styles.captionWrapper} ${matchType==='1on1' ? styles.matchType1on1Width : styles.matchTypeTeam}`}>
 
           <div className={`${styles.matchTypeOptions} `}>
             <button

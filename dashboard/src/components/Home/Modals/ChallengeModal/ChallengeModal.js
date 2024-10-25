@@ -151,7 +151,7 @@ const ChallengeModal = (props) => {
     <>
       {/* For 1on1 match modal */}
       {!props.showDateTimeModal && matchType === "1on1" && (
-        <Modal {...props} widthModalContent="36%">
+        <Modal {...props}   widthModalContent={styles.modalContentWidth}>
           <Header
             caption={caption}
             setCaption={setCaption}
@@ -179,7 +179,7 @@ const ChallengeModal = (props) => {
 
       {/* For team match modal */}
       {!props.showDateTimeModal && matchType === "team" && (
-        <Modal {...props} widthModalContent="50%">
+        <Modal {...props} widthModalContent={styles.modalContentTeamWidth}>
           <Header
             caption={caption}
             setCaption={setCaption}

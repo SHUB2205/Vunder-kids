@@ -17,7 +17,7 @@
     background-color:var(--main-color);
     position: relative;
     display: flex;
-    max-width: 534px;
+    /* max-width: 534px; */
     flex-direction: column;
     align-items: center;
     /* font-family: Roboto, sans-serif;
@@ -34,12 +34,6 @@
   .modalContent::-webkit-scrollbar {
     display: none;
   }
-  @media (max-width: 991px) {
-    .modalContent {
-      padding: 0 20px;
-    }
-  }
-    
   .closeIcon {
     aspect-ratio: 1;
     object-fit: contain;
@@ -53,3 +47,18 @@
     height: 24px;
     cursor: pointer;
   }
+
+  /* .modalContent {
+    width: 45%;
+  }
+  
+  .modalContentTeam{
+    width: 100%; 
+  }
+
+  @media (max-width: 991px) {
+    .modalContent {
+      width: 70%;
+        }
+  } */
+    
