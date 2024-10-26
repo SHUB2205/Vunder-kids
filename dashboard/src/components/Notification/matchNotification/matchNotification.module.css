@@ -1,0 +1,112 @@
+.mainContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notificationHeader {
+    display: flex;
+    /* margin-top:10px;
+    margin-bottom:10px; */
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-top: 5px;
+    margin-right: 12px;
+}
+
+.notificationDetails {
+    flex-grow: 1;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+.notificationTitle {
+    font:var(--font-caption);
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.date{
+    font: var(--font-primary);
+    /* color: #ff9933; */
+    color: #b78a3a;
+    font-weight: bold;
+}
+
+.time {
+    font: var(--font-primary);
+    /* color: #ff9933; */
+    color: #b78a3a;
+    font-weight: bold;
+}
+
+.playerDetails {
+    /* display: flex; */
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.player {
+    font: var(--font-primary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top:10px;
+}
+
+.playerAvatar {
+    width: 30px;
+    height: 20px;
+}
+
+.sport {
+    font: var(--font-primary);
+    color: #b78a3a;
+    font-weight: bold;
+    width: 90px;
+    margin-top:10px;
+}
+
+
+
+
+.notificationActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: auto; /* Pushes the actions to the right */
+}
+
+
+
+
+.rejectButton, .acceptButton {
+    display: flex;
+    font: var(--font-primary);
+    gap: 4px;
+    padding: 4px 12px;
+    border: var(--border-color);
+    border-radius: var(--button-radius);
+    cursor: pointer;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+}
+
+
+.notificationTimestamp {
+    font: var(--font-caption);
+    margin-left: 20px;
+}
+
+
+.divider {
+    height: 1px;
+    background-color: #e7e7e8;
+    margin: 10px auto; /* Center the divider horizontally */
+    width: 100%;       /* Set to full width */
+    max-width: 540px;   /* Apply a maximum width */
+}

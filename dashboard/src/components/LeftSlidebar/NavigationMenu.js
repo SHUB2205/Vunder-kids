@@ -9,7 +9,7 @@ const menuItems = [
     icon: "🔔",
     label: "Notification",
     ariaLabel: "Notifications",
-    routePath: "notifications",
+    routePath: "notification",
   },
   {
     icon: "💬",
@@ -30,23 +30,23 @@ const menuItems = [
 function NavigationMenu() {
   return (
     <nav className={styles.navigationMenu}>
-    {menuItems.map((item, index) => (
-      <NavLink
-        to={`/${item.routePath}`}
-        className={({ isActive }) => 
-          `${styles.menuItem} ${isActive ? styles.activeMenuItem : ""}`
-        }
-        style={{ textDecoration: "none", color: "inherit" }}
-        key={index}
-        aria-label={item.ariaLabel}
-      >
-        <span className={styles.menuIcon} role="img" aria-hidden="true">
-          {item.icon}
-        </span>
-        <span className={styles.menuLabel}>{item.label}</span>
-      </NavLink>
-    ))}
-  </nav>
+      {menuItems.map((item, index) => (
+        <NavLink
+          to={`/${item.routePath}`}
+          className={({ isActive }) =>
+            `${styles.menuItem} ${isActive ? styles.activeMenuItem : ""}`
+          }
+          style={{ textDecoration: "none", color: "inherit" }}
+          key={index}
+          aria-label={item.ariaLabel}
+        >
+          <span className={styles.menuIcon} role="img" aria-hidden="true">
+            {item.icon}
+          </span>
+          <span className={styles.menuLabel}>{item.label}</span>
+        </NavLink>
+      ))}
+    </nav>
   );
 }
 

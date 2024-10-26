@@ -124,7 +124,7 @@ function UpcomingMatches() {
       <MatchCard
         type="1 on 1"
         location="Jacksonville, TIAA Bank Field"
-        team1={{ name: "James", logo: TeamIcon1}}
+        team1={{ name: "James", logo: TeamIcon1 }}
         team2={{ name: "Khadar shaik", logo: TeamIcon2 }}
         date="Mon, Sep 7, 9:30 AM"
       />

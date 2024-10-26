@@ -1,0 +1,119 @@
+  .notificationWrapper {
+    border-radius: var(--border-raduis);
+    padding: 20px;
+    background-color: var(--background-color); 
+    border: 1px solid var(--border-color); 
+    width: 600px;
+    margin: 10px ;
+  }
+  
+  .notificationHeader {
+    font: var(--font-heading);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    margin: 10px;   
+  }
+  
+  .notificationHeader input {
+    border-radius: var(--border-radius,15px); 
+    outline:none;
+    font: var(--font-secondary);
+    width: 100%;
+    padding:15px;   
+    border: 1px solid var(--border-color); 
+  }
+  
+  .notificationToggle {
+    /* display: flex;
+    margin-bottom: 1rem; */
+    display: flex;
+    gap: 25px;
+    margin: 15px;
+    font:var(--font-secondary);
+  }
+  .activeToggle,
+.inactiveToggle {
+  /* flex: 1; */
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: none;
+  cursor: pointer;
+  border-radius: var(--button-radius);
+  font:var(--font-primary);
+}
+
+.activeToggle {
+  background-color: var(--hover-icon-color);
+  font:var(--font-primary);
+  font-weight: bold;
+}
+
+  /* .notificationTtabs {
+    display: flex;
+    gap: 25px;
+    margin: 10px;
+    font:var(--font-secondary)
+  } */
+  
+  /* .notificationTtabs button { */
+    /* background-color: var(--hover-icon-color); */
+    /* border-radius: var(--border-raduis);
+    padding: 2rem;
+    border: none;
+    padding: 15px;
+    cursor: pointer;
+   } */
+  
+  /* .notificationTtabs button:hover, 
+  .notificationTtabs .activeTab {
+    background-color: var(--active-tab-bg, #f0f0f0); Customizable active tab background */
+    /* color: var(--active-tab-color, #000); Customizable active tab text color */
+  /* } */
+  
+  /* .notificationContainer {
+    margin-top: 20px;
+    border-radius: var(--border-raduis);
+  } */
+  
+  .notificationItem {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+  }
+  
+  .notificationImg {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+  
+  .notificationContent {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+  }
+  
+  .userNname {
+    font-weight: bold;
+  }
+  
+  .contentHighlight {
+    color: #b78a3a;
+  }
+
+.time {
+  font-size: 14px;
+  color: var(--time-color, #a5a5a5);
+  margin-left: auto; 
+}
+  
+  .notificationDivider {
+    height: 1px;
+    background-color: #e7e7e8;
+    margin: 10px; /* Centers the divider horizontally */
+    width: 500px;
+    
+  }
+  

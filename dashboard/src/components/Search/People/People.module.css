@@ -1,0 +1,56 @@
+.followList {
+  /* display: flex; */
+  /* align-items: center; */
+  /* padding: 10px 0; */
+  }
+  
+  .userCard{
+    display: flex;
+    /* justify-content: space-between; */
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background-color: #fff;
+  }
+  
+  .profileImage {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+
+  .userInfo h3 {
+    font-size: 18px;
+    margin: 0;
+  }
+  
+  .userInfo h3 span {
+    font-weight: normal;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .userInfo p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .followBtn {
+    background-color: #000;
+    color: white;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: auto; 
+  }
+  
+  .followBtn:hover {
+    background-color: #333;
+  }
+  

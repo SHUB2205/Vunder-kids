@@ -1,0 +1,89 @@
+.notificationWrapper {
+    border-radius: var(--border-raduis);
+    /* padding: 20px; */
+    /* background-color: var(--background-color);  */
+    /* border: 1px solid var(--border-color);  */
+    width: 600px;
+    margin: 20px ;
+  }
+  .searchHeader {
+    font: var(--font-heading);
+    position: relative;
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    margin: 10px;
+  }  
+  
+  .searchHeader input {
+    border-radius: var(--border-radius,15px); 
+    font: var(--font-secondary);
+    width: 100%;
+    padding:15px;   
+    border: 1px solid var(--border-color); 
+  }
+    .searchIcon {
+    position: absolute;
+    right: 10px; 
+    top: 50%;
+    transform: translateY(-50%); 
+    width: 24px; 
+    height: 24px;
+    object-fit: contain;
+  }
+  
+  .searchToggle {
+    display: flex;
+    gap: 25px;
+    margin: 15px;
+    font:var(--font-secondary)
+
+  }
+  .activeToggle,
+.inactiveToggle {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: none;
+  cursor: pointer;
+  border-radius: var(--button-radius);
+  font:var(--font-primary);
+}
+
+.activeToggle {
+  background-color: var(--hover-icon-color);
+  font:var(--font-primary);
+  font-weight: bold;
+}
+
+.heading{
+  font: var(--font-heading);
+  margin: 15px;
+}
+  .notificationItem {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+  }
+  
+  .notificationImg {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+  
+  .notificationContent {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+  } 
+
+  .gridContainer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+
+  

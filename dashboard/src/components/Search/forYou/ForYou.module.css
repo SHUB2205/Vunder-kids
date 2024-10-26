@@ -1,0 +1,126 @@
+  /* .mainContent {
+    padding: 20px;
+    flex: var(--middleContentWidth);
+  } */
+  
+  /* @media (max-width: 991px) {
+    .mainContent {
+      order: -1;
+    }
+  } */
+
+
+/* 
+  .header {
+    font: var(--font-heading);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    margin: 10px;   
+  } */
+  /* .wrapper {
+    border-radius: var(--border-raduis);
+    padding: 10px;
+    border: 1px solid var(--border-color); 
+    width: 600px;
+    margin: 10px ;
+  } */
+  /* .followList {
+    /* display: flex; */
+    /* align-items: center;
+    padding: 10px 0;
+    }
+    
+    .userCard{
+      display: flex; */
+      /* justify-content: space-between; */
+      /* align-items: center;
+      margin: 10px;
+      padding: 15px;
+      border: 1px solid var(--border-color); 
+      border-radius: var(--border-raduis);
+      
+    } */ 
+
+
+
+    /* .header {
+      font: var(--font-heading);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-raduis);
+      margin: 10px;
+      display: flex; /* Ensure flexbox for alignment */
+      /* flex-direction: column;
+      align-items: center;
+  }  */
+  
+  .wrapper {
+      width: 100%; /* Make the wrapper take full width */
+      max-width: 600px; /* Set the same max width for consistency */
+      margin: 0 auto;
+      padding: 10px;
+  }
+  
+  .followList, .mainContent {
+      width: 100%;
+      max-width: 500px; 
+      margin: 10px 0; 
+  }
+  
+  .followList {
+      align-items: center;
+      padding: 10px 0;
+  }
+  
+  .userCard {
+      display: flex;
+      align-items: center;
+      margin: 10px;
+      padding: 15px;
+      border: 1px solid var(--border-color); 
+      border-radius: var(--border-raduis);
+      width: 98%; /* Ensure user cards take full width */
+  }
+
+
+
+
+    
+    .profileImage {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 15px;
+    }
+  
+    .userInfo h3 {
+      font-size: 18px;
+      margin: 0;
+    }
+    
+    .userInfo h3 span {
+      font-weight: normal;
+      font-size: 14px;
+      color: #777;
+    }
+    
+    .userInfo p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #555;
+    }
+    
+    .followBtn {
+      background-color: #000;
+      color: white;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: auto; 
+    }
+    
+    .followBtn:hover {
+      background-color: #333;
+    }
+    
