@@ -18,16 +18,16 @@ const posts = [
 function MainContent() {
   return (
     <>
-    {/* <div className='seprater'> */}
-    <main className={`${styles.mainContent}`}>
-    <MobileHeader/>
-    <Header/>
-      {posts.map(post => (
-        <Post key={post.id} {...post} />
-      ))}
-    </main>
+      {/* <div className='seprater'> */}
+      <main className={`${styles.mainContent}`}>
+        <MobileHeader />
+        <Header />
+        {posts.map(post => (
+          <Post key={post.id} {...post} />
+        ))}
+      </main>
       {/* </div> */}
-      </>
+    </>
   );
 }
 
