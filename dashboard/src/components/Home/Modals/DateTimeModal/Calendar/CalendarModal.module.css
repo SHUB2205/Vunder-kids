@@ -22,6 +22,11 @@
   /* font: 400 18px Roboto, sans-serif; */
 }
 
+@media (max-width: 991px) {
+  .calendarHeader {
+    white-space: initial;
+  }
+}
 
 .calendarTitle {
   margin: 0;
@@ -69,6 +74,12 @@
   font: var(--font-secondary);
 }
 
+@media (max-width: 991px) {
+  .weekDays {
+    white-space: initial;
+  }
+}
+
 .weekDay {
   flex: 1;
 }
@@ -102,13 +113,4 @@
   border-radius: 50%;
   border: 1px solid var(--border-color-dark);
   background-color: var(--hover-icon-color); /* Optional: visual highlight for active day */
-}
-
-@media (max-width: 991px) {
-  .calendarHeader {
-    white-space: initial;
-  }
-  .weekDays {
-    white-space: initial;
-  }
 }

@@ -1,84 +1,67 @@
-.submitButtonWrapper {
-  z-index: 0;
-  display: flex;
-  margin-top: 20px;
-  align-items: center;
-  gap: 40px 250px;
-  white-space: nowrap;
-  justify-content: start;
-}
+  .submitButtonWrapper {
+    z-index: 0;
+    display: flex;
+    margin-top: 20px;
+    align-items: center;
+    gap: 40px 250px;  
+    white-space: nowrap;
+    justify-content: start;
+  }
+  
+  @media (max-width: 991px) {
+    .submitButtonWrapper {
+      white-space: initial;
+    }
+  }
+  
 
-.submitButton {
-  align-self: stretch;
-  border-radius: 30px;
-  background-color: var(--button-color-Post-Follow);
-  gap: 10px;
-  margin: auto 0;
-  padding: 10px 20px;
-  border: none;
-  color: #f7f0f0;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  font: var(--font-secondary);
-}
+  .submitButton {
+    align-self: stretch;
+    border-radius: 30px;
+    background-color: var(--button-color-Post-Follow);
+    gap: 10px;
+    margin: auto 0;
+    padding: 10px 20px;
+    border: none;
+    color: #f7f0f0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font: var(--font-secondary);
+  }
+  
+  .submitButton:hover {
+    background-color: #555;
+  }
+  
+  @media (max-width: 991px) {
+    .submitButton {
+      white-space: initial;
+    }
+  }
 
-.submitButton:hover {
-  background-color: #555;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+  
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
 
 /* activate when user select team setion */
-.formContainer {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px; /* Adjust the gap between columns as needed */
-}
-
-.formColumn {
-  width: 48%; /* Adjust as needed to fit your design */
-}
-
-.modalContentWidth {
-  width: 40%;
-}
-
-.modalContentTeamWidth {
-  width: 54%;
-}
-
-@media (max-width: 991px) {
-  .submitButtonWrapper {
-    white-space: initial;
-  }
-  .submitButton {
-    white-space: initial;
-  }
-  .modalContentTeamWidth {
-    width: 70%;
-  }
-  .modalContentWidth{
-    width: 70%;
-  }
-}
-
-@media (max-width: 770) {
   .formContainer {
-    flex-direction: column;
-    /* width: ; */
-  }
-  .formColumn{
     width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px; /* Adjust the gap between columns as needed */
   }
-}
+  
+  .formColumn {
+    width: 48%; /* Adjust as needed to fit your design */
+  }
+  

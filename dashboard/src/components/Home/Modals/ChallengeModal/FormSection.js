@@ -32,7 +32,7 @@ const FormSection = ({
           onClick={onClick}
           readOnly={isDateTime}
         />
-        {/* {label === "Choose date & time *" && (
+        {label === "Choose date & time *" && (
           <span
             className={styles.textAreaIcon}
             onClick={onClick}
@@ -40,7 +40,7 @@ const FormSection = ({
           >
             🗓️
           </span>
-        )} */}
+        )}
       </div>
     </section>
   );

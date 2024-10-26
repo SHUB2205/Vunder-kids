@@ -40,31 +40,26 @@ function UpcomingMatches() {
 
   // Function to detect overflow
   const checkOverflow = (ref, setOverflow) => {
-    if (ref.current && ref.current.scrollWidth > ref.current.clientWidth) {
+    if (ref.current.scrollWidth > ref.current.clientWidth) {
       setOverflow(true);
     } else {
       setOverflow(false);
     }
   };
-  
+
   // Check for overflow on mount and on window resize
   useEffect(() => {
-    // Initial check when the component mounts
     checkOverflow(sportsListRef, setIsSportsOverflow);
     checkOverflow(dateSelectorRef, setIsDatesOverflow);
-  
-    // Create a callback function for window resize event
-    const handleResize = () => {
+    window.addEventListener("resize", () => {
       checkOverflow(sportsListRef, setIsSportsOverflow);
       checkOverflow(dateSelectorRef, setIsDatesOverflow);
-    };
-  
-    // Add event listener for window resize
-    window.addEventListener("resize", handleResize);
-  
-    // Cleanup event listener on component unmount
+    });
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", () => {
+        checkOverflow(sportsListRef, setIsSportsOverflow);
+        checkOverflow(dateSelectorRef, setIsDatesOverflow);
+      });
     };
   }, []);
 
