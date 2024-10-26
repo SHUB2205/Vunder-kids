@@ -49,7 +49,6 @@ function ForYou() {
                     ))}
                 </main>
             </div>
-
         </div>
     );
 }

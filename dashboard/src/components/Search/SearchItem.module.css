@@ -1,4 +1,4 @@
-SearchItem.module.css
+/* SearchItem.module.css */
 .imageGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -8,11 +8,9 @@ SearchItem.module.css
   .imageCard {
     position: relative;
     overflow: hidden;
-    /* border-radius: var(--border-radius); */
   }
   
   .imageCard img {
-    /* border-radius: var(--border-raduis); */
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -31,6 +29,73 @@ SearchItem.module.css
   
   .icon {
     margin-left: 8px;
-    /* font-size: 14px; */
   }
-  
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* .imageGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+} */
+
+/* Apply different grid column counts based on screen size */
+/* @media (max-width: 768px) {
+  .imageGrid {
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px;
+  }
+} */
+
+/* @media (max-width: 480px) {
+  .imageGrid {
+    grid-template-columns: 1fr; 
+    gap: 10px;
+  }
+} */
+
+/* .imageCard {
+  position: relative;
+  overflow: hidden; */
+  /* border-radius: var(--border-radius, 10px); */
+/* } */
+/* 
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.label {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font: var(--font-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 5px 10px; */
+  /* background: rgba(0, 0, 0, 0.6);  */
+/* }
+
+.icon {
+  margin-left: 8px; */
+  /* width: 16px; 
+  height: 16px; */
+/* } */
