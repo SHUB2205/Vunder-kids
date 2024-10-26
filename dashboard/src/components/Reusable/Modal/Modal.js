@@ -1,7 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./Modal.module.css";
 import CloseIcon from "../../images/CloseIcon.png";
+
 const Modal = ({ isOpen, onClose, children, widthModalContent }) => {
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add(styles.noScroll);
+    } else {
+      document.body.classList.remove(styles.noScroll);
+    }
+    
+    // Cleanup function to remove the class when component unmounts
+    return () => {
+      document.body.classList.remove(styles.noScroll);
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -11,13 +26,6 @@ const Modal = ({ isOpen, onClose, children, widthModalContent }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {children}
-        <img
-          onClick={onClose}
-          className={styles.closeIcon}
-          src={CloseIcon}
-          alt="Close"
-          aria-hidden="true"
-        />
         <img
           onClick={onClose}
           className={styles.closeIcon}

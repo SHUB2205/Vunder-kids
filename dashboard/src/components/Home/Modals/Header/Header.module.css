@@ -110,3 +110,12 @@
 .matchType1on1Team{
   width: 50%;
 }
+
+@media (max-width: 770px) {
+.matchTypeTeam{
+  flex-direction: column;
+}
+.captionWrapper{
+  width: 100%;
+}
+}
