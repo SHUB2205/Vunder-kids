@@ -55,7 +55,7 @@
 }
 
 .modalContentTeamWidth {
-  width: 54%;
+  width: 60%;
 }
 
 @media (max-width: 991px) {
@@ -73,12 +73,18 @@
   }
 }
 
-@media (max-width: 770) {
+@media (max-width: 770px) {
   .formContainer {
     flex-direction: column;
     /* width: ; */
   }
   .formColumn{
+    width: 100%;
+  }
+  .modalContentWidth{
+   width: 100%
+    }
+  .modalContentTeamWidth{
     width: 100%;
   }
 }

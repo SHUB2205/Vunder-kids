@@ -12,7 +12,7 @@ export default function Header({
       <section
      className={`${styles.captionContainer} ${matchType === "1on1" ? styles.matchType1on1 : styles.matchTypeTeam}`}
       >
-        <div className={`${styles.captionWrapper} ${matchType==='1on1' ? styles.matchType1on1Width : styles.matchTypeTeam}`}>
+        <div className={`${styles.captionWrapper} ${matchType==='1on1' ? styles.matchType1on1Width : styles.matchTypeTeam}`} style={{flexDirection:"row"}}>
           <img
             src={UserPhoto}
             alt="User profile"
