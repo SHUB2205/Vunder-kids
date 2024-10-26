@@ -1,0 +1,32 @@
+.logoContainer{
+    display: none;
+}
+@media  (max-width: 991px) {
+      .logoContainer {
+        display: flex;
+        margin-bottom: 6px;
+        width: 100%;
+        align-items: center;
+        gap: 40px 100px;
+        color: #333;
+        font-weight: 400;
+        white-space: nowrap;
+        justify-content: space-between;
+      }
+    
+    .iconContainer {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      justify-content: space-between;
+      width: 63px;
+      margin: auto 0;
+      /* font: 20px Roboto, sans-serif; */
+      font-size: var(--font-icon);
+    }
+    .logoImage{
+        width: 100px;
+        height: 50px;
+    }
+}

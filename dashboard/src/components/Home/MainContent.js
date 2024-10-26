@@ -2,6 +2,7 @@ import React from 'react';
 import Post from './Post';
 import styles from './MainContent.module.css';
 import Header from './Header.js'
+import MobileHeader from './MobileHeader.js'
 const posts = [
   {
     id: 1,
@@ -17,6 +18,7 @@ const posts = [
 function MainContent() {
   return (
     <>
+<<<<<<< HEAD
       {/* <div className='seprater'> */}
       <main className={`${styles.mainContent}`}>
         <Header />
@@ -24,6 +26,16 @@ function MainContent() {
           <Post key={post.id} {...post} />
         ))}
       </main>
+=======
+    {/* <div className='seprater'> */}
+    <main className={`${styles.mainContent}`}>
+    <MobileHeader/>
+    <Header/>
+      {posts.map(post => (
+        <Post key={post.id} {...post} />
+      ))}
+    </main>
+>>>>>>> f3954ae27701b905c72f4dd8505348a95f65cedc
       {/* </div> */}
     </>
   );

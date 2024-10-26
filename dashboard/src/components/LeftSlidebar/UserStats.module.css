@@ -71,3 +71,8 @@
     font: var(--font-secondary);
     font-weight: bold;
   }
+  @media (max-width: 991px) {
+    .userStats{
+      display: none;
+    }
+  }

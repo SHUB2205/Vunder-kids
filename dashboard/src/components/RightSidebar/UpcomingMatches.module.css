@@ -40,6 +40,39 @@
   align-items: center;
   cursor:pointer;
 }
+.dateSelectorWrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dateSelector {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  width: 200px; /* Adjust width as needed */
+}
+
+.dateSelector::-webkit-scrollbar {
+  display: none;
+}
+
+.dateSelector {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.filterIcon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.calendarIcon {
+  width: 25px;
+  height: 27px;
+}
+
 .calendarIcon{
   width: 25px;
   height: 27px;
@@ -112,4 +145,60 @@
   border: none;
   border-top: 1px solid var(--border-color);
   margin: 1rem 0;
+}
+
+.dateSelectorWrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dateSelector {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  width: 200px; /* Adjust width as needed */
+}
+
+.dateSelector::-webkit-scrollbar {
+  display: none;
+}
+
+.dateSelector {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+  width: 100%;
+}
+
+.sportsFilter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sportsList {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  width: 200px; /* Adjust width as needed */
+}
+
+.sportsList::-webkit-scrollbar {
+  display: none;
+}
+
+.sportsList {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.filterIcon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.calendarIcon {
+  width: 25px;
+  height: 27px;
 }

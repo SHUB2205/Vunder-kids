@@ -50,6 +50,9 @@
     border: none;
     cursor: pointer;
     font: var(--font-secondary);
+    align-items: center;
+    justify-content: center;
+
   }
   
   .actionIcon {
@@ -70,7 +73,9 @@
     cursor: pointer;
     font: var(--font-secondary);
   }
-  
+  .postButton:hover {
+    background-color: #555;
+  }
   
   @media (max-width: 991px) {
     .postActions {
@@ -80,4 +85,28 @@
     .actionButton {
       margin-bottom: 10px;
     }
+    .postButton{
+      bottom: 57px;
+    }
+  }
+  
+  @media (max-width: 450px) {
+     .actionButton{
+      border: 1px solid var(--border-color);
+      border-radius: 7px;
+      padding: 1px 6px;
+     }
+     .userAvatar{
+      display: none;
+     }
+     .inputWrapper{
+      padding: 0px;
+     }
+     .postButton{
+      bottom: 60px;
+      right: 7px;
+     }
+     .postInput{
+      padding: 10px 76px 0px 8px;
+     }
   }

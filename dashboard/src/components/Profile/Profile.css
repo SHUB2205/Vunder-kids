@@ -1,0 +1,175 @@
+.ProfileContainer {
+  flex: var(--middleContentWidth);
+  margin: 10px;
+}
+
+.ProfileHeader {
+  color: #333333;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-raduis);
+  padding: 12px 20px 12px 20px;
+  font-size: 20px;
+  left: 20px;
+  top: 12px;
+}
+
+.profile-main {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-raduis);
+  padding: 15px 20px 15px 20px;
+  gap: 48px;
+  align-items: center;
+  margin-top: 28px;
+}
+
+.profile-image {
+  flex-shrink: 0;
+}
+
+.profile-avatar {
+  height: 100px;
+  width: 100px;
+  left: 20px;
+  top: 45.5px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font: var(--font-heading);
+  color: #333333;
+  font-size: 30px;
+  line-height: auto;
+}
+
+.profile-metrics {
+  display: flex;
+  margin-top: 16px;
+  width: 60%;
+  justify-content: space-between; /* Spread metrics evenly */
+}
+
+.metric {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-value {
+  font: var(--font-heading);
+  color: #333333;
+  font-size: 20px;
+}
+
+.metric-label {
+  font: var(--font-primary);
+  color: #333333;
+  font-size: 18px;
+}
+
+.profile-bio {
+  font: var(--font-primary);
+  color: #333333;
+  text-align: left;
+  vertical-align: text-middle;
+  font-size: 16px;
+  width: 439px;
+  width: 90%;
+  margin-top: 12px;
+}
+
+.profile-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--font-primary);
+  color: #666;
+  margin-top: 12px;
+}
+
+.profile-followers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--font-primary);
+  color: #333333;
+  margin-top: 12px;
+}
+
+.follower-avatars {
+  display: flex;
+  margin: 0 4px;
+}
+
+.follower-avatars img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-left: -8px;
+}
+
+.follower-avatars img:first-child {
+  margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .profile-main {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-metrics {
+    justify-content: center;
+  }
+
+  .profile-location {
+    justify-content: center;
+  }
+
+  .profile-followers {
+    justify-content: center;
+  }
+}
+.ProfileNav {
+  color: #333333;
+  display: flex;
+  vertical-align: text-middle;
+  font-size: 20px;
+  font-family: var(--font-heading);
+  width: 100%;
+  justify-content: space-evenly;
+  margin-top: 20px;
+}
+
+.ProfileTab {
+  position: relative;
+  padding: 12px 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.ProfileTab:hover {
+  color: #000000;
+}
+
+.ProfileTab.active {
+  color: #000000;
+  font-weight: 600;
+}
+
+.ProfileTab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #000000;
+}

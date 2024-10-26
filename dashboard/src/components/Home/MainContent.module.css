@@ -8,8 +8,10 @@
     flex: var(--middleContentWidth);
   }
   
-  /* @media (max-width: 991px) {
+  @media (max-width: 991px) {
     .mainContent {
-      order: -1;
+      padding: 5px 20px;
+      /* margin: 0px 22px; */
     }
-  } */
+
+  }

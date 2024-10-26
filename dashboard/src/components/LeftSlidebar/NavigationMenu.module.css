@@ -52,4 +52,10 @@
       margin-right: 0;
       margin-bottom: 5px;
     }
+    .menuLabel{
+      display: none;
+    }
   }
+  /* @media (max-width: 450px) {
+  
+  } */

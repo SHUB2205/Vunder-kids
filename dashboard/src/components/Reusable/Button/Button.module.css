@@ -1,0 +1,24 @@
+
+.submitButton {
+    align-self: stretch;
+    border-radius: 30px;
+    background-color: var(--button-color-Post-Follow);
+    gap: 10px;
+    margin: auto 0;
+    padding: 10px 20px;
+    border: none;
+    color: #f7f0f0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font: var(--font-secondary);
+  }
+  
+  .submitButton:hover {
+    background-color: #555;
+  }
+  
+  @media (max-width: 991px) {
+    .submitButton {
+      white-space: initial;
+    }
+  }

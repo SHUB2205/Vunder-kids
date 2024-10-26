@@ -1,11 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import MatchCard from "./MatchCard";
 import styles from "./UpcomingMatches.module.css";
 import moveLeftIcon from "../images/moveLeftIcon.png";
 import moveRightIcon from "../images/moveRightIcon.png";
 import calendarIcon from "../images/calendarIcon.png";
-import TeamIcon1 from "../images/TeamIcon1.png"
-import TeamIcon2 from "../images/TeamIcon2.png"
+import TeamIcon1 from "../images/TeamIcon1.png";
+import TeamIcon2 from "../images/TeamIcon2.png";
+
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const sports = [
   "Football",
@@ -15,34 +16,57 @@ const sports = [
   "Soccer",
   "Cricket",
 ];
+
 function UpcomingMatches() {
-  // handleSportClick
+  // State for active sport and day
   const [activeIndex, setActiveIndex] = useState(0); // Active sport state
-  const handleSportClick = (index) => {
-    setActiveIndex(index);
-  };
-
-  // handleDaysClick
   const [activeDay, setActiveDay] = useState(0); // Active day state
-  const handleDaysClick = (index) => {
-    setActiveDay(index);
-  };
+  const [activeMatches, setActiveMatches] = useState(true); // Active matches state
+  const [isSportsOverflow, setIsSportsOverflow] = useState(false); // Sports overflow state
+  const [isDatesOverflow, setIsDatesOverflow] = useState(false); // Dates overflow state
 
-  // handleMatchClick
-  const [activeMatches, setActiveMatches] = useState(true);
-  const handleMatchClick = (value) => {
-    setActiveMatches(value);
-  };
-
-  // Scroll of the sportlist
+  // Refs for scrolling
   const sportsListRef = useRef(null);
+  const dateSelectorRef = useRef(null);
   const scrollAmount = 100;
-  const scrollLeft = () => {
-    sportsListRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+
+  // Functions to handle scrolling
+  const scrollLeft = (ref) => {
+    ref.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
   };
-  const scrollRight = () => {
-    sportsListRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  const scrollRight = (ref) => {
+    ref.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
+
+  // Function to detect overflow
+  const checkOverflow = (ref, setOverflow) => {
+    if (ref.current && ref.current.scrollWidth > ref.current.clientWidth) {
+      setOverflow(true);
+    } else {
+      setOverflow(false);
+    }
+  };
+  
+  // Check for overflow on mount and on window resize
+  useEffect(() => {
+    // Initial check when the component mounts
+    checkOverflow(sportsListRef, setIsSportsOverflow);
+    checkOverflow(dateSelectorRef, setIsDatesOverflow);
+  
+    // Create a callback function for window resize event
+    const handleResize = () => {
+      checkOverflow(sportsListRef, setIsSportsOverflow);
+      checkOverflow(dateSelectorRef, setIsDatesOverflow);
+    };
+  
+    // Add event listener for window resize
+    window.addEventListener("resize", handleResize);
+  
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
     <section className={styles.upcomingMatches}>
@@ -52,7 +76,7 @@ function UpcomingMatches() {
           className={
             activeMatches === true ? styles.activeToggle : styles.inactiveToggle
           }
-          onClick={() => handleMatchClick(true)}
+          onClick={() => setActiveMatches(true)}
         >
           My Matches
         </button>
@@ -62,34 +86,60 @@ function UpcomingMatches() {
               ? styles.activeToggle
               : styles.inactiveToggle
           }
-          onClick={() => handleMatchClick(false)}
+          onClick={() => setActiveMatches(false)}
         >
           Friends Matches
         </button>
       </div>
-      <div className={styles.dateSelector}>
-        {days.map((day, index) => (
-          <button
-            key={index}
-            className={
-              index === activeDay ? styles.activeDate : styles.inactiveDate
-            }
-            onClick={() => handleDaysClick(index)}
-          >
-            <span>{day}</span>
-            <span>{String(index + 7).padStart(2, "0")}</span>
-          </button>
-        ))}
-        <img className="calendarIcon" src={calendarIcon} alt="" />
+
+      {/* Date Selector */}
+      <div className={styles.dateSelectorWrapper}>
+        {isDatesOverflow && (
+          <img
+            src={moveLeftIcon}
+            alt="Scroll Left"
+            className="filterIcon leftArrow"
+            style={{ cursor: "pointer" }}
+            onClick={() => scrollLeft(dateSelectorRef)}
+          />
+        )}
+        <div className={styles.dateSelector} ref={dateSelectorRef}>
+          {days.map((day, index) => (
+            <button
+              key={index}
+              className={
+                index === activeDay ? styles.activeDate : styles.inactiveDate
+              }
+              onClick={() => setActiveDay(index)}
+            >
+              <span>{day}</span>
+              <span>{String(index + 7).padStart(2, "0")}</span>
+            </button>
+          ))}
+          <img className={styles.calendarIcon} src={calendarIcon} alt="" />
+        </div>
+        {isDatesOverflow && (
+          <img
+            src={moveRightIcon}
+            alt="Scroll Right"
+            className="filterIcon rightArrow"
+            style={{ cursor: "pointer" }}
+            onClick={() => scrollRight(dateSelectorRef)}
+          />
+        )}
       </div>
+
+      {/* Sports Filter */}
       <div className={styles.sportsFilter}>
-        <img
-          src={moveLeftIcon}
-          alt="Filter"
-          className="filterIcon leftArrow"
-          style={{ cursor: "pointer" }}
-          onClick={scrollLeft}
-        />
+        {isSportsOverflow && (
+          <img
+            src={moveLeftIcon}
+            alt="Scroll Left"
+            className="filterIcon leftArrow"
+            style={{ cursor: "pointer" }}
+            onClick={() => scrollLeft(sportsListRef)}
+          />
+        )}
         <div className={styles.sportsList} ref={sportsListRef}>
           {sports.map((sport, index) => (
             <button
@@ -99,20 +149,23 @@ function UpcomingMatches() {
                   ? styles.activeSport
                   : styles.inactiveSport
               }
-              onClick={() => handleSportClick(index)}
+              onClick={() => setActiveIndex(index)}
             >
               {sport}
             </button>
           ))}
         </div>
-        <img
-          src={moveRightIcon}
-          alt="Filter"
-          className="filterIcon rightArrow"
-          style={{ cursor: "pointer" }}
-          onClick={scrollRight}
-        />
+        {isSportsOverflow && (
+          <img
+            src={moveRightIcon}
+            alt="Scroll Right"
+            className="filterIcon rightArrow"
+            style={{ cursor: "pointer" }}
+            onClick={() => scrollRight(sportsListRef)}
+          />
+        )}
       </div>
+
       <MatchCard
         type="Team"
         location="Jacksonville, TIAA Bank Field"
