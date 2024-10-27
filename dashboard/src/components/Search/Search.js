@@ -78,7 +78,7 @@ function Search() {
         }
       </div>
 
-      {/* <ForYou /> */}
+      <ForYou />
     </div>
   );
 }
