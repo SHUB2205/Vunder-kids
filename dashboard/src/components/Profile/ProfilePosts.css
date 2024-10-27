@@ -1,0 +1,7 @@
+.profilePostsContainer {
+    display: grid;
+    grid-template-columns: repeat(3, 203px); /* 3 columns with fixed width */
+    gap: 20px;
+    justify-content: center;
+}
+
