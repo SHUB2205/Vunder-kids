@@ -6,12 +6,14 @@ function NotificationItem({ user, action, content, time, image, }) {
         <div className={styles.notificationItem}>
             <img src={image} alt={`${user}'s profile`} className={styles.notificationImg} />
             <div className={styles.notificationContent}>
-                <div>
-                    <span className={styles.userName}>{user}</span> {action}{' '}
-                    <span className={styles.contentHighlight}>{content}</span>
+                <div className={styles.info}>
+                    <div className={styles.userName}>{user}</div>
+                    <div className={styles.action}> {action}{' '}</div>
+                    <div className={styles.contentHighlight}>{content}</div>
                 </div>
-                <div className={styles.time}>{time}</div>
+
             </div>
+            <div className={styles.time}>{time}</div>
         </div>
     );
 }

@@ -9,8 +9,8 @@ const menuItems = [
     icon: "🔔",
     label: "Notification",
     ariaLabel: "Notifications",
-    routePath: "notifications",
-    mode: "mobile",
+    routePath: "notification",
+    // mode: "mobile",
   },
   {
     icon: "💬",

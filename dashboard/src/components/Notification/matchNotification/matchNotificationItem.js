@@ -16,7 +16,7 @@ const MatchNotificationItem = ({ location, date, time, player1, player2, sport, 
                         <span>1 on 1</span> {location},
                         <span className={styles.time}> {date},{time}</span>
                     </div>
-                    <div className={styles.mainContent}>
+                    <div className={styles.content}>
                         <div className={styles.playerDetails}>
                             <div className={styles.player}>
                                 <img src={matchTeamIcon1} alt={player1} className={styles.playerAvatar} />
@@ -29,14 +29,16 @@ const MatchNotificationItem = ({ location, date, time, player1, player2, sport, 
                             <div className={styles.sport}>{sport}</div>
                         </div>
                         <div className={styles.notificationActions}>
-                            <button className={styles.rejectButton}>
-                                {/* <span>👎</span> Reject */}
-                                <img src={RejectIcon} alt="Reject" className={styles.icon} /> Reject
-                            </button>
-                            <button className={styles.acceptButton}>
-                                {/* <span>👍</span> Accept */}
-                                <img src={AcceptIcon} alt="Accept" className={styles.icon} /> Accept
-                            </button>
+                            <div className={styles.buttons}>
+                                <button className={styles.rejectButton}>
+                                    {/* <span>👎</span> Reject */}
+                                    <img src={RejectIcon} alt="Reject" className={styles.icon} /> Reject
+                                </button>
+                                <button className={styles.acceptButton}>
+                                    {/* <span>👍</span> Accept */}
+                                    <img src={AcceptIcon} alt="Accept" className={styles.icon} /> Accept
+                                </button>
+                            </div>
                             <div className={styles.notificationTimestamp}>
                                 {timestamp}
                             </div>
