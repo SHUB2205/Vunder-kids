@@ -9,6 +9,7 @@ import Profile from './components/Profile/Profile'
 // import Login from './components/Login/Login'
 import Notification from './components/Notification/Notification'
 import { FacilitiesLayout } from "./components/Facility/FacilityLayout";
+
 function App() {
   return (
     <>
@@ -19,7 +20,7 @@ function App() {
             <Routes>
               <Route path="/" element={<><MainContent /><RightSidebar/></>} />
               <Route path="/search" element={<><Search /><RightSidebar/></>} />
-              <Route path="/messages" element={<><Messages /></>} />
+              <Route path="/messages" element={<Messages />} />
               <Route path="/profile" element={<><Profile /><RightSidebar/></>} />
               <Route path="/notification" element={<><Notification /><RightSidebar/></>} />
               <Route path="/facilities" element={<><FacilitiesLayout /><RightSidebar/></>} />

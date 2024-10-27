@@ -1,11 +1,12 @@
 import {React,useState} from 'react'
 import "./Profile.css"
-import UserPhoto from '../images/UserPhoto3.png'
 import editIcon from "../images/EditIcon.svg"
-
+import ProfileStats from './ProfileStats'
+import ProfileMatches from './ProfileMatches'
+import ProfilePosts from './ProfilePosts'
 
 const tabs = ['Overview', 'Post', 'Matches'];
-
+const UserPhoto = 'https://s3-alpha-sig.figma.com/img/d5c5/5e01/c6c96a4ec39c33d32fc11058a6c5c4e7?Expires=1730678400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=ccpOo8vBisEf5wBVDZLNi2w84jc9uOmFYhQKlIQfVzwML1XCUUYBrLb3BgW7GyHDpKWh4vRoYE2hUuF2R9-PHBaXg6C5G7zQKK1bAniP~XMs7O13hsuGDk3NrZSd648nzc94yXItLGLbN0CvUOxqErEe8U4EwhkZ7SVuR01DRXcDUm3EdPT6OrIbva28euaGHiZRurm3~tp2Ly~bmB83NphdsnNAZqvx3HpWChKsNtyGFl4~91CsQpi5msA6auor~jssAean2PRBHR~S828qPTFNYcepc8lvRSDVz0OH~CGFcnY17bqJgaGwJ2HILRiTUnSj4aZw1cMmhhNRCqIusg__';
 const user = {
   username: "James"
 }
@@ -71,9 +72,9 @@ export default function Profile() {
         ))}
       </div>
       <div className="p-4">
-        {activeTab === 'Overview' && <div>Overview Content</div>}
-        {activeTab === 'Post' && <div>Post Content</div>}
-        {activeTab === 'Matches' && <div>Matches Content</div>}
+        {activeTab === 'Overview' &&<ProfileStats/> }
+        {activeTab === 'Post' && <ProfilePosts/>}
+        {activeTab === 'Matches' && <ProfileMatches/>}
       </div>
     </div>
   );

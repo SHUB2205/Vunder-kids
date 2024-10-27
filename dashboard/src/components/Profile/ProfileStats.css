@@ -1,0 +1,72 @@
+.statContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.statMatrix {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, 1fr); /* Default to 3 columns */
+    padding: 30px 20px 30px 20px;
+}
+
+.statBox {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-raduis);
+    padding: 20px 10px 20px 10px;
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+
+.statLabel{
+    font-family: Roboto;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 21.09px;
+    text-align: center;    
+}
+
+.StatInfo {
+    font-family: Roboto;
+    font-size: 28.57px;
+    font-weight: 400;
+    line-height: 33.48px;
+    text-align: center;
+}
+
+.sportsNav {
+    display: flex;
+    gap:10px;
+    padding-top: 13px;
+}
+.sportTab_active{
+    width: Hug (98px)px;
+    height: Hug (32px)px;
+    top: 329px;
+    left: 385px;
+    padding: 6px 10px 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--button-radius);
+    text-align:center;
+    background: var(--hover-icon-color);
+}
+.sportTab {
+    font-family: Roboto;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 18.75px;
+    text-align:center;
+    padding: 6px 10px 6px 10px;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+@media (max-width: 990px) {
+    .statMatrix {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

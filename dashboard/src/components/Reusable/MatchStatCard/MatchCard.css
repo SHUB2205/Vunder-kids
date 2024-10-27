@@ -1,0 +1,77 @@
+.matchCardContainer {
+    width: 621px;
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-family: Roboto;
+}
+
+.matchInfo {
+    color: #888;
+    font-size: 14px;
+    text-align: center;
+}
+
+.playerStats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.player {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+}
+
+.playerDetails {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 150px; /* Ensures alignment for names */
+}
+
+.playerIcon {
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.playerName {
+    font-size: 16px;
+    color: #333;
+}
+
+.playerScores {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 80px; /* Ensures each score column aligns vertically */
+}
+
+.playerScore {
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+    width: 25px; /* Fixed width for consistent alignment */
+}
+
+.scoreLoss {
+    color: #d97706;
+}
+
+.scoreWin {
+    color: #b45309;
+}
+
+.matchTime {
+    font-size: 14px;
+    color: #b45309;
+    text-align: center;
+}

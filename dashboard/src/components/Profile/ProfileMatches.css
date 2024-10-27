@@ -1,0 +1,7 @@
+.Matchlist{
+    display: flex;
+    flex-direction: column;
+    gap:14px;
+    margin: 19px;
+    align-items: center;
+}

@@ -22,7 +22,7 @@
   /* Content Width */
   --middleContentWidth: 0 0 55%;
   --rightContentWidth: 29%;
-  --leftContentWidth: 17%;
+  --leftContentWidth: 17%;  
 
   /* p {
     font: italic small-caps bold 16px/1.5 'Arial', sans-serif;
@@ -61,8 +61,8 @@
 }
 
 .dashboard {
-  display: flex;
-  flex-direction: column;
+  /* display: flex;
+  flex-direction: column; */
   min-height: 100vh;
   background-color: #fff;
   margin: 0px 100px;
@@ -88,6 +88,7 @@
   }
   .dashboardWrapper{
     flex-direction: column-reverse;
+    justify-content: space-between;
   }
 }
 
