@@ -1,6 +1,7 @@
 .message-container {
     display: flex;
     width: 86%;
+    height: 100vh;
     background-color: var(--main-color);
   }
 
