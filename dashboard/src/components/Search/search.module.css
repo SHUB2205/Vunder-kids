@@ -1,7 +1,10 @@
+.mainContent {
+  padding: 20px;
+  flex: var(--middleContentWidth);
+}
+
 .notificationWrapper {
     border-radius: var(--border-raduis);
-    width: 600px;
-    margin: 20px ;
   }
   .searchHeader {
     font: var(--font-heading);

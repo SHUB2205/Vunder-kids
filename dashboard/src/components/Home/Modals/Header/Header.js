@@ -17,6 +17,7 @@ export default function Header({
             src={UserPhoto}
             alt="User profile"
             className={styles.profileImage}
+            
           />
           <input
             type="text"
