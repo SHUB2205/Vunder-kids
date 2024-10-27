@@ -122,7 +122,7 @@ function Search() {
   ];
 
   return (
-    <div>
+    <div className={`${styles.mainContent}`}>
       {/* <div className={styles.searchHeader}>
         <img
           loading="lazy"
