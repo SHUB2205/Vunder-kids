@@ -1,3 +1,4 @@
+
 .mainContent {
   padding: 20px;
   flex: var(--middleContentWidth);
@@ -5,15 +6,16 @@
 
 .notificationWrapper {
     border-radius: var(--border-raduis);
+
+  .mainContent {
+    padding: 20px;
+    flex: var(--middleContentWidth);
+    
+
   }
-  .searchHeader {
-    font: var(--font-heading);
-    position: relative;
-    display: flex;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-raduis);
-    margin: 10px;
-  }  
+  .notificationWrapper {
+    background-color: var(--background-color);
+}
   .searchHeader {
     font: var(--font-heading);
     position: relative;
@@ -21,7 +23,6 @@
     align-items: center;
     border: 1px solid var(--border-color);
     border-radius: var(--border-raduis);
-    margin: 10px;
     width: auto;
 }
 
@@ -48,7 +49,8 @@
   .searchToggle {
     display: flex;
     gap: 25px;
-    margin: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     font:var(--font-secondary)
 
   }
@@ -70,7 +72,8 @@
 
 .heading{
   font: var(--font-heading);
-  margin: 15px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
   .notificationItem {
     display: flex;
@@ -96,110 +99,43 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+}
+
+
+@media (max-width: 767px) {
+  .notificationWrapper {
+      width: 100%; 
+      align-items: flex-start;
   }
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-   /* search.module.css */
-
-/* .notificationWrapper {
-  border-radius: var(--border-radius, 10px);
-  width: 100%;
-  max-width: 600px; */
-  /* margin: 20px; */
-  /* margin: 20px auto; 
-
+  .input {
+    padding: 12px 10px 12px 40px;
+    font-size: 14px;
 }
-
-.searchHeader {
-  font: var(--font-heading);
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius, 15px);
-  margin: 10px;
-  width: auto;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 24px;
-  object-fit: contain;
-  pointer-events: none; 
-}
-
-.input {
-  width: 100%;
-  padding: 15px 15px 15px 45px; 
-  border: 1px solid transparent;
-  font: var(--font-secondary);
-  border-radius: var(--border-radius, 15px);
-}
-
-.searchToggle {
-  display: flex;
-  gap: 25px;
-  margin: 15px;
-  font: var(--font-secondary);
+  .searchToggle {
+    gap: 10px;
 }
 
 .activeToggle,
 .inactiveToggle {
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  background: none;
-  cursor: pointer;
-  border-radius: var(--button-radius);
-  font: var(--font-primary);
+    padding: 0.3rem;
+    font-size: 14px; 
 }
-
-.activeToggle {
-  background-color: var(--hover-icon-color);
-  font: var(--font-primary);
-  font-weight: bold;
-}
-
 .heading {
-  font: var(--font-heading);
-  margin: 15px; */
-  /* text-align: center;  */
-/* }
-
+    font-size: 16px; 
+}
 .gridContainer {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-} */
-
-/* Responsive grid adjustments */
-/* @media (max-width: 768px) {
-  .gridContainer {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 10px;
+}
 }
 
-@media (max-width: 480px) {
-  .gridContainer {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-} */
+
+
+
+
+
+
+
+
+
+

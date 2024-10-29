@@ -6,6 +6,7 @@
   
   .userCard{
     display: flex;
+    flex: var(--middleContentWidth);
     /* justify-content: space-between; */
     align-items: center;
     padding: 15px;

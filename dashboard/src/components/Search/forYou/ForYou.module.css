@@ -1,19 +1,19 @@
   .wrapper {
       width: 100%; /* Make the wrapper take full width */
-      max-width: 600px; /* Set the same max width for consistency */
-      margin: 0 auto;
-      padding: 10px;
+      /* max-width: 600px;  */
+      /* margin: 0 auto; */
+      /* padding: 10px; */
   }
   
   .followList, .mainContent {
       width: 100%;
-      max-width: 500px; 
-      margin: 10px 0; 
+      /* max-width: 500px;  */
+      /* margin: 10px 0;  */
   }
   
   .followList {
       align-items: center;
-      padding: 10px 0;
+      /* padding: 10px 0; */
   }
   
   .userCard {
