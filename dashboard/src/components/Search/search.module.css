@@ -1,7 +1,17 @@
+
+.mainContent {
+  padding: 20px;
+  flex: var(--middleContentWidth);
+}
+
+.notificationWrapper {
+    border-radius: var(--border-raduis);
+
   .mainContent {
     padding: 20px;
     flex: var(--middleContentWidth);
     
+
   }
   .notificationWrapper {
     background-color: var(--background-color);

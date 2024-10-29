@@ -29,6 +29,19 @@ function Search() {
   ];
 
   return (
+
+    <div className={`${styles.mainContent}`}>
+      {/* <div className={styles.searchHeader}>
+        <img
+          loading="lazy"
+          src="https://cdn.builder.io/api/v1/image/assets/TEMP/f9dd340588aa26a402df13094927f7087d8cf1ec15bf9df0caa15aa4c44b8570?placeholderIfAbsent=true&apiKey=1126fdd409354df98f70d71ca7bf443b"
+          alt="search icon"
+          className={styles.searchIcon}
+        />
+        <input className={input} type="text" placeholder="Search" aria-label="Search" />
+      </div> */}
+
+
     <div className={styles.mainContent}>
       <div className={styles.searchHeader}>
         <img

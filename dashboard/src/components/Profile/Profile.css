@@ -1,6 +1,8 @@
 .ProfileContainer {
   flex: var(--middleContentWidth);
-  margin: 10px;
+  height: 100vh;
+  padding: 20px;
+  margin-bottom: 80px;
 }
 
 .ProfileHeader {
@@ -52,6 +54,7 @@
   margin-top: 16px;
   width: 60%;
   justify-content: space-between; /* Spread metrics evenly */
+  gap: 10px
 }
 
 .metric {
@@ -127,6 +130,7 @@
 
   .profile-metrics {
     justify-content: center;
+    width: 100%;
   }
 
   .profile-location {
