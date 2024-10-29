@@ -1,6 +1,6 @@
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Sidebar from "./components/LeftSlidebar/LeftSidebar";
+import LeftSidebar from "./components/LeftSlidebar/LeftSidebar";
 import MainContent from "./components/Home/MainContent";
 import RightSidebar from "./components/RightSidebar/RightSidebar";
 import Search from './components/Search/Search'
@@ -16,7 +16,7 @@ function App() {
       <Router>
         <div className="dashboard">
           <div className="dashboardWrapper">
-            <Sidebar />
+            <LeftSidebar />
             <Routes>
               <Route path="/" element={<><MainContent /><RightSidebar/></>} />
               <Route path="/search" element={<><Search /><RightSidebar/></>} />
