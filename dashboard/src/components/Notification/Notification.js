@@ -19,7 +19,7 @@ function Notification() {
   ];
 
   return (
-    <div>
+    <div className={styles.mainContent}>
       <div className={styles.notificationHeader}>
         <input type="text" placeholder="Notifications" aria-label="Notifications" />
       </div>
@@ -46,7 +46,7 @@ function Notification() {
       </div>
       <div className={styles.notificationWrapper}>
         {activeHeads ? (
-          <div className={styles.notificationContainer}>
+          <div>
             {notifications.map((notification, index) => (
               <React.Fragment key={index}>
                 <NotificationItem {...notification} />

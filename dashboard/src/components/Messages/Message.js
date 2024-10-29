@@ -32,8 +32,8 @@ const Message = () => {
         </div>
         <div className="message-list">
           {['Cristiano Ronaldo', 'Esther Howard', 'Darrell Steward', 'Darlene Robertson', 'Annette Black'].map((name, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className="message-item"
               onClick={() => handleMessageClick(index)}
             >

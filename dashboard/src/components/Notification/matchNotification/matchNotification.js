@@ -1,6 +1,8 @@
 // App.js or your parent component
 import React from 'react';
 import MatchNotificationItem from './matchNotificationItem';
+import styles from './matchNotification.module.css';
+
 
 const notifications = [
     {
@@ -34,7 +36,7 @@ const notifications = [
 
 const MatchNotification = () => {
     return (
-        <div>
+        <div >
             {notifications.map((notification, index) => (
                 <MatchNotificationItem
                     key={index}
