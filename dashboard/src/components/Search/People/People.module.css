@@ -1,17 +1,15 @@
 .followList {
-  /* display: flex; */
-  /* align-items: center; */
-  /* padding: 10px 0; */
+  /* padding: 20px; */
+  flex: var(--middleContentWidth);
   }
   
   .userCard{
     display: flex;
-    flex: var(--middleContentWidth);
-    /* justify-content: space-between; */
+   /* justify-content: space-between; */
     align-items: center;
     padding: 15px;
     border: 1px solid #ddd;
-    border-radius: 10px;
+    border-radius: var(--border-raduis);
     margin-bottom: 10px;
     background-color: #fff;
   }
@@ -25,7 +23,7 @@
 
   .userInfo h3 {
     font-size: 18px;
-    margin: 0;
+    /* margin: 0; */
   }
   
   .userInfo h3 span {

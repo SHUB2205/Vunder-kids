@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import NotificationItem from './NotificationItem';
 import styles from './notification.module.css';
 import MatchNotification from './matchNotification/matchNotification';
+import BackIcon from "../images/BackIcon.png";
+
 
 function Notification() {
   const [activeHeads, setActiveHeads] = useState(true);
@@ -21,7 +23,14 @@ function Notification() {
   return (
     <div className={styles.mainContent}>
       <div className={styles.notificationHeader}>
-        <input type="text" placeholder="Notifications" aria-label="Notifications" />
+        {/* <div className={styles.topHeader}> */}
+        <img
+          src={BackIcon}
+          alt="Back Button"
+          className={styles.navIcon}
+        // onClick={handlePrevMonth}
+        />
+        <h2 className={styles.notificationHeading}>Notification</h2>
       </div>
       {/* for toogle purpose */}
       <div className={styles.notificationToggle}>

@@ -36,7 +36,7 @@ const notifications = [
 
 const MatchNotification = () => {
     return (
-        <div >
+        <div>
             {notifications.map((notification, index) => (
                 <MatchNotificationItem
                     key={index}

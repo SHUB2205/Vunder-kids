@@ -19,3 +19,32 @@ function NotificationItem({ user, action, content, time, image, }) {
 }
 
 export default NotificationItem;
+
+
+
+
+
+
+
+
+
+
+
+// import React from 'react';
+// import styles from './notification.module.css';
+
+// function NotificationItem({ user, action, content, time, image }) {
+//     return (
+//         <div className={styles.notificationItem}>
+//             <img src={image} alt={`${user}'s profile`} className={styles.notificationImg} />
+//             <div className={styles.notificationContent}>
+//                 <span className={styles.userName}>{user}</span>
+//                 <span className={styles.action}>{action}</span>
+//                 <span className={styles.contentHighlight}>{content}</span>
+//             </div>
+//             <div className={styles.time}>{time}</div>
+//         </div>
+//     );
+// }
+
+// export default NotificationItem;

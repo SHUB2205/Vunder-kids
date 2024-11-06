@@ -1,13 +1,8 @@
 
-.imageGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-  
   .imageCard {
     position: relative;
     overflow: hidden;
+    z-index:-1;
   }
   
   .imageCard img {
@@ -30,19 +25,6 @@
   .icon {
     margin-left: 8px;
   }
-   /*  */
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

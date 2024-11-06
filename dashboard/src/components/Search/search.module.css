@@ -5,18 +5,16 @@
 }
 
 .notificationWrapper {
-    border-radius: var(--border-raduis);
-
-  .mainContent {
-    padding: 20px;
-    flex: var(--middleContentWidth);
-    
-
-  }
+  /* padding: 20px; */
+  flex: var(--middleContentWidth);
+  border-radius: var(--border-raduis);
+}  
   .notificationWrapper {
     background-color: var(--background-color);
 }
+
   .searchHeader {
+    width:100%;
     font: var(--font-heading);
     position: relative;
     display: flex;
@@ -52,7 +50,6 @@
     margin-top: 10px;
     margin-bottom: 10px;
     font:var(--font-secondary)
-
   }
   .activeToggle,
 .inactiveToggle {
@@ -75,59 +72,84 @@
   margin-top: 10px;
   margin-bottom: 10px;
 }
-  .notificationItem {
-    display: flex;
-    align-items: center;
-    padding: 10px 0;
-  }
-  
-  .notificationImg {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 15px;
-  }
-  
-  .notificationContent {
-    flex-grow: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center; 
-  } 
-
   .gridContainer {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
 }
+.mobileOnly {
+  display: none;
+}
+.navIcon{
+  display:none;
+}
 
-
-@media (max-width: 767px) {
-  .notificationWrapper {
-      width: 100%; 
-      align-items: flex-start;
+ 
+ @media (max-width: 990px) {
+  .mainContent{
+    /* overflow: hidden; */
+    margin-bottom: 80px;
+  }
+  .input:focus {
+    outline: none; 
+    border: 1px solid black; 
   }
   .input {
     padding: 12px 10px 12px 40px;
-    font-size: 14px;
-}
+    /* border: 1px solid black; */
+    font: var(--font-heading);
+  }
+
   .searchToggle {
     gap: 10px;
-}
+  }
 
-.activeToggle,
-.inactiveToggle {
+  .activeToggle,
+  .inactiveToggle {
     padding: 0.3rem;
-    font-size: 14px; 
+    font: var(--font-heading);
+  }
+  .heading {
+    font: var(--font-heading);
+  }
+ 
+  .notificationWrapper {
+    width: 100%;
+  }
+.topHeader{
+display:flex;
+gap: 10px;
+/* padding:10px; */
+align-items: center;
 }
-.heading {
-    font-size: 16px; 
+.navIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  padding: 5px;
+
 }
-.gridContainer {
-    grid-template-columns: repeat(2, 1fr); 
+.searchHeader{
+  width:100%;
+}
+  .mobileOnly {
+    padding-top:20px;
+    display: block;
+  }
+ .gridContainer {
+    /* overflow:hidden; */
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-}
-}
+    
+  }
+  
+
+} 
+
 
 
 

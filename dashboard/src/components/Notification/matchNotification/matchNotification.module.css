@@ -1,72 +1,91 @@
-.content {
+.matchNotificationItem {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap; 
+    flex-direction: column;
+    flex: var(--middleContentWidth);
 }
 
-.notificationHeader {
+.matchHeader {
     display: flex;
+    align-items: flex-start;
+    padding: 8px;
 }
 
 .avatar {
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    margin: 5px;  
+    margin-right: 8px;
 }
 
-.notificationDetails {
-    padding:5px;
+.matchDetails {
     flex-grow: 1;
-    border:1px;
-    min-width: 0; 
 }
 
-.notificationTitle {
+.matchTitle {
+    display: flex;
+    align-items: center;
     font: var(--font-caption);
     color: #888;
     margin-bottom: 4px;
+
 }
 
-.time {
-    font: var(--font-primary);
-    color: #b78a3a;
-    font-weight: bold;
+.type , .location{
+    padding: 0 5px; 
+    }
+
+    .time {
+        padding: 0 5px; 
+        font: var(--font-primary);
+        color: #b78a3a;
+        font-weight: bold;
+    }
+
+.content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    /* padding:5px; */
 }
 
 .playerDetails {
-    align-items: center;
-    flex-direction: column; 
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     margin-bottom: 4px;
 }
 
 .player {
+    /* padding:5px; */
     font: var(--font-primary);
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-top: 5px;
+    gap: 6px;
 }
 
 .playerAvatar {
     margin:5px;
     width: 30px;
     height: 20px;
+    /* border-radius: 4px; */
 }
 
-.sport {
-    font: var(--font-primary);
-    color: #b78a3a;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.notificationActions {
+/* .actions {
+    display: flex;
+    gap: 8px;
+} */
+.actions {
+    /* padding:5px; */
     display: flex;
     gap: 10px;
     align-items: center;
+    margin-left: auto;
+}
+
+.buttons{
+    display: flex;
+    gap: 10px;
     margin-left: auto;
 }
 
@@ -82,22 +101,29 @@
     cursor: pointer;
     background-color: transparent;
 }
-.buttons{
-    display: flex;
-    gap: 10px;
-    margin-left: auto;
-}
+
 .icon {
     width: 16px;
     height: 16px;
-    margin-right: 8px;
-    vertical-align: middle;
 }
 
-.notificationTimestamp {
+.timestamp {
     font: var(--font-caption);
-    padding: 10px;
+    padding: 5px;
     margin-left: 20px;
+}
+
+.sport {
+    /* font-size: 14px;
+    color: #b78a3a;
+    font-weight: bold;
+    margin-top: 8px; */
+    font: var(--font-primary);
+    color: #b78a3a;
+    font-weight: bold;
+    margin-top: 10px;
+    /* padding:5px; */
+
 }
 
 .divider {
@@ -105,59 +131,73 @@
     background-color: #e7e7e8;
     margin: 10px auto;
     width: 90%;
-    /* max-width: 540px; */
+}
+.responsive {
+    display: none; 
+}
+.responsivehead{
+    display: none;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .mainContent {
-        flex-direction: column;
-        align-items: flex-start;
-        margin:5px;
+/* Hide the original sport, time, and timestamp in .matchDetails for responsive view */
+@media (max-width: 990px) {
+    .matchTitle{
+        /* border: 5px solid green; */
+        margin-top:4px;
+        padding: 0px;
+        font: var(--font-primary);
+        items-align:center;
     }
-
-    .notificationDetails {
-        margin-left: 0;
+    
+    /* Hide the content within the original .matchDetails in responsive view */
+    .matchDetails .content,
+    .content .timestamp {
+        display: none;
+    }
+    /* Show .responsivehead only on smaller screens and hide it on larger screens */
+    .responsivehead {
+        display: flex;
+        flex-direction: column;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+    .matchDetails .sport, 
+    .matchDetails .time, 
+    .matchDetails .timestamp {
+        display: none;
+    }
+    /* Display the responsive container only on smaller screens */
+    .responsive {
         margin-top: 5px;
-        margin:5px;
+        display: flex;
+        flex-direction: row; 
+        gap: 4px;
+    }
+    .sport {
+        padding: 5px;
+        margin: 0px;
+    }
+    
+    .time {
+        padding: 5px;
+        text-align: center;
+    }
+    .timestamp{
+        margin-left: 80px;
 
     }
-
-    .notificationActions {
-        margin-top: 8px;
-        flex-direction: row; /* Stack actions horizontally on small screens */
+    /* Hide .responsivehead and .responsive on larger screens */
+    @media (min-width: 991px) {
+        .responsive,
+        .responsivehead {
+            display: none;
+        }
     }
-    /* .buttons{
-        gap: 10px;
-    } */
 
-    .rejectButton, .acceptButton {
-        padding: 4px 10px;
-        font-size: 14px; /* Adjust font size for smaller screens */
-    }
-}
-
-@media (max-width: 480px) {
-    .notificationHeader {
+    /* Adjust actions layout for responsive view */
+    .actions {
+        /* margin-left: auto; */
+        margin-right: 10px;
         flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .avatar {
-        width: 25px;
-        height: 25px;
-        margin:5px;
-    }
-
-    .playerDetails {
-        flex-direction: column;
-    }
-
-    .notificationActions {
-        justify-content: space-between;
-        width: 100%;
-    }
-    .buttons{
-        margin-left:0px;
     }
 }

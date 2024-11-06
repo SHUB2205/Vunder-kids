@@ -1,3 +1,8 @@
+  .hearder{
+    padding: 20px;
+    flex: var(--middleContentWidth);
+  }
+  
   .wrapper {
       width: 100%; /* Make the wrapper take full width */
       /* max-width: 600px;  */
