@@ -3,7 +3,7 @@ import styles from "./NavigationMenu.module.css";
 import { NavLink } from "react-router-dom";
 
 const menuItems = [
-  { icon: "🏠", label: "Home", ariaLabel: "Home", routePath: "" },
+  { icon: "🏠", label: "Home", ariaLabel: "Home", routePath: "home" },
   { icon: "🔍", label: "Search", ariaLabel: "Search", routePath: "Search" },
   {
     icon: "🔔",

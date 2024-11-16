@@ -1,7 +1,6 @@
 // App.js or your parent component
 import React from 'react';
 import MatchNotificationItem from './matchNotificationItem';
-import styles from './matchNotification.module.css';
 
 
 const notifications = [

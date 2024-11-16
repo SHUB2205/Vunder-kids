@@ -1,7 +1,7 @@
 const Match = require("../models/Match");
 const Team = require("../models/Team");
 const schedule = require("node-schedule");
-const { CronJob } = require("cron");
+// const { CronJob } = require("cron");
 const CalendarEvent = require("../models/calendarEvent");
 const notificationService = require("../services/notification/notificationService.js");
 const User = require("../models/User.js");
