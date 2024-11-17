@@ -12,6 +12,7 @@ export default function SearchModalState(props) {
     }, []);
   
     // Store token in sessionStorage when it's updated
+    
     const setAuthToken = (newToken) => {
       setToken(newToken);
       if (newToken) {

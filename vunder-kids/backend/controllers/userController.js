@@ -61,11 +61,11 @@ const registerUser = async (req, res, next) => {
     });
 
     if (user) {
-      await Notification.create({
-        user: user._id,
-        type: 'user',
-        message: `You were registered with Email ${user.email}.`,
-      });
+      // await Notification.create({
+      //   user: user._id,
+      //   type: 'user',
+      //   message: `You were registered with Email ${user.email}.`,
+      // });
       res.status(201).json({
         _id: user._id,
         userName:user.userName,

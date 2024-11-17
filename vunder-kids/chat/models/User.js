@@ -42,12 +42,17 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
 
-  matches: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Match",
-    },
-  ],
+  matchIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Match" }],
+  teamIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
+
+  totalMatches: {
+    type: Number,
+    default: 0,
+  },
+  wonMatches: {
+    type: Number,
+    default: 0,
+  },
   progress: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Progress",
@@ -70,6 +75,7 @@ const UserSchema = new mongoose.Schema({
       ref: "Post",
     },
   ],
+  //notification for free play
   following: [
     {
       type: Schema.Types.ObjectId,
@@ -94,6 +100,22 @@ const UserSchema = new mongoose.Schema({
       ref: "Group",
     },
   ],
+  //for gogle calendar
+  google: {
+    accessToken: {
+      type: String,
+    },
+    refreshToken: {
+      type: String,
+    },
+  },
+  //for own calendar
+  calendarEvents: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event",
+    },
+  ],
 });
 
 UserSchema.pre("save", async function (next) {
@@ -105,6 +127,23 @@ UserSchema.pre("save", async function (next) {
 
 UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+UserSchema.methods.getProfileCompletion = function () {
+  const fields = [
+    this.userName,
+    this.name,
+    this.school,
+    this.userClass,
+    this.email,
+    this.phoneNumber,
+  ];
+
+  const totalFields = fields.length;
+  const filledFields = fields.filter(
+    (field) => field && field.trim() !== ""
+  ).length;
+  return (filledFields / totalFields) * 100;
 };
 
 const User = mongoose.model("User", UserSchema);

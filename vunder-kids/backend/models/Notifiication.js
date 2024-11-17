@@ -18,11 +18,11 @@ const NotificationSchema = new mongoose.Schema({
       'match-scheduled',
       'match-accepted',
       'match-reminder',
-      'user',
       'match-cancelled',
-      'event-scheduled',
-      'event-update',
-      'event-cancelled'
+      'match-completed',
+      'match-result',
+      'match-update',
+      'user'
     ], // Enum to restrict notification types
     required: true
   },
