@@ -48,6 +48,7 @@
   }
   .commentInputContainerBox{
       position: sticky;
+      margin-top: 10px;
       bottom: 0px;
       padding-bottom: 20px;
       background-color: var(--main-color);
