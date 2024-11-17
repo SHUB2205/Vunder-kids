@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes ,Navigate} from "react-router-dom";
 import LeftSidebar from "./components/LeftSlidebar/LeftSidebar";
 import MainContent from "./components/Home/MainContent";
 import RightSidebar from "./components/RightSidebar/RightSidebar";
@@ -8,6 +8,7 @@ import Messages from './components/Messages/Message'
 import Profile from './components/Profile/Profile'
 // import Login from './components/Login/Login'
 import Notification from './components/Notification/Notification'
+import Comment from "./components/Home/Commet/Comment";
 import { FacilitiesLayout } from "./components/Facility/FacilityLayout";
 
 function App() {
@@ -18,7 +19,9 @@ function App() {
           <div className="dashboardWrapper">
             <LeftSidebar />
             <Routes>
-              <Route path="/" element={<><MainContent /><RightSidebar/></>} />
+            <Route path="/" element={<Navigate to="/home" />} />
+              <Route path="/home" element={<><MainContent /><RightSidebar/></>} />
+              <Route path="/home/comment" element={<><Comment/><RightSidebar/></>} />
               <Route path="/search" element={<><Search /><RightSidebar/></>} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/profile" element={<><Profile /><RightSidebar/></>} />

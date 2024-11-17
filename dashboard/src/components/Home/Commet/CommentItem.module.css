@@ -1,0 +1,54 @@
+.commentItem {
+    border-radius: 10px;
+    background-color: var(--main-color);
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 400;
+    justify-content: start;
+    flex-wrap: wrap;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .avatar {
+    aspect-ratio: 1;
+    object-fit: contain;
+    object-position: center;
+    width: 40px;
+    border-radius: 50%;
+  }
+  
+  .commentContent {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+  }
+  
+  .username {
+    color: #333;
+    font: var(--font-primary);
+    font-weight: 550;
+  }
+  
+  .commentText {
+    color: rgba(51, 51, 51, 0.8);
+    align-self: stretch;
+    margin-top: 8px;
+    font: var(--font-secondary);
+  }
+  
+  .commentMeta {
+    display: flex;
+    margin-top: 10px;
+    gap: 16px;
+    color: rgba(51, 51, 51, 0.5);
+    white-space: nowrap;
+  }
+  
+  @media (max-width: 991px) {
+    .commentMeta {
+      white-space: initial;
+    }
+  }

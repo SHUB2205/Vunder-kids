@@ -147,6 +147,7 @@ const ChallengeModal = (props) => {
     }, 100);
   };
 
+
   return (
     <>
       {/* For 1on1 match modal */}

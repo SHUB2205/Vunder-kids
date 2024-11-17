@@ -1,0 +1,99 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .shareContainer {
+    border-radius: 30px;
+    background-color: #fff;
+    display: flex;
+    max-width: 463px;
+    width: 90%;
+    flex-direction: column;
+    overflow: hidden;
+    color: #333;
+    padding: 20px 21px;
+    font: 600 21px Roboto, sans-serif;
+  }
+  
+  .shareOption {
+    border-radius: var(--border-raduis);
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    justify-content: flex-start;
+    padding: 13px 25px;
+    border: 1px solid #e7e7e8;
+    background: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+    width: 100%;
+    text-align: left;
+    transition: background-color 0.3s ease;
+  }
+  
+  .shareOption:hover,
+  .shareOption:focus {
+    background-color: #f0f0f0;
+  }
+  
+  .shareIcon {
+    width: 19px;
+    height: 17px;
+    object-fit: contain;
+  }
+  
+  .shareText {
+    flex-grow: 1;
+    font: var(--font-secondary);
+  }
+  
+  .cancelButton {
+    align-self: stretch;
+    border-radius: var( --border-raduis);
+    padding: 5px 26px;
+    border: 4px solid #e7e7e8;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    transition: background-color 0.3s ease;
+    font: var(--font-heading);
+  }
+  
+  .cancelButton:hover,
+  .cancelButton:focus {
+    background-color: #f0f0f0;
+  }
+  
+  .visuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  @media (max-width: 480px) {
+    .shareContainer {
+      width: 95%;
+      padding: 15px;
+    }
+  
+    .shareOption,
+    .cancelButton {
+      padding: 10px 20px;
+    }
+  }

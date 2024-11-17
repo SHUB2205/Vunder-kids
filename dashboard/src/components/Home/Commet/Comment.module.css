@@ -1,0 +1,124 @@
+  .commentSection {
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0px 20px 0px 20px;
+    flex: var(--middleContentWidth);
+  }
+  
+  .commentHeader {
+    display: flex;
+    width: 100%;
+    gap: 24px;
+    white-space: nowrap;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0px;
+    padding-top: 20px;
+    background-color: var(--main-color);
+    align-items: center;
+  }
+
+  
+  
+  .commentIcon {
+    aspect-ratio: 1;
+    object-fit: contain;
+    object-position: center;
+    width: 24px;
+    margin: auto 0;
+  }
+  
+  .commentLabel {
+    border-radius: var(--border-raduis);
+    overflow: hidden;
+    flex-grow: 1;
+    width: fit-content;
+    padding: 15px 28px;
+    border: 1px solid var(--border-color);
+    font: var(--font-heading);
+  }
+  
+  
+  .commentList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 7px;
+  }
+  .commentInputContainerBox{
+      position: sticky;
+      bottom: 0px;
+      padding-bottom: 20px;
+      background-color: var(--main-color);
+  }
+  .commentInputContainer {
+    border-radius: var(--border-raduis);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    font: var(--font-primary);
+    z-index: 1;
+    width: 100%;
+  }
+  .inputHeader{
+    width: 85%;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    padding: 6px;
+
+  }
+  
+  .commentInputWrapper {
+    align-self: stretch;
+    display: flex;
+    gap: 10px;
+    margin: auto 0;
+    width: 6%;
+  }
+
+  .userAvatar {
+    aspect-ratio: 1;
+    object-fit: contain;
+    object-position: center;
+    width: 30px;
+    border-radius: 50%;
+  }
+  
+  .commentInputLabel {
+    margin: auto 0;
+  }
+  
+  .sendIcon {
+    aspect-ratio: 1.19;
+    object-fit: contain;
+    object-position: center;
+    /* width: 19px; */
+    align-self: stretch;
+    /* margin: auto 0; */
+    width: var(--font-icon);
+  }
+
+
+  @media (max-width: 450px) {
+
+    .commentLabel{
+        padding: 15px 0px;
+        border: none;
+    }
+    .commentInputWrapper{
+        display: none;
+    }
+    .inputHeader{
+        width: 93%;
+    }
+    .commentInputContainer{
+        padding: 10px 0px 0px 0px;
+        border: none;
+    }
+  }
+
+  
