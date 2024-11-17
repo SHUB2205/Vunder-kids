@@ -19,7 +19,7 @@ function Post({ _id ,creator, createdAt, content, mediaURL, likes,openComment })
     if (user && user.likes.includes(_id)){
       setLiked(true);
     }
-  },[])
+  },[user])
 
   const handleLike = async() => {
    const res = await toggleLike(_id);
