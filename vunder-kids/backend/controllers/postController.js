@@ -2,8 +2,8 @@ const Post = require('../models/post');
 const Comment = require('../models/comment');
 const User = require('../models/User');
 const Match = require('../models/Match');
-//adding cloudinary integration at time of frontend
-// const upload = require('../cloudinary');
+const {cloudinary,bufferToStream} = require('../config/cloudinary');
+
 const { validationResult } = require('express-validator');
 const Notification = require('../models/Notifiication');
 
@@ -15,10 +15,11 @@ exports.getPost = async (req, res, next) => {
       .populate('creator', '_id userName email')
       .populate({
         path: 'comments',
+        options: { sort: { createdAt: -1 } },
         populate: {
           path: 'user',
-          select: 'userName email'
-        }
+          select: 'userName email avatar'
+        },
       })
       .lean();
 
@@ -60,10 +61,10 @@ exports.getPosts = async (req,res,next) => {
   try{
     if (username){
       const user = await User.findOne({userName : username});
-      posts = await Post.find({ 'creator': user._id }).populate('creator', '_id userName email').sort({createdAt : -1});
+      posts = await Post.find({ 'creator': user._id }).populate('creator', '_id userName email avatar').sort({createdAt : -1});
     }
     else{
-      posts = await Post.find().populate('creator', '_id userName email').sort({createdAt : -1});
+      posts = await Post.find().populate('creator', '_id userName email avatar').sort({createdAt : -1});
     }
     res.status(200).json({posts : posts});
   }
@@ -73,32 +74,42 @@ exports.getPosts = async (req,res,next) => {
 }
 
 //Create Post
-exports.createPost = [
-//   upload.single('media'), 
-  async (req, res, next) => {
-    
-    const { title, content, tags } = req.body;
+exports.createPost = async (req, res, next) => {
+    console.log(req.body);
+    const {content} = req.body;
     let mediaURL = '';
     let mediaType = 'image';
-
-    // if (req.file) {
-    //   mediaURL = req.file.path;
-      
-    //   if (req.file.mimetype.startsWith('image/')) {
-    //     mediaType = 'image';
-    //   } else if (req.file.mimetype.startsWith('video/')) {
-    //     mediaType = 'video';
-    //   }
-    // }
     
     try {
+
+      if (req.file) {
+        const stream = bufferToStream(req.file.buffer);
+        
+        // Upload to Cloudinary using stream
+        const uploadPromise = new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: 'posts',
+              resource_type: 'auto', // Automatically detect resource type
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          
+          stream.pipe(uploadStream);
+        });
+        const uploadMediaRes = await uploadPromise;
+        mediaURL = uploadMediaRes.secure_url;
+        mediaType = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
+      }
+
       const post = new Post({ 
-        title, 
         content, 
         mediaURL, 
         mediaType, 
         creator: req.user.id,
-        tags
       });
       
       const result = await post.save();
@@ -108,11 +119,7 @@ exports.createPost = [
       console.log(err);
       next(err.statusCode ? err : { ...err, statusCode: 500 });
     }
-  }
-];
-
-
-
+  };
 
 exports.toggleLike = async (req, res, next) => {
   const errors = validationResult(req);

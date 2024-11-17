@@ -1,16 +1,16 @@
 const express = require('express');
+const { upload } = require('../config/cloudinary');
 const postController = require('../controllers/postController');
 const {isAuth,optionalAuth} = require('../middleware/is-Auth');
 const { body, param } = require('express-validator');
-
-
+ 
 const router = express.Router();
 
 router.get('/likedPosts',isAuth,postController.getLikedPosts);
 
 router.get('/post/:postId',optionalAuth, postController.getPost);
 
-router.post('/create', isAuth,postController.createPost); 
+router.post('/create', isAuth, upload.single('media'), postController.createPost);
 
 router.get('/posts/',postController.getPosts);
 

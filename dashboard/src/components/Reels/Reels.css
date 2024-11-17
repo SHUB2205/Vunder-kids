@@ -1,0 +1,4 @@
+.reel-container{
+    flex:var(--middleContentWidth);
+    overflow: hidden;
+}

@@ -1,0 +1,67 @@
+.matchCard {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+    padding: 10px 2px;
+  }
+  
+  .matchInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #818181;
+    font-weight: 400;
+  }
+  
+  .playerSection,
+  .playerSimple {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .playerImage {
+    width: 27px;
+    height: 15px;
+    border-radius: 2px;
+  }
+  
+  .predictionBar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+  }
+  
+  .predictionIcon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .matchDetails {
+    display: flex;
+    margin-top: 10px;
+    align-items: center;
+    gap: 10px;
+    color: #b78a3a;
+  }
+  
+  .sportType {
+    font-weight: 500;
+  }
+  
+  .voteInfo {
+    color: #818181;
+    font-weight: 400;
+    margin-top: 5px;
+  }
+  
+  @media (max-width: 991px) {
+    .matchCard {
+      max-width: 100%;
+    }
+  }
