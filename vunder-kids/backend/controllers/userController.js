@@ -286,10 +286,14 @@ const resetPassword = async (req, res) => {
 const userInfo=async(req,res)=>{
   try {
     let userId = req.params.id;
-    if(userId==undefined){
+    if (userId === "myInfo"){
+      userId = req.user.id;
+    }
+    else if(userId==undefined){
       userId=await getUserId();
     }
-    const user = await User.findById(userId)
+    
+    const user = await User.findById(userId,'-password');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

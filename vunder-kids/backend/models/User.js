@@ -3,6 +3,10 @@ const bcrypt = require("bcryptjs");
 const Schema = mongoose.Schema;
 
 const UserSchema = new mongoose.Schema({
+  avatar: {
+    type:String,
+    default:'https://c7.alamy.com/comp/R045X8/baseball-man-avatar-people-icon-R045X8.jpg'
+  },
   userName: {
     type: String,
     required: true,

@@ -1,15 +1,15 @@
 import React from 'react';
 import styles from './CommentItem.module.css';
 
-const CommentItem = ({ avatar, username, comment, time }) => {
+const CommentItem = ({ user, content, createdAt }) => {
   return (
     <div className={styles.commentItem}>
-      <img loading="lazy" src={avatar} alt={`${username}'s avatar`} className={styles.avatar} />
+      <img loading="lazy" src={user.avatar} alt={`${user.userName}'s avatar`} className={styles.avatar} />
       <div className={styles.commentContent}>
-        <div className={styles.username}>{username}</div>
-        <div className={styles.commentText}>{comment}</div>
+        <div className={styles.username}>{user.userName}</div>
+        <div className={styles.commentText}>{content}</div>
         <div className={styles.commentMeta}>
-          <div >{time}</div>
+          <div >{createdAt}</div>
         </div>
       </div>
     </div>

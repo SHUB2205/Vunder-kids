@@ -1,0 +1,15 @@
+.profilePhotosContainer {
+    display: grid;
+    grid-template-columns: repeat(3, 203px);
+    gap: 20px;
+    justify-content: center;
+    padding: 5px;
+
+}
+
+.profilePhotosContainer img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: var(--border-raduis);
+}

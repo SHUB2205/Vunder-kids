@@ -76,6 +76,29 @@
 .postButton:hover {
   background-color: #555;
 }
+.mediaPreview {
+  position: relative;
+  margin: 10px 0;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.removeMedia {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
 
 @media (max-width: 991px) {
   .postActions {
