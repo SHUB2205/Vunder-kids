@@ -8,14 +8,15 @@ const Backend_URL = 'http://localhost:5000';
 const PostState = ({ children }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const {token} = useContext(IsAuth);
+  const {token,user} = useContext(IsAuth);
 
   const createPost = async (postData) => {
     try {
       const response = await axios.post(`${Backend_URL}/api/post/create`, postData, {
         headers: {token,'Content-Type': 'multipart/form-data'},
       });
-      setPosts(prevPosts => [response.data.post, ...prevPosts]);
+      const newPost = response.data.post
+      setPosts(prevPosts => [{...newPost,creator:{avatar : user.avatar , userName: user.userName}}, ...prevPosts]);
       return response.data;
     } catch (error) {
       console.error('Error creating post:', error);
