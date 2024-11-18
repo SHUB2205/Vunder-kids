@@ -49,11 +49,10 @@ app.use((error, req, res, next) => {
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
+    origin: "*",  // Allow all origins
     methods: ["GET", "POST"],
   },
 });
-
 // Socket.IO Middleware 
 io.use(socketAuth);
 

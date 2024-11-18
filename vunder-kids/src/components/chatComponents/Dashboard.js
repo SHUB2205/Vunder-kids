@@ -117,6 +117,7 @@ const Dashboard = () => {
       setError("Failed to load chats. Please refresh the page.");
     }
   }, []);
+    
   const createGroup = async (name, memberIds) => {
     try {
       console.log(name, memberIds);

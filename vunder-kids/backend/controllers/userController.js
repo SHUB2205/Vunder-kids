@@ -289,7 +289,7 @@ const userInfo=async(req,res)=>{
     if (userId === "myInfo"){
       userId = req.user.id;
     }
-    else if(userId==undefined){
+    else if(userId===undefined){
       userId=await getUserId();
     }
     

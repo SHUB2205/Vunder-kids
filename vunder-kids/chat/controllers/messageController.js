@@ -49,7 +49,7 @@ exports.getGroupMessages = async (req, res) => {
 exports.getUserChats = async (req, res) => {
   try {
     const userId = req.user.id;
-
+    console.log("here");
     const user = await User.findById(userId)
       .populate({
         path: "messages",
@@ -75,7 +75,7 @@ exports.getUserChats = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+console.log(user);
     //  How this is working?
     const privateChats = user.messages.reduce((chats, message) => {
       const otherUser =
@@ -167,7 +167,7 @@ exports.createGroup = async (req, res) => {
   try {
     const { name, members } = req.body;
     const creatorId = req.user.id;
-
+    console.log(members);
     // why?
     if (!members.includes(creatorId)) {
       members.push(creatorId);
