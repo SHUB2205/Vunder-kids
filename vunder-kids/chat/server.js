@@ -62,11 +62,10 @@ io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
   const userId = socket.user.id;
   socket.join(userId); // Join the user's room
-  console.log(`User ${userId} joined their room`);
-  const reciverId=0;
+  // console.log(`User ${userId} joined their room`);
   socket.on("join room", (roomId) => {
     socket.join(roomId);
-    console.log(`Reciver User joined room: ${roomId}`);
+    // console.log(`Reciver User joined room: ${roomId}`);
   });
 
   socket.on("leave room", (roomId) => socket.leave(roomId));
