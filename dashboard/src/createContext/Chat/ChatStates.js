@@ -22,12 +22,13 @@ export default function ChatState(props) {
   useEffect(() => {
     if (user) {
       setUserInfo(user); // Set the user info once it is fetched
+      console.log("here"+ user.name + user._id);
       setLoading(false); // Set loading to false after the user info is available
     }
   }, [user]); // This effect depends on the user state
   const allMembers = async () => {
     if (!userInfo) return { uniqueIds: [], uniqueUsernames: [], userNames: [] };
-  
+    console.log("sender Id",userInfo._id);
     const { followers, following } = userInfo;
     // Combine and remove duplicates
     const combined = [...followers, ...following];

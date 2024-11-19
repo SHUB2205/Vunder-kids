@@ -9,7 +9,7 @@ const messageRoutes = require("./routes/messageRoutes");
 const socketAuth=require("./middleware/socketAuth");
 const app = express();
 const PORT = process.env.PORT || 4000;
-
+const User=require('./models/User')
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -19,6 +19,7 @@ mongoose
   .connect(process.env.MONGO_URI || "mongodb://localhost:27017/Vunder-Kids", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useFindAndModify: false, // Add this line
   })
   .then(() => {
     console.log("MongoDB connected");
@@ -49,40 +50,62 @@ app.use((error, req, res, next) => {
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
-    origin: "*",  // Allow all origins
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
+
 // Socket.IO Middleware 
 io.use(socketAuth);
 
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
-
-  socket.on("join room", (roomId) => socket.join(roomId));
+  const userId = socket.user.id;
+  socket.join(userId); // Join the user's room
+  console.log(`User ${userId} joined their room`);
+  const reciverId=0;
+  socket.on("join room", (roomId) => {
+    socket.join(roomId);
+    console.log(`Reciver User joined room: ${roomId}`);
+  });
 
   socket.on("leave room", (roomId) => socket.leave(roomId));
 
+  
   socket.on("private message", async (data, callback) => {
     try {
       const { recipientId, content } = data;
       const senderId = socket.user.id;
-
+      // console.log("sender Id "+senderId);
+      // Create and save the message
       const message = new Message({
         sender: senderId,
         recipient: recipientId,
         content,
       });
       await message.save();
-      await message.populate("sender", "name");
-
-      io.to(recipientId).emit("new message", message);
+      await message.populate("sender", "name"); // Populate sender details
+  
+      // Emit the message to the recipient
+      // console.log("recipientId "+ recipientId + "msg "+ content);
+      io.to(recipientId).emit("new private message", message);
+      // io.to(senderId).emit("new private message", message);
+      // Update the sender's and recipient's user document with the message ID
+      await User.findByIdAndUpdate(senderId, {
+        $push: { messages: message._id },
+      });
+      await User.findByIdAndUpdate(recipientId, {
+        $push: { messages: message._id },
+      });
+  
+      // Send a success response back to the sender
       callback({ success: true, message });
     } catch (error) {
       console.error("Error sending private message:", error);
       callback({ success: false, error: "Failed to send message" });
     }
   });
+  
 
   socket.on("group message", async (data, callback) => {
     try {

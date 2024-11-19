@@ -18,6 +18,7 @@ exports.getPrivateMessages = async (req, res) => {
       .sort({ timestamp: 1 })
       .populate("sender", "name");
 
+      // console.log(messages)
     res.json(messages);
   } catch (error) {
     console.error("Error fetching private messages:", error);
@@ -49,7 +50,7 @@ exports.getGroupMessages = async (req, res) => {
 exports.getUserChats = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log("here");
+
     const user = await User.findById(userId)
       .populate({
         path: "messages",
@@ -72,22 +73,25 @@ exports.getUserChats = async (req, res) => {
         },
       })
       .select("-password");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-console.log(user);
-    //  How this is working?
-    const privateChats = user.messages.reduce((chats, message) => {
+
+    // Use a Map to avoid duplicates
+    const chatMap = new Map();
+
+    user.messages.forEach((message) => {
       const otherUser =
         message.sender._id.toString() === userId
           ? message.recipient
           : message.sender;
-      const existingChat = chats.find(
-        (chat) => chat.id === otherUser._id.toString()
-      );
+
+      const existingChat = chatMap.get(otherUser._id.toString());
 
       if (!existingChat) {
-        chats.push({
+        // Add a new entry if not already present
+        chatMap.set(otherUser._id.toString(), {
           type: "user",
           id: otherUser._id,
           name: otherUser.name,
@@ -95,9 +99,9 @@ console.log(user);
           timestamp: message.timestamp,
         });
       }
+    });
 
-      return chats;
-    }, []);
+    const privateChats = Array.from(chatMap.values());
 
     const groupChats = user.groups.map((group) => ({
       type: "group",
@@ -110,7 +114,7 @@ console.log(user);
     const allChats = [...privateChats, ...groupChats].sort(
       (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
     );
-
+    // console.log(allChats);
     res.json(allChats);
   } catch (error) {
     console.error("Error in getUserChats:", error);
