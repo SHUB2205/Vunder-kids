@@ -31,9 +31,9 @@ function Post({ _id ,creator, createdAt, content, mediaURL, likes,openComment })
     <>
       <article className={styles.post}>
         <header className={styles.postHeader}>
-          <img src={creator.avatar} alt={`${creator.userName}'s avatar`} className={styles.authorAvatar} />
+          <img src={creator ? creator.avatar : ''} alt={`${creator ? creator.userName : ' '}'s avatar`} className={styles.authorAvatar} />
           <div className={styles.authorInfo}>
-            <h3 className={styles.authorName}>{creator.userName}</h3>
+            <h3 className={styles.authorName}>{creator ? creator.userName : ''}</h3>
             <time className={styles.postTime}>{createdAt}</time>
           </div>
           <button aria-label="Post options" className={styles.postOptions}>

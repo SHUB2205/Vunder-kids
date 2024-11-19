@@ -1,25 +1,61 @@
-import React from 'react';
-import Post from '../Home/Post';
+import React, { useContext, useEffect, useState } from 'react';
 import './ProfilePhotos.css';
+import { PostContext } from '../../createContext/Post/PostContext';
 
-function ProfilePosts() {
-    const photo_url = "https://s3-alpha-sig.figma.com/img/ba6b/ae19/01d54ee30a92d542fa96c191010906c1?Expires=1730678400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=EU41ZHvv5kIVOAASwJeDg6iXBtTxJA2YLxjoIGHcPLBM8~L74pQkFwC~7Pldql-Tg7SODQXF4U73hMM3XYf2oc9mnPVi8NHbMg9VnRSaASwbic-PRz3VUWHSE8MCiB3vU2rmcfgjljk-So0RWuRYUM-odklUe6t1vxj4Uu6d39L~DgHtYi4hLwQ84GEVo3NXnwn5EvW1AxSMKI9~OYGtqkaL~xdGp3yLJh4JoyxAd7XU1bAKUFU9vLi9xmt-lzX0B-MUw8W1fqQ6rdFb9eOyfj79hla3YOiXGIWLagjNj6-DJYxDQzvptR~Oqfl3VxC9F30I4wMy~mBbcjR6J8kuag__";
-    const posts = [
-        {image: photo_url},
-        {image: photo_url},
-        {image: photo_url},
-        {image: photo_url},
-        {image: photo_url},
-        {image: photo_url}
-    ];
+function ProfilePhotos() {
+    const [selectedImage, setSelectedImage] = useState(null);
+    const {Myposts,getPosts} = useContext(PostContext);
+
+    // const photo_url = "https://s3-alpha-sig.figma.com/img/c544/a551/da362a82992c68a57b43daccc6b536e8?Expires=1733097600&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=AkP9IopUvpbPaAkAiK-9o9Rn0zjCIQumaWxgEy6-mzBvec0J4iY7qDJWfeut5-eOIBEtqJ66B73lW5~ujUgtbCRQzrAkZLNR7bbRYXZSDiaVnwsUtinZ4bLBkDkZ02jAT-bKIugmcWXswHpeC~aEEEN-DysytvWnmLqpM34ijNDhbUqWUfIJ3wYxiu3GZURRMyZIcstMu97KHgn8Pn-lEZY7lgVZN2j4fZTs38D4AFuMnKVwaOPBhp318eRaek4gYVDEa4nBUXMw1jXfxhZK0X-UoaAEG8mwbKQgIN9wIhUhptXhh7MqLL0JMq-ZL12DPF7ZURdJHnFRpVcjkqWw6A__";
+    // const posts = [
+    //     {image: photo_url},
+    //     {image: photo_url},
+    //     {image: photo_url},
+    //     {image: photo_url},
+    //     {image: photo_url},
+    //     {image: photo_url}
+    // ];
+
+    useEffect(() => {
+        if (Myposts.length == 0)
+            getPosts(true);
+    },[]);
+
+    const openModal = (image) => {
+        setSelectedImage(image);
+    };
+
+    const closeModal = () => {
+        setSelectedImage(null);
+    };
 
     return (
-        <div className="profilePhotosContainer">
-            {posts.map((post, index) => (
-                <img src={post.image} alt={`image-${index}`}/>
-            ))}
-        </div>
+        <>
+            <div className="profilePhotosContainer">
+                {Myposts && Myposts.map((post, index) => (
+                    (post.mediaType === 'image' && post.mediaURL && <img 
+                        key={index}
+                        src={post.mediaURL} 
+                        alt={`image-${index}`}
+                        onClick={() => openModal(post.mediaURL)}
+                    />)
+                ))}
+            </div>
+
+            {selectedImage && (
+                <div className="image-modal" onClick={closeModal}>
+                    <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-button" onClick={closeModal}>×</button>
+                        <img 
+                            src={selectedImage} 
+                            alt="Full screen" 
+                            className="full-screen-image"
+                        />
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
 
-export default ProfilePosts;
+export default ProfilePhotos;

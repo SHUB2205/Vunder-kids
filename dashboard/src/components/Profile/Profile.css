@@ -127,6 +127,9 @@
     align-items: center;
     text-align: center;
   }
+  .profile-bio{
+    text-align: center;
+  }
 
   .profile-metrics {
     justify-content: center;
