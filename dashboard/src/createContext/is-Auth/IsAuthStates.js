@@ -35,6 +35,7 @@ export default function SearchModalState(props) {
           headers: { token }
         });
         setUser(response.data);
+        console.log(user);
       }
       catch (error) {
         console.error('Error toggling like:', error);
