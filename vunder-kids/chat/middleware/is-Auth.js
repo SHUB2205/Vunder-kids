@@ -35,6 +35,7 @@ const optionalAuth = async (req,res,next)=>{
 
         // { user: { id: '64b0873ba5029152669bd531' }, iat: 1689290555 }
         req.user = data;
+        console.log("this is the user id "+ data.req.user.id);
         next();
     } catch (error) {
         res.status(400).json({ error: error.message });

@@ -1,79 +1,210 @@
-import React, { useState } from 'react';
+import React, { useContext, useState, useRef, useEffect } from 'react';
 import './Message.css';
 import { ReactComponent as SearchIcon } from '../images/search.svg';
-import { ReactComponent as ImageIcon } from '../images/image.svg';
-import { ReactComponent as GifIcon } from '../images/gif.svg';
-import { ReactComponent as EmojiIcon } from '../images/emoji.svg';
 import { ReactComponent as SendIcon } from '../images/send.svg';
+import { ChatContext } from '../../createContext/Chat/ChatContext';
 import UserPhoto from '../images/UserPhoto3.png';
+import BackIcon from '../images/BackIcon.png'; // Import the PNG image
 
 const Message = () => {
-  const [activeChat, setActiveChat] = useState(null);
+  const {
+    error,
+    userInfo,
+    activeChat,
+    inputMessage,
+    setInputMessage,
+    chats,
+    messages,
+    handleMessageClick,
+    sendMessage,
+    updateChats, // Access updateChats from context
+    setChats, // Access setChats from context
+    fetchAllMembers, // Access fetchAllMembers from ChatContext
+  } = useContext(ChatContext);
 
-  const handleMessageClick = (index) => {
-    setActiveChat(index);
-    const rightContent = document.querySelector('.message-right-content');
-    rightContent.classList.add('active');
-  };
+  const [allMembersList, setAllMembersList] = useState([]);
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mergedUsers, setMergedUsers] = useState([]);
+  const chatContainerRef = useRef(null);
 
-  const handleBackClick = () => {
-    setActiveChat(null);
-    const rightContent = document.querySelector('.message-right-content');
-    rightContent.classList.remove('active');
+  // Fetch all members on component mount
+  useEffect(() => {
+    const fetchMembers = async () => {
+      if (fetchAllMembers) {
+        const members = await fetchAllMembers(); // Call fetchAllMembers from context
+        setAllMembersList(members);
+      }
+    };
+    fetchMembers();
+  }, [fetchAllMembers]);
+
+  // Merge users from chats and allMembersList, avoiding duplicates
+  useEffect(() => {
+    const uniqueUsers = [
+      ...new Map(
+        [...chats.users, ...allMembersList].map((user) => [user.id, user]) // Use Map to remove duplicates
+      ).values(),
+    ];
+    setMergedUsers(uniqueUsers);
+  }, [chats.users, allMembersList]);
+
+  const filteredUsers = mergedUsers.filter((user) =>
+    user.name && typeof user.name === 'string' && user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  // Scroll to the bottom of the messages when messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  // Handle user click to add to chats and set as active chat
+  const handleUserSelect = (user) => {
+    updateChats(user);
+    // Set the clicked user as the active chat
+    setSearchActive(false); // Close the search after selection
+    setSearchQuery(''); // Clear the search query
   };
 
   return (
-    <div className='message-container'>
+    <div className="message-container">
+      {error && <div className="error-banner">{error}</div>}
+
       <div className="message-middle-content">
         <h2 className="message-heading">Messages</h2>
+
+        {/* Search Container */}
         <div className="message-search-container">
-          <SearchIcon className="message-search-icon" />
-          <input type="text" placeholder="Search Direct Messages" className="message-search-input" />
+          {searchActive ? (
+            <img
+              src={BackIcon} // Use the BackIcon PNG
+              alt="Back"
+              className="message-search-icon"
+              onClick={() => {
+                setSearchActive(false);
+                setSearchQuery(''); // Optionally clear the search query when going back
+              }}
+            />
+          ) : (
+            <SearchIcon
+              className="message-search-icon"
+              onClick={() => setSearchActive(true)} // Activate search when clicking the search icon
+            />
+          )}
+          <input
+            type="text"
+            placeholder="Search Direct Messages"
+            className="message-search-input"
+            value={searchQuery}
+            onClick={() => setSearchActive(true)}
+            onChange={(e) => setSearchQuery(e.target.value)} // Allow input even without clicking the icon
+            autoFocus={searchActive} // Auto-focus input when search is active
+          />
         </div>
+
+        {/* User List */}
         <div className="message-list">
-          {['Cristiano Ronaldo', 'Esther Howard', 'Darrell Steward', 'Darlene Robertson', 'Annette Black'].map((name, index) => (
-            <div
-              key={index}
-              className="message-item"
-              onClick={() => handleMessageClick(index)}
-            >
-              <img src={UserPhoto} alt={name} className="message-avatar" />
-              <div className="message-item-content">
-                <div className="message-item-name">{name} <span className="message-item-handle">@{name.split(' ')[0].toLowerCase()}</span></div>
-                <div className="message-item-text">Hi khadar how are you!</div>
-              </div>
-              <div className="message-item-date">Jan 7</div>
-            </div>
-          ))}
+          {searchActive
+            ? filteredUsers.length > 0
+              ? filteredUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="message-item"
+                    onClick={() => handleUserSelect(user)} // Handle user selection from search results
+                  >
+                    <img
+                      src={UserPhoto}
+                      alt={user.name}
+                      className="message-avatar"
+                    />
+                    <div className="message-item-content">
+                      <div className="message-item-name">
+                        {user.name}{' '}
+                        <span className="message-item-handle">
+                          @{user.userName}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              : <div className="no-users-found">No users found</div>
+            : chats.users.length > 0
+            ? chats.users.map((user) => (
+                <div
+                  key={user.id}
+                  className="message-item"
+                  onClick={() => handleMessageClick(user)} // Handle normal chat user click
+                >
+                  <img
+                    src={UserPhoto}
+                    alt={user.name}
+                    className="message-avatar"
+                  />
+                  <div className="message-item-content">
+                    <div className="message-item-name">
+                      {user.name}
+                    </div>
+                    {user.lastMessage && (
+                      <div className="message-item-text">{user.lastMessage}</div>
+                    )}
+                  </div>
+                  {user.timestamp && (
+                    <div className="message-item-date">
+                      {new Date(user.timestamp).toLocaleTimeString()}
+                    </div>
+                  )}
+                </div>
+              ))
+            : <div className="no-chats">Select a chat</div>}
         </div>
       </div>
+
       <div className="message-right-content">
-        <div className="mobile-back-button" onClick={handleBackClick}>
-          ← Back
+        <h3>{activeChat ? activeChat.name : 'Select a chat'}</h3>
+        <div
+          className="message-chat-container"
+          ref={chatContainerRef}
+        >
+          {activeChat && messages.length > 0 ? (
+            messages.map((message, index) => (
+              <div
+                key={index}
+                className={`message-chat-message ${message.sender._id === userInfo._id ||
+                    message.sender === userInfo._id
+                    ? 'message-chat-self'
+                    : 'message-chat-other'
+                  }`}
+              >
+                <p className="message-chat-text">{message.content}</p>
+                <span className="message-chat-time">
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="no-messages">No messages yet.</div>
+          )}
         </div>
-        <h3>Cristiano Ronaldo</h3>
-        <div className="message-user-info">
-          <img src={UserPhoto} alt="Cristiano Ronaldo" className="message-user-avatar" />
-          <h3 className="message-user-name">Cristiano Ronaldo</h3>
-          <p className="message-user-handle">@Cristiano</p>
-        </div>
-        <div className="message-chat-container">
-          <div className="message-chat-message">
-            <p className="message-chat-text">Hi khadar how are you!</p>
-            <span className="message-chat-time">Mar 21, 2024, 8:50 PM</span>
-          </div>
-          <div className="message-chat-message message-chat-self">
-            <p className="message-chat-text">i am fine</p>
-            <span className="message-chat-time">Mar 21, 2024, 9:50 PM</span>
-          </div>
-        </div>
+          {activeChat? (
         <div className="message-input-container">
-          <button className="message-action-button"><ImageIcon /></button>
-          <button className="message-action-button"><GifIcon /></button>
-          <button className="message-action-button"><EmojiIcon /></button>
-          <input type="text" placeholder="Start a new message" className="message-input" />
-          <button className="message-action-button"><SendIcon /></button>
+              <input
+                type="text"
+                placeholder="Start a new message"
+                className="message-input"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+              />
+              <button
+                className="message-send-button"
+                onClick={() => sendMessage(inputMessage)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <SendIcon />
+              </button>
         </div>
+          ) : null}
+
       </div>
     </div>
   );

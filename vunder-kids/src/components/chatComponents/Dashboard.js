@@ -30,7 +30,7 @@ const Dashboard = () => {
       setError("Failed to connect to chat server. Please try again later.");
     });
 
-    newSocket.on("new message", handleNewMessage);
+    newSocket.on("new private message", handleNewMessage);
     newSocket.on("new group message", handleNewMessage);
 
     setSocket(newSocket);

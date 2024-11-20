@@ -3,7 +3,7 @@ const Notification = require('../../models/Notifiication');
 const sendNotification= require('./fireBaseSendNotification');
 // Simulate a service worker that runs in the background
 // users should be the id not the complete user
-const notificationService = (users, type, message, matchId) => {
+const notificationService = (users, type, message) => {
   // Use setImmediate to ensure non-blocking behavior
   setImmediate(async () => {
     try {
@@ -11,7 +11,6 @@ const notificationService = (users, type, message, matchId) => {
         user: user,
         type: type,
         message: message,
-        match: matchId
       }));
 
       await Notification.insertMany(notifications); // Batch insert notifications

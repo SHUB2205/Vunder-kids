@@ -82,8 +82,7 @@ exports.createMatch = async (req, res) => {
     notificationService(
       admins,
       'matchmaking',
-      `You have a new match request with match ID: ${savedMatch._id}. Please review the details.`,
-      savedMatch._id
+      `You have a new match request. Please review the details.`
     );
 
     // Remove duplicates from allParticipants (in case of same player in multiple teams)
@@ -117,9 +116,8 @@ exports.createMatch = async (req, res) => {
           
           notificationService(
             participants,
-            'matchmaking',
-            `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`,
-            currentMatch._id
+            'match-cancelled',
+            `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`
           );
         }
       });
@@ -239,7 +237,8 @@ exports.updateMatch = async (req, res) => {
     if (!updatedMatch) {
       return res.status(404).json({ message: "Match not found" });
     }
-    updateScore(req.params.id,updatedMatchData.winner)
+    updateScore(req.params.id,updatedMatchData.winner);
+    
     res.status(200).json(updatedMatch);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -399,7 +398,7 @@ exports.updateAgreement = async (req, res) => {
 
       notificationService(
         participants,
-        "matchmaking",
+        "match-accepted",
         `The match with team ID: ${match._id} has been accepted by your team.`,
         savedEvent._id
       );

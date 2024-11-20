@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const http = require('http');
+// const http = require('http');
 
 
 
@@ -130,15 +130,20 @@ app.get('/google/redirect', async (req, res) => {
 
   try {
     const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials({
-      ...tokens,
-      userId: userId, // Include the user ID in credentials
-    });
+    oauth2Client.setCredentials(tokens);
 
+    // Retrieve the user document from the database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    // Update the user's Google credentials
     await User.findByIdAndUpdate(userId, {
       google: {
         accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token || user.google.refreshToken, // Preserve the existing refresh token if not provided
+        refreshToken: tokens.refresh_token || (user.google && user.google.refreshToken), // Safely access refreshToken
       },
     });
 
@@ -148,6 +153,8 @@ app.get('/google/redirect', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
+
 
 app.post('/schedule_event', isAuth, async (req, res) => {
   try {

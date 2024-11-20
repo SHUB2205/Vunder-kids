@@ -11,12 +11,13 @@ import Notification from './components/Notification/Notification'
 import { FacilitiesLayout } from "./components/Facility/FacilityLayout";
 import Reels from "./components/Reels/Reels";
 import PostState from "./createContext/Post/PostState";
-import SearchModalState from "./createContext/is-Auth/IsAuthStates";
-
+import IsAuthStates from "./createContext/is-Auth/IsAuthStates";
+import ChatState from "./createContext/Chat/ChatStates";
 function App() {
   return (
-    <SearchModalState>
+    <IsAuthStates>
       <PostState>
+              <ChatState>
 
     <>
       <Router>
@@ -28,7 +29,7 @@ function App() {
             <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/home" element={<><MainContent /><RightSidebar/></>} />
               <Route path="/search" element={<><Search /><RightSidebar/></>} />
-              <Route path="/messages" element={<Messages />} />
+              <Route path="/messages" element={<Messages/>} />
               <Route path="/profile" element={<><Profile /><RightSidebar/></>} />
               <Route path="/notification" element={<><Notification /><RightSidebar/></>} />
               <Route path="/facilities" element={<><FacilitiesLayout /><RightSidebar/></>} />
@@ -39,8 +40,9 @@ function App() {
         </div>
       </Router>
     </>
+              </ChatState>
       </PostState>
-    </SearchModalState>
+    </IsAuthStates>
   );
 }
 
