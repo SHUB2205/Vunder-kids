@@ -110,11 +110,10 @@ exports.getUserChats = async (req, res) => {
       lastMessage: group.messages ? group.messages[0].content : null,
       timestamp: group.messages ? group.messages[0].timestamp : null,
     }));
-
     const allChats = [...privateChats, ...groupChats].sort(
       (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
     );
-    // console.log(allChats);
+    console.log(allChats);
     res.json(allChats);
   } catch (error) {
     console.error("Error in getUserChats:", error);

@@ -4,7 +4,9 @@ import axios from "axios";
 import IsAuth from "../is-Auth/IsAuthContext";
 import io from "socket.io-client";
 export default function ChatState(props) {
-    const SERVER_URL = "http://localhost:4000";
+    const Chat_Url = "http://localhost:4000";
+     const Backend_URL = 'http://localhost:5000';
+
   const { token, fetchUserInfo, user } = useContext(IsAuth); // Get fetchUserInfo and user from context
   const [userInfo, setUserInfo] = useState(null); // State to store user info
   const [loading, setLoading] = useState(true); // State to track loading
@@ -25,45 +27,38 @@ export default function ChatState(props) {
       setLoading(false); // Set loading to false after the user info is available
     }
   }, [user]); // This effect depends on the user state
-  const allMembers = async () => {
-    if (!userInfo) return { uniqueIds: [], uniqueUsernames: [], userNames: [] };
-    console.log("sender Id",userInfo._id);
+  const fetchAllMembers = async () => {
+    if (!userInfo) return [];
     const { followers, following } = userInfo;
-    // Combine and remove duplicates
-    const combined = [...followers, ...following];
-    const uniqueIds = Array.from(new Set(combined));
-  
-    // Fetch usernames and names for unique IDs
+
+    // Combine followers and following, remove duplicates
+    const uniqueIds = Array.from(new Set([...followers, ...following]));
+
+    // Fetch details for unique IDs
     const userInfoDetails = await Promise.all(
       uniqueIds.map(async (id) => {
         try {
-          const response = await axios.get(`${SERVER_URL}/api/users/${id}`, {
+          const response = await axios.get(`${Backend_URL}/api/users/${id}`, {
             headers: {
-              "Content-Type": "application/json", // Include Content-Type header
-              "token": token, // Include token from localStorage
+              "Content-Type": "application/json",
+              token: token,
             },
           });
-  
-          // Assuming the API returns `userName` and `name`
           return {
-            userName: response.data.userName, // The `userName` field
-            name: response.data.name,         // The `name` field
+            id: id,
+            userName: response.data.userName || "Unknown User",
+            name: response.data.name || "Unknown",
           };
         } catch (error) {
           console.error(`Error fetching data for ID ${id}:`, error);
-          return { userName: "Unknown User", name: "Unknown" }; // Fallback if the request fails
+          return { id: id, userName: "Unknown User", name: "Unknown" };
         }
       })
     );
-  
-    // Extract user names and names from the result
-    const userNames = userInfoDetails.map((info) => info.userName);
-    const names = userInfoDetails.map((info) => info.name);
-  
-    // console.log(uniqueIds, userNames, names);
-    return { uniqueIds, userNames, names };
-  };
 
+    return userInfoDetails;
+  };
+  
 
 //   socket wok
   const [activeChat, setActiveChat] = useState(null);
@@ -82,7 +77,7 @@ export default function ChatState(props) {
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
-    const newSocket = io(SERVER_URL, { query: { token } });
+    const newSocket = io(Chat_Url, { query: { token } });
 
     newSocket.on("connect", () => {
       console.log("Connected to socket server");
@@ -108,7 +103,21 @@ export default function ChatState(props) {
 
   const handleNewMessage = useCallback((message) => {
     setMessages((prevMessages) => [...prevMessages, message]);
-  }, []);
+    const updatedChats = chats.users.map((user) => {
+      // Check if the message is a private message or group message and update accordingly
+      if (message.sender._id === user.id || message.groupId === user.id) {
+        return {
+          ...user,
+          lastMessage: message.content, // Set the last message as the received message
+          timestamp: message.timestamp, // Set the timestamp to the message's timestamp
+        };
+      }
+      return user;
+    });
+  
+    // Update the chats state
+    setChats({ ...chats, users: updatedChats });
+  }, [chats, setMessages, setChats]);
 
   // fetching all the chat
   useEffect(() => {
@@ -116,7 +125,7 @@ export default function ChatState(props) {
   }, []);
   const fetchChats = useCallback(async () => {
     try {
-      const response = await fetch(`${SERVER_URL}/api/messages/chats`, {
+      const response = await fetch(`${Chat_Url}/api/messages/chats`, {
         headers: {
           token: sessionStorage.getItem("token"),
         },
@@ -161,8 +170,8 @@ export default function ChatState(props) {
     try {
       const endpoint =
         chatType === "user"
-          ? `${SERVER_URL}/api/messages/private/${chatId}`
-          : `${SERVER_URL}/api/messages/group/${chatId}`;
+          ? `${Chat_Url}/api/messages/private/${chatId}`
+          : `${Chat_Url}/api/messages/group/${chatId}`;
       const response = await fetch(endpoint, {
         headers: {
           token: sessionStorage.getItem("token"),
@@ -181,33 +190,64 @@ export default function ChatState(props) {
   // sending message
   const sendMessage = (content) => {
     if (!socket || !activeChat) return;
-
+  
     const eventName =
       activeChat.type === "user" ? "private message" : "group message";
+    
     const payload =
       activeChat.type === "user"
         ? { recipientId: activeChat.id, content }
         : { groupId: activeChat.id, content };
-        // console.log(payload);
+  
+    // Emit the message via socket
     socket.emit(eventName, payload, (response) => {
       if (response.error) {
         console.error("Error sending message:", response.error);
         setError("Failed to send message. Please try again.");
+      } else {
+        // Update the last message and timestamp in the chats state
+        const updatedChats = chats.users.map((user) => {
+          if (user.id === activeChat.id) {
+            return {
+              ...user,
+              lastMessage: content, // Set the last message as the content
+              timestamp: new Date().toISOString(), // Set the current timestamp
+            };
+          }
+          return user;
+        });
+  
+        // Update the chats state with the new last message and timestamp
+        setChats({ ...chats, users: updatedChats });
       }
     });
+  
+    // Clear the input message after sending
     setInputMessage('');
+  };
+  
+
+  const updateChats = (user) => {
+    setChats((prevChats) => {
+      // Check if the user already exists
+      handleMessageClick(user);
+      const userExists = prevChats.users.some((existingUser) => existingUser.id === user.id);
+
+      // If the user doesn't exist, add them
+      if (!userExists) {
+        return {
+          ...prevChats,
+          users: [...prevChats.users, user],
+        };
+      }
+
+      return prevChats;
+    });
   };
 
 
-
-
-
-
-
-
-
   return (
-    <ChatContext.Provider value={{ userInfo, loading, error, allMembers,token,activeChat,inputMessage, setInputMessage,chats,messages,handleMessageClick,sendMessage}}>
+    <ChatContext.Provider value={{ userInfo, loading, error, updateChats,fetchAllMembers,token,activeChat,setChats,inputMessage, setInputMessage,chats,messages,handleMessageClick,sendMessage}}>
       {props.children}
     </ChatContext.Provider>
   );
