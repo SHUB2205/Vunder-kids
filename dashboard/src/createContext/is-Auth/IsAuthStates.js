@@ -48,32 +48,9 @@ export default function IsAuthStates(props) {
         }
     };
 
-    const fetchUserInfo = async () => {
-      try {
-        const response = await axios.get(`${Backend_URL}/api/users/myInfo`,{
-          headers: { token }
-        });
-        setUser(response.data);
-        console.log(user);
-      }
-      catch (error) {
-        console.error('Error toggling like:', error);
-        throw error;
-      }
-    };
-    
-  return (
-    <>
-      <IsAuth.Provider value={{ token,setAuthToken,user }}>
-        {props.children}
-      </IsAuth.Provider>
-    </>
-  );
-
     return (
         <IsAuth.Provider value={{ token, setAuthToken, user ,fetchUserInfo}}>
             {props.children}
         </IsAuth.Provider>
     );
-
 }
