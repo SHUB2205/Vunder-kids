@@ -49,11 +49,9 @@ const Message = () => {
     setMergedUsers(uniqueUsers);
   }, [chats.users, allMembersList]);
 
-  // Filter users based on search query
   const filteredUsers = mergedUsers.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    user.name && typeof user.name === 'string' && user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
   // Scroll to the bottom of the messages when messages change
   useEffect(() => {
     if (chatContainerRef.current) {

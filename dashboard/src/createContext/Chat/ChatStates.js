@@ -103,21 +103,7 @@ export default function ChatState(props) {
 
   const handleNewMessage = useCallback((message) => {
     setMessages((prevMessages) => [...prevMessages, message]);
-    const updatedChats = chats.users.map((user) => {
-      // Check if the message is a private message or group message and update accordingly
-      if (message.sender._id === user.id || message.groupId === user.id) {
-        return {
-          ...user,
-          lastMessage: message.content, // Set the last message as the received message
-          timestamp: message.timestamp, // Set the timestamp to the message's timestamp
-        };
-      }
-      return user;
-    });
-  
-    // Update the chats state
-    setChats({ ...chats, users: updatedChats });
-  }, [chats, setMessages, setChats]);
+  }, []);
 
   // fetching all the chat
   useEffect(() => {
