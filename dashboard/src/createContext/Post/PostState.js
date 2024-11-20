@@ -1,3 +1,5 @@
+// To Do : Token Exception Handling for non-logined users by tostify
+
 import React, { useContext, useState } from 'react';
 import { PostContext, CommentContext } from './PostContext';
 import axios from 'axios';
@@ -7,6 +9,8 @@ const Backend_URL = 'http://localhost:5000';
 
 const PostState = ({ children }) => {
   const [posts, setPosts] = useState([]);
+  const [Myposts, setMyPosts] = useState([]);
+  const [Likedposts, setLikedPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const {token,user} = useContext(IsAuth);
 
@@ -24,11 +28,17 @@ const PostState = ({ children }) => {
     }
   };
 
-  const getPosts = async () => {
+  const getPosts = async (isUser = false) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${Backend_URL}/api/post/posts`);
-      setPosts(response.data.posts);
+      if (isUser && user){
+        const response = await axios.get(`${Backend_URL}/api/post/posts?username=${user.userName}`);
+        setMyPosts(response.data.posts);
+      }
+      else{
+        const response = await axios.get(`${Backend_URL}/api/post/posts`);
+        setPosts(response.data.posts);
+      }
     } catch (error) {
       console.error('Error fetching posts:', error);
       setPosts([]); // Set empty array on error
@@ -36,6 +46,24 @@ const PostState = ({ children }) => {
       setLoading(false);
     }
   };
+
+
+  const getLikedPosts = async() => {
+    try{
+      setLoading(true);
+      const response = await axios.get(`${Backend_URL}/api/post/likedPosts`,{
+        headers: {token},
+      }); 
+      setLikedPosts(response.data.posts);
+    }
+    catch (error){
+      console.log('Error in fetching Liked Posts');
+      setLikedPosts([]);
+    }
+    finally{
+      setLoading(false);
+    }
+  }
 
   const getPostById = async (postId) => {
     try {
@@ -86,7 +114,10 @@ const PostState = ({ children }) => {
       createPost,
       toggleLike,
       getPostById,
-      createComment
+      createComment,
+      Myposts,
+      getLikedPosts,
+      Likedposts
     }}>
       {children}
     </PostContext.Provider>

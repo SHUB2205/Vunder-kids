@@ -11,7 +11,7 @@ export default function Reels() {
             type: "video/mp4",
             description: "Amazing sunset at the beach! 🌅",
             postedBy: {
-              avatar: "https://example.com/avatars/user1.jpg",
+              avatar: "https://i.pinimg.com/736x/13/61/6f/13616feb961d454bfc0d7cdf6a2fc323.jpg",
               name: "John Doe"
             },
             likes: {

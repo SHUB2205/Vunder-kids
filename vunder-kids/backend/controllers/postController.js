@@ -75,7 +75,6 @@ exports.getPosts = async (req,res,next) => {
 
 //Create Post
 exports.createPost = async (req, res, next) => {
-    console.log(req.body);
     const {content} = req.body;
     let mediaURL = '';
     let mediaType = 'image';
@@ -230,7 +229,7 @@ exports.getLikedPosts = async (req,res,next) => {
       error.statusCode = 403;
       throw error;
     }
-    const posts = await Post.find({ _id: { $in: user.likes } }).populate('creator','_id username');
+    const posts = await Post.find({ _id: { $in: user.likes } }).populate('creator','_id userName avatar');
     res.status(200).json({posts});
   }
   catch (err){

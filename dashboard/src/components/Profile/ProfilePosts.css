@@ -1,7 +1,30 @@
-.profilePostsContainer {
-    display: grid;
-    grid-template-columns: repeat(3, 203px); /* 3 columns with fixed width */
-    gap: 20px;
-    justify-content: center;
+.profilePostsContainer{
+    font-family: Roboto;
 }
 
+.postNav {
+    display: flex;
+    gap:10px;
+    padding-top: 13px;
+}
+.Tab_active{
+    width: Hug (98px)px;
+    height: Hug (32px)px;
+    top: 329px;
+    left: 385px;
+    padding: 6px 10px 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--button-radius);
+    text-align:center;
+    background: var(--hover-icon-color);
+}
+.Tab {
+    font-family: Roboto;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 18.75px;
+    text-align:center;
+    padding: 6px 10px 6px 10px;
+    color: var(--text-color);
+    cursor: pointer;
+}
