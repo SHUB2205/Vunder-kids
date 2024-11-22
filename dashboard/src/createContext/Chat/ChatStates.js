@@ -23,7 +23,7 @@ export default function ChatState(props) {
   useEffect(() => {
     if (user) {
       setUserInfo(user); // Set the user info once it is fetched
-      console.log("here"+ user.name + user._id);
+      // console.log("here"+ user.name + user._id);
       setLoading(false); // Set loading to false after the user info is available
     }
   }, [user]); // This effect depends on the user state
@@ -69,16 +69,16 @@ export default function ChatState(props) {
   const [unseenCounts, setUnseenCounts] = useState([]); // State for unseen counts
 
   useEffect(() => {
-    console.log("Active chat updated:", JSON.stringify(activeChat));
+    // console.log("Active chat updated:", JSON.stringify(activeChat));
   }, [activeChat]);
   
   const handleMessageClick = async(user) => {
-    console.log("user after clicked "+user.id+  " " + user.name)  ;
+    // console.log("user after clicked "+user.id+  " " + user.name)  ;
     const tempActiceChat=activeChat
-    console.log("Active chat details: ", JSON.stringify(tempActiceChat));
+    // console.log("Active chat details: ", JSON.stringify(tempActiceChat));
     setActiveChat({ type: "user", id: user.id, name: user.name,avatar:user.avatar });
     // console.log(activeChat);
-    console.log("changed");
+    // console.log("changed");
     const type='user';
     //  making the chat seen and updating the last seen time
     try {
@@ -162,19 +162,19 @@ const handleNewMessage = useCallback(
   (message) => {
     const currentActiveChat = activeChatRef.current; // Use ref for the latest value
     if (!currentActiveChat) {
-      console.log("No active chat selected.");
+      // console.log("No active chat selected.");
       return;
     }
 
-    console.log("Active chat ID:", currentActiveChat.id);
-    console.log("Message sender ID:", message.sender);
-    console.log("Received message:", message);
+    // console.log("Active chat ID:", currentActiveChat.id);
+    // console.log("Message sender ID:", message.sender);
+    // console.log("Received message:", message);
 
     if (
       (currentActiveChat.type === "user" && currentActiveChat.id === message.sender) ||
       (currentActiveChat.type === "group" && currentActiveChat.id === message.groupId)
     ) {
-      console.log("Message belongs to active chat.");
+      // console.log("Message belongs to active chat.");
       setMessages((prevMessages) => [...prevMessages, message]);
       
       const updatedChats = chats.users.map((user) => {
@@ -192,7 +192,7 @@ const handleNewMessage = useCallback(
       setChats({ ...chats, users: updatedChats });
     } else {
       incrementUnseenCount(message.sender);
-      console.log("Message does not belong to the active chat.");
+      // console.log("Message does not belong to the active chat.");
     }
   },
   [] // No need for activeChat dependency
@@ -277,7 +277,7 @@ const handleNewMessage = useCallback(
   // sending message
   const sendMessage = (content) => {
     if (!socket || !activeChat) return;
-    console.log("content "+ content);
+    // console.log("content "+ content);
     const eventName =
       activeChat.type === "user" ? "private message" : "group message";
     
@@ -295,7 +295,7 @@ const handleNewMessage = useCallback(
           timestamp: new Date().toISOString(), // Proper timestamp
         };
       
-    console.log("send message payload "+ JSON.stringify(message));
+    // console.log("send message payload "+ JSON.stringify(message));
     setMessages((prevMessages) => [...prevMessages, message]);
     // Emit the message via socket
     socket.emit(eventName, payload, (response) => {
