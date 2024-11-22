@@ -82,6 +82,7 @@
 }
 .navIcon{
   display:none;
+  size: var(--font-icon);
 }
 
  

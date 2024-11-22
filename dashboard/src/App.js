@@ -1,46 +1,28 @@
 import "./App.css";
-import { BrowserRouter as Router, Route, Routes ,Navigate} from "react-router-dom";
-import LeftSidebar from "./components/LeftSlidebar/LeftSidebar";
-import MainContent from "./components/Home/MainContent";
-import RightSidebar from "./components/RightSidebar/RightSidebar";
-import Search from './components/Search/Search'
-import Messages from './components/Messages/Message'
-import Profile from './components/Profile/Profile'
-// import Login from './components/Login/Login'
-import Notification from './components/Notification/Notification'
-import { FacilitiesLayout } from "./components/Facility/FacilityLayout";
-import Reels from "./components/Reels/Reels";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+} from "react-router-dom";
 import PostState from "./createContext/Post/PostState";
 import IsAuthStates from "./createContext/is-Auth/IsAuthStates";
 import ChatState from "./createContext/Chat/ChatStates";
+import Register from "./components/Auth/Register/Register";
+import Login from "./components/Auth/Login/Login";
+import Dashboard from "./Dashboard";
 function App() {
   return (
     <IsAuthStates>
       <PostState>
-              <ChatState>
-
-    <>
-      <Router>
-    
-        <div className="dashboard">
-          <div className="dashboardWrapper">
-            <LeftSidebar />
+        <ChatState>
+          <Router>
             <Routes>
-            <Route path="/" element={<Navigate to="/home" />} />
-              <Route path="/home" element={<><MainContent /><RightSidebar/></>} />
-              <Route path="/search" element={<><Search /><RightSidebar/></>} />
-              <Route path="/messages" element={<Messages/>} />
-              <Route path="/profile" element={<><Profile /><RightSidebar/></>} />
-              <Route path="/notification" element={<><Notification /><RightSidebar/></>} />
-              <Route path="/facilities" element={<><FacilitiesLayout /><RightSidebar/></>} />
-              <Route path="/profile" element={<><Profile /><RightSidebar/></>} />
-              <Route path="/reels" element={<><Reels /><RightSidebar/></>} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="*" element={<Dashboard />} />
             </Routes>
-          </div>
-        </div>
-      </Router>
-    </>
-              </ChatState>
+          </Router>
+        </ChatState>
       </PostState>
     </IsAuthStates>
   );
