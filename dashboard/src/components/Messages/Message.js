@@ -18,8 +18,10 @@ const Message = () => {
     handleMessageClick,
     sendMessage,
     updateChats, // Access updateChats from context
-    setChats, // Access setChats from context
+    handleBackClick,
     fetchAllMembers, // Access fetchAllMembers from ChatContext
+    updateUnseenCounts,
+    unseenCounts,
   } = useContext(ChatContext);
 
   const [allMembersList, setAllMembersList] = useState([]);
@@ -66,7 +68,10 @@ const Message = () => {
     setSearchActive(false); // Close the search after selection
     setSearchQuery(''); // Clear the search query
   };
-
+  const getUnseenCount = (chatId) => {
+    const countObj = unseenCounts.find((item) => item.chatId === chatId);
+    return countObj ? countObj.unseenCount : 0;
+  };
   return (
     <div className="message-container">
       {error && <div className="error-banner">{error}</div>}
@@ -108,36 +113,38 @@ const Message = () => {
           {searchActive
             ? filteredUsers.length > 0
               ? filteredUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="message-item"
-                    onClick={() => handleUserSelect(user)} // Handle user selection from search results
-                  >
-                    <img
-                      src={UserPhoto}
-                      alt={user.name}
-                      className="message-avatar"
-                    />
-                    <div className="message-item-content">
-                      <div className="message-item-name">
-                        {user.name}{' '}
-                        <span className="message-item-handle">
-                          @{user.userName}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              : <div className="no-users-found">No users found</div>
-            : chats.users.length > 0
-            ? chats.users.map((user) => (
                 <div
                   key={user.id}
                   className="message-item"
-                  onClick={() => handleMessageClick(user)} // Handle normal chat user click
+                  onClick={() => handleUserSelect(user)} // Handle user selection from search results
                 >
                   <img
-                    src={UserPhoto}
+                    src={user.avatar}
+                    alt={user.name}
+                    className="message-avatar"
+                  />
+                  <div className="message-item-content">
+                    <div className="message-item-name">
+                      {user.name}{' '}
+                      <span className="message-item-handle">
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+              : <div className="no-users-found">No users found</div>
+            : chats.users.length > 0
+              ? chats.users.map((user) => (
+                <div
+                  key={user.id}
+                  className="message-item"
+                  onClick={() => {
+                    console.log("User clicked:", user); // Log the user object
+                    handleMessageClick(user);
+                  }} // Handle normal chat user click
+                >
+                  <img
+                    src={user.avatar}
                     alt={user.name}
                     className="message-avatar"
                   />
@@ -150,35 +157,55 @@ const Message = () => {
                     )}
                   </div>
                   {user.timestamp && (
+                    <>
                     <div className="message-item-date">
-                      {new Date(user.timestamp).toLocaleTimeString()}
+                    {new Date(user.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                     </div>
+                    <div className="message-unseen-count">
+                      {getUnseenCount(user.id) > 0 && (
+                        <span className="unseen-count-badge">
+                          {getUnseenCount(user.id)}
+                        </span>
+                      )}
+                    </div>
+                    </>
+                  
                   )}
                 </div>
               ))
-            : <div className="no-chats">Select a chat</div>}
+              : <div className="no-chats">Select a chat</div>}
         </div>
       </div>
 
       <div className="message-right-content">
-        <h3>{activeChat ? activeChat.name : 'Select a chat'}</h3>
+        <div className="message-right-header">
+
+          <div className="mobile-back-button" onClick={handleBackClick}>
+            ←
+          </div>
+          {
+            activeChat &&
+            <img src={activeChat.avatar} alt={activeChat.name} className="message-user-avatar" />
+          }
+          <h3>{activeChat ? activeChat.name : 'Select a chat'}</h3>
+        </div>
         <div
           className="message-chat-container"
           ref={chatContainerRef}
         >
           {activeChat && messages.length > 0 ? (
-            messages.map((message, index) => (
+            messages.map((message) => (
               <div
-                key={index}
+                key={message._id}
                 className={`message-chat-message ${message.sender._id === userInfo._id ||
-                    message.sender === userInfo._id
-                    ? 'message-chat-self'
-                    : 'message-chat-other'
+                  message.sender === userInfo._id
+                  ? 'message-chat-self'
+                  : 'message-chat-other'
                   }`}
               >
                 <p className="message-chat-text">{message.content}</p>
                 <span className="message-chat-time">
-                  {new Date(message.timestamp).toLocaleTimeString()}
+                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                 </span>
               </div>
             ))
@@ -186,24 +213,35 @@ const Message = () => {
             <div className="no-messages">No messages yet.</div>
           )}
         </div>
-          {activeChat? (
-        <div className="message-input-container">
-              <input
-                type="text"
-                placeholder="Start a new message"
-                className="message-input"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-              />
-              <button
-                className="message-send-button"
-                onClick={() => sendMessage(inputMessage)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                <SendIcon />
-              </button>
-        </div>
-          ) : null}
+        {activeChat ? (
+          <div className="message-input-container">
+            <input
+              type="text"
+              placeholder="Start a new message"
+              className="message-input"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && inputMessage.trim()) {
+                  sendMessage(inputMessage);
+                  setInputMessage(''); // Clear input after sending
+                }
+              }}
+            />
+            <button
+              className="message-send-button"
+              onClick={() => {
+                if (inputMessage.trim()) {
+                  sendMessage(inputMessage);
+                  setInputMessage(''); // Clear input after sending
+                }
+              }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              <SendIcon />
+            </button>
+          </div>
+        ) : null}
 
       </div>
     </div>

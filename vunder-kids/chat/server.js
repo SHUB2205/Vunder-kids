@@ -86,18 +86,37 @@ io.on("connection", (socket) => {
       await message.populate("sender", "name"); // Populate sender details
   
       // Emit the message to the recipient
-      // console.log("recipientId "+ recipientId + "msg "+ content);
-      io.to(recipientId).emit("new private message", message);
-      // io.to(senderId).emit("new private message", message);
-      // Update the sender's and recipient's user document with the message ID
+      
       await User.findByIdAndUpdate(senderId, {
         $push: { messages: message._id },
       });
       await User.findByIdAndUpdate(recipientId, {
         $push: { messages: message._id },
       });
-  
-      // Send a success response back to the sender
+
+      await User.updateOne(
+        { _id: senderId },
+        { $addToSet: { privateChats: recipientId } }
+      );
+      await User.updateOne(
+        { _id: recipientId },
+        { $addToSet: { privateChats: senderId } }
+      );
+
+      await User.findByIdAndUpdate(senderId , {
+        $set: { [`lastSeen.${recipientId}`]: new Date() },
+      });
+      
+      const updatedMessage = await Message.findOneAndUpdate(
+        { _id: message._id, readBy: { $ne: senderId } }, // Filter
+        { $addToSet: { readBy: senderId } },            // Update
+        { new: true }                                   // Return the updated document
+      );
+      
+      console.log(updatedMessage);
+      
+      io.to(recipientId).emit("new private message", updatedMessage);
+
       callback({ success: true, message });
     } catch (error) {
       console.error("Error sending private message:", error);

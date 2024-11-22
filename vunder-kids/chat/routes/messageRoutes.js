@@ -9,5 +9,5 @@ router.get('/chats', isAuth, messageController.getUserChats);
 router.post('/group/create', isAuth, messageController.createGroup);
 // router.post('/send',isAuth,messageController.sendMessage);
 router.post('/notify', isAuth, messageController.notifyFollowers);
-
+router.post('/markMessagesAsSeen/:chatId',isAuth,messageController.markMessagesAsSeen);
 module.exports = router;

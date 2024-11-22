@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext,useCallback } from "react";
+import React, { useEffect, useState, useContext,useCallback, useRef } from "react";
 import { ChatContext } from "./ChatContext";
 import axios from "axios";
 import IsAuth from "../is-Auth/IsAuthContext";
@@ -66,10 +66,47 @@ export default function ChatState(props) {
   const [chats, setChats] = useState({ users: [], groups: [] });
   const [messages, setMessages] = useState([]);
   const [socket, setSocket] = useState(null);
-  const handleMessageClick = (user) => {
+  const [unseenCounts, setUnseenCounts] = useState([]); // State for unseen counts
 
-    setActiveChat({ type: "user", id: user.id, name: user.name })
-    // console.log("clock on the handle"+activeChat);
+  useEffect(() => {
+    console.log("Active chat updated:", JSON.stringify(activeChat));
+  }, [activeChat]);
+  
+  const handleMessageClick = async(user) => {
+    console.log("user after clicked "+user.id+  " " + user.name)  ;
+    const tempActiceChat=activeChat
+    console.log("Active chat details: ", JSON.stringify(tempActiceChat));
+    setActiveChat({ type: "user", id: user.id, name: user.name,avatar:user.avatar });
+    // console.log(activeChat);
+    console.log("changed");
+    const type='user';
+    //  making the chat seen and updating the last seen time
+    try {
+      const response = await axios.post(
+        `${Chat_Url}/api/messages/markMessagesAsSeen/${user.id}`, // The endpoint
+        { type }, // Request body
+        {
+          headers: {
+            token: token,
+          }
+        }
+      );
+      
+      // console.log('Messages marked as seen:', response.data);
+    } catch (error) {
+      console.error('Error marking messages as seen:', error.response?.data || error.message);
+    }
+    setUnseenCounts((prev) => {
+      if (!Array.isArray(prev)) {
+        console.error("unseenCounts is not an array:", prev);
+        return [];
+      }
+  
+      // Update the unseen count for this chatId
+      return prev.map((item) =>
+        item.chatId === user.id ? { ...item, unseenCount: 0 } : item
+      );
+    });
     const rightContent = document.querySelector('.message-right-content');
     rightContent.classList.add('active');
   };
@@ -100,15 +137,73 @@ export default function ChatState(props) {
     
   }, []);
   
+const incrementUnseenCount = (chatId) => {
+  setUnseenCounts((prev) => {
+    const existing = prev.find((item) => item.chatId === chatId);
+    if (existing) {
+      return prev.map((item) =>
+        item.chatId === chatId
+          ? { ...item, unseenCount: item.unseenCount + 1 }
+          : item
+      );
+    } else {
+      return [...prev, { chatId, unseenCount: 1 }];
+    }
+  });
+};
 
-  const handleNewMessage = useCallback((message) => {
-    setMessages((prevMessages) => [...prevMessages, message]);
-  }, []);
+const activeChatRef = useRef(activeChat);
+
+useEffect(() => {
+  activeChatRef.current = activeChat;
+}, [activeChat]);
+
+const handleNewMessage = useCallback(
+  (message) => {
+    const currentActiveChat = activeChatRef.current; // Use ref for the latest value
+    if (!currentActiveChat) {
+      console.log("No active chat selected.");
+      return;
+    }
+
+    console.log("Active chat ID:", currentActiveChat.id);
+    console.log("Message sender ID:", message.sender);
+    console.log("Received message:", message);
+
+    if (
+      (currentActiveChat.type === "user" && currentActiveChat.id === message.sender) ||
+      (currentActiveChat.type === "group" && currentActiveChat.id === message.groupId)
+    ) {
+      console.log("Message belongs to active chat.");
+      setMessages((prevMessages) => [...prevMessages, message]);
+      
+      const updatedChats = chats.users.map((user) => {
+        if (user.id === currentActiveChat.id) {
+          return {
+            ...user,
+            lastMessage: message.content, // Set the last message as the content
+            timestamp: new Date().toISOString(), // Set the current timestamp
+          };
+        }
+        return user;
+      });
+  
+      // Update the chats state with the new last message and timestamp
+      setChats({ ...chats, users: updatedChats });
+    } else {
+      incrementUnseenCount(message.sender);
+      console.log("Message does not belong to the active chat.");
+    }
+  },
+  [] // No need for activeChat dependency
+);
+
 
   // fetching all the chat
   useEffect(() => {
     fetchChats();
   }, []);
+
   const fetchChats = useCallback(async () => {
     try {
       const response = await fetch(`${Chat_Url}/api/messages/chats`, {
@@ -122,11 +217,16 @@ export default function ChatState(props) {
       // Process and log data directly
       const users = data.filter((chat) => chat.type === "user");
       const groups = data.filter((chat) => chat.type === "group");
-      // console.log({ users, groups });
+
+      const unseenCounts = data.map((chat) => ({
+        chatId: chat.id,
+        unseenCount: chat.unseenCount,
+      }));
   
       // Update the state
       setChats({ users, groups });
-      // console.log(chats);
+      setUnseenCounts(unseenCounts); // New state for unseen counts
+      // console.log(chats,unseenCounts);
     } catch (error) {
       console.error("Error fetching chats:", error);
       setError("Failed to load chats. Please refresh the page.");
@@ -142,6 +242,7 @@ export default function ChatState(props) {
       if (socket) {
         socket.emit("join room", activeChat.id);
       }
+
     }
   
     return () => {
@@ -160,7 +261,7 @@ export default function ChatState(props) {
           : `${Chat_Url}/api/messages/group/${chatId}`;
       const response = await fetch(endpoint, {
         headers: {
-          token: sessionStorage.getItem("token"),
+          token: token,
         },
       });
       if (!response.ok) throw new Error("Failed to fetch messages");
@@ -176,7 +277,7 @@ export default function ChatState(props) {
   // sending message
   const sendMessage = (content) => {
     if (!socket || !activeChat) return;
-  
+    console.log("content "+ content);
     const eventName =
       activeChat.type === "user" ? "private message" : "group message";
     
@@ -184,7 +285,18 @@ export default function ChatState(props) {
       activeChat.type === "user"
         ? { recipientId: activeChat.id, content }
         : { groupId: activeChat.id, content };
-  
+
+ 
+        const message = {
+          id: Date.now(), // Unique key
+          sender: userInfo._id,
+          recipient: activeChat.id,
+          content,
+          timestamp: new Date().toISOString(), // Proper timestamp
+        };
+      
+    console.log("send message payload "+ JSON.stringify(message));
+    setMessages((prevMessages) => [...prevMessages, message]);
     // Emit the message via socket
     socket.emit(eventName, payload, (response) => {
       if (response.error) {
@@ -207,7 +319,6 @@ export default function ChatState(props) {
         setChats({ ...chats, users: updatedChats });
       }
     });
-  
     // Clear the input message after sending
     setInputMessage('');
   };
@@ -230,10 +341,17 @@ export default function ChatState(props) {
       return prevChats;
     });
   };
+  const handleBackClick = () => {
+    setActiveChat(null);
+    const rightContent = document.querySelector('.message-right-content');
+    rightContent.classList.remove('active');
+  };
+  const updateUnseenCounts=(chatId)=>{
 
-
+  }
+  
   return (
-    <ChatContext.Provider value={{ userInfo, loading, error, updateChats,fetchAllMembers,token,activeChat,setChats,inputMessage, setInputMessage,chats,messages,handleMessageClick,sendMessage}}>
+    <ChatContext.Provider value={{ updateUnseenCounts,unseenCounts,userInfo, loading, error, updateChats,fetchAllMembers,token,activeChat,setChats,handleBackClick,inputMessage, setInputMessage,chats,messages,handleMessageClick,sendMessage}}>
       {props.children}
     </ChatContext.Provider>
   );

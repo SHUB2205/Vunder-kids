@@ -17,7 +17,8 @@ const GroupSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  unseenCounts: { type: Map, of: Number }, // User-specific unseen message counts
 });
 
 const Group = mongoose.model('Group', GroupSchema);
