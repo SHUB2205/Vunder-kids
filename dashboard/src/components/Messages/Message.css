@@ -8,7 +8,7 @@
 
 .message-middle-content {
   flex: 0 0 40%;
-  padding: 20px;
+  padding: 0px 20px 20px 20px;
   overflow-y: auto;
 }
 
@@ -192,10 +192,11 @@
 }
 
 /* Mobile styles */
-@media screen and (max-width: 990px) {
+@media screen and (max-width: 991px) {
   .message-container {
       overflow: hidden;
       margin-bottom: 80px;
+      width: 100%;
   }
 
   .message-middle-content {
@@ -236,6 +237,10 @@
 
   .message-item {
       cursor: pointer;
+
+  }
+  .mobile-back-button{
+    display: block;
   }
 }
 .no-messages {
@@ -246,4 +251,31 @@
   text-align: center; /* Center text inside */
   font-size: 1.2rem; /* Optional, for better readability */
   color: #888; /* Optional, for a muted color */
+}
+.message-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  margin-right: 10px;
+}
+.mobile-back-button{
+  display: none;
+}
+.message-right-header{
+  display: flex;
+  align-items: center;
+}
+.unseen-count-badge {
+  background-color: #ff4d4f;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 50%;
+  display: inline-block;
+  text-align: center;
+  margin-left: 8px;
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
 }

@@ -120,6 +120,11 @@ const UserSchema = new mongoose.Schema({
       ref: "Event",
     },
   ],
+  lastSeen: {
+    type: Map, // Map of chatId/groupId -> Date
+    of: Date,
+    default: {},
+  },
 });
 
 UserSchema.pre("save", async function (next) {
