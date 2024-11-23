@@ -8,27 +8,40 @@
   align-items: center; /* Vertically center */
 }
 
-.login-box {
+/* Fix the background slider to stay in place while scrolling */
+.login-page .background-slider {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-width: 434px; /* Limit the max width */
-  padding: 20px; /* Add some padding */
+  height: 100%;
+  z-index: -1; /* Keep background slider behind the login content */
+}
+
+.header {
+  background-color: var(--main-color);
+  height: 58px;
+  width: 100%;
+  text-align: center;
+  padding: 7px;
+  display: flex;
+  justify-content: center;
+}
+
+/* The login box is fixed on the screen */
+.login-box {
+  position: relative; /* Ensure the content flows properly within this box */
+  width: 100%;
+  max-width: 380px; /* Limit the max width */
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: to give some shadow effect */
+  padding: 0px;
 }
 
-/* Header section */
-.header {
-  background-color: var(--main-color);
-  height: 55px;
-  width: 100%;
-  text-align: center;
-  padding: 10px;
-}
-
-/* The login container section */
+/* The login container inside the login box */
 .loginContainer {
-  color: white;
+  color: #333; /* Text color for better contrast */
   text-align: center;
   border-radius: 10px;
   background: #fff;
@@ -46,7 +59,7 @@
   flex-direction: column;
   color: #333;
   text-align: center;
-  padding: 10px 70px 0;
+  padding: 10px 20px 0;
 }
 
 .title {
@@ -72,6 +85,8 @@
   color: #333;
   font-weight: 800;
   margin-left: 10px;
+  display: flex;
+  justify-content: left;
 }
 
 .formInput {
@@ -112,7 +127,12 @@
   border: 1px solid #e7e7e8;
   cursor: pointer;
 }
-
+.loginButton:hover {
+  background: #555; /* Slightly lighter shade of gray */
+  color: #e7e7e8; /* Text color changes to match the border */
+  border-color: #fff; /* Change border color on hover */
+  transform: scale(1.02); /* Slightly enlarge the button */
+}
 /* Forgot password */
 .forgotPassword {
   color: #333;
@@ -154,8 +174,15 @@
   border: 1px solid rgba(51, 51, 51, 0.5);
   cursor: pointer;
   align-items: center;
+  border-radius: 10px
 }
-
+.googleButton:hover {
+  background-color: rgba(51, 51, 51, 0.1); /* Add a light background highlight */
+  color: #000; /* Darken the text color */
+  border-color: #333; /* Make the border more prominent */
+  transform: translateY(-2px); /* Slightly "lift" the button */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+}
 .googleIcon {
   width: 21px;
   height: 21px;
@@ -166,18 +193,25 @@
   margin-top: 10px;
   width: 268px;
   font-size: 16px;
-  color: #333;
+  color: #ffffff;
   font-weight: 700;
   padding: 8px 70px;
   border: 1px solid #333;
   cursor: pointer;
+  background: #333;
+  
 }
 
+.signUpButton:hover {
+  background: #555; /* Change background color */
+  color: #fff; /* Change text color */
+  transform: scale(1.05); /* Slightly enlarge the button */
+}
 /* Responsive styles */
-@media (max-width: 768px) {
+@media (max-width: 991px) {
   .login-box {
     width: 90%;
-    padding: 20px;
+    padding: 0px;
   }
 
   .loginContainer {
@@ -197,23 +231,19 @@
   }
 
   .loginButton {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .signUpButton {
     font-size: 14px;
   }
 
-  .googleButton {
-    width: 100%;
-    padding: 10px;
-  }
 }
 
 @media (max-width: 480px) {
   .login-box {
-    width: 100%;
-    padding: 15px;
+    max-width: 330px;
+    padding: 0px;
   }
 
   .loginContainer {

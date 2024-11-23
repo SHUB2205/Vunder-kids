@@ -325,6 +325,24 @@ const getUserId = async (req, res) => {
   }
 };
 
+const checkUsername=async(req,res)=>{
+  const { userName } = req.query;
+
+  try {
+    // Check if the username already exists in the database
+    const user = await User.findOne({ userName });
+
+    if (user) {
+      return res.json({ isAvailable: false });
+    } else {
+      return res.json({ isAvailable: true });
+    }
+  } catch (error) {
+    console.error("Error checking username:", error);
+    res.status(500).json({ message: "An error occurred while checking username." });
+  }
+}
+
 const inviteUser = async (req, res, next) => {
   const { email } = req.body;
   const inviterId = req.user.id;
@@ -371,6 +389,7 @@ const inviteUser = async (req, res, next) => {
 };
 
 
+
 module.exports = {
   registerUser,
   loginUser,
@@ -380,5 +399,6 @@ module.exports = {
   verifyEmail,
   sendVerificationEmail,
   userInfo,
-  inviteUser
+  inviteUser,
+  checkUsername
 };

@@ -5,14 +5,13 @@ import Logo from "../../images/Logo.png";
 export default function Login() {
   return (
     <>
-
       <div className="header">
         <img src={Logo} alt="Fisko" className="Logo" />
       </div>
-   
-    <div className="login-page">
-      <BackgroundSlider />
-      <div className="login-box">
+
+      <div className="login-page">
+        <BackgroundSlider />
+        <div className="login-box">
           <main className="loginContainer">
             <header className="headerSection">
               <h1 className="title">Welcome Back</h1>
@@ -47,12 +46,10 @@ export default function Login() {
               </div>
 
               <div className="rememberMe">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  className="checkbox"
-                />
-                <label htmlFor="remember">Remember me?</label>
+                <input type="checkbox" id="remember" className="checkbox" />
+                <label htmlFor="remember" style={{ marginLeft: "10px" }}>
+                  Remember me?
+                </label>
               </div>
 
               <button type="submit" className="loginButton">
@@ -81,9 +78,8 @@ export default function Login() {
 
             <button className="signUpButton">Sign up</button>
           </main>
-
+        </div>
       </div>
-    </div>
     </>
   );
 }
