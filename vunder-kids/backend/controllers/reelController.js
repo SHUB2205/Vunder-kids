@@ -1,10 +1,88 @@
 const Reel = require("../models/Reel");
+const { validationResult } = require('express-validator');
+const Comment = require("../models/comment");
+const User = require("../models/User");
+const {cloudinary,bufferToStream} = require('../config/cloudinary');
 
-exports.createReel = (req, res) => {
+
+exports.getReels = async (req, res) => {
+  try {
+    const { username } = req.query; 
+    let query = {};
+
+    if (username) {
+      const user = await User.findOne({ userName: username });
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found"
+        });
+      }
+      query = { userId: user._id };
+    }
+
+    const reels = await Reel.find(query)
+      .populate({
+        path: 'userId',
+        select: '_id userName avatar'
+      })
+      .populate({
+        path: 'comments',
+        options: { sort: { createdAt: -1 } },
+        populate: {
+          path: 'user',
+          select: '_id userName avatar'
+        },
+        transform: (comment) => ({
+          ...comment.toObject(),
+          isLiked: req.user ? comment.likedBy.includes(req.user.id) : false,
+          likeCount: comment.likedBy.length
+        }),
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ reels });
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      message: "Error fetching reels",
+      error: err.message
+    });
+  }
+};
+
+exports.createReel = async(req, res) => {
+  let videoUrl = '';
+  const {description} = req.body;
+
+  if (req.file) {
+    const stream = bufferToStream(req.file.buffer);
+    
+    // Upload to Cloudinary using stream
+    const uploadPromise = new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'posts',
+          resource_type: 'auto', // Automatically detect resource type
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      
+      stream.pipe(uploadStream);
+    });
+    const uploadMediaRes = await uploadPromise;
+    videoUrl = uploadMediaRes.secure_url;
+  }
+
+  if (!videoUrl) return res.status(404).json({message: "Video not provided"});
+  if (!description.trim()) return res.status(404).json({message: "Description not provided"});
+  
   const reel = new Reel({
-    userId: req.body.userId,
-    videoUrl: req.body.videoUrl,
-    description: req.body.description
+    userId: req.user.id,
+    videoUrl: videoUrl,
+    description: description.trim()
   });
 
   reel.save((err, data) => {
@@ -17,62 +95,139 @@ exports.createReel = (req, res) => {
   });
 };
 
-exports.likeReel = (req, res) => {
-  Reel.findByIdAndUpdate(
-    req.params.reelId,
-    { $inc: { likes: 1 } },
-    { new: true }
-  )
-    .then(data => {
-      if (!data) {
-        return res.status(404).send({
-          message: `Reel not found with id ${req.params.reelId}.`
-        });
+
+
+
+
+exports.toggleLikeReel = async (req, res) => {
+  try {
+      const reelId = req.params.reelId;
+      const userId = req.user.id;
+
+      const reel = await Reel.findById(reelId);
+      if (!reel) {
+          return res.status(404).json({message: "Reel not found"});
       }
-      res.send(data);
-    })
-    .catch(err => {
-      return res.status(500).send({
-        message: `Error updating reel with id ${req.params.reelId}.`
+
+      const isLiked = reel.likes.includes(userId);
+      const updateOp = isLiked ? '$pull' : '$push';
+
+      const updatedReel = await Reel.findByIdAndUpdate(
+          reelId,
+          { [updateOp]: { likes: userId } },
+          { new: true }
+      ).populate({path: 'userId',select: '_id userName avatar'})
+      .populate({path: 'comments',populate: {path: 'user',select: '_id userName avatar'}});
+
+      res.status(200).json({message: isLiked ? 'Reel unliked' : 'Reel liked',reel: updatedReel});
+  } catch (err) {
+      res.status(500).json({
+          success: false,
+          message: "Error toggling like",
+          error: err.message
       });
-    });
+  }
 };
 
-exports.commentOnReel = (req, res) => {
-  Reel.findByIdAndUpdate(
-    req.params.reelId,
-    {
-      $push: {
-        comments: {
-          userId: req.body.userId,
-          text: req.body.commentText
-        }
+exports.commentOnReel = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { reelId } = req.params;
+  const { content } = req.body;
+
+  try {
+      const reel = await Reel.findById(reelId);
+      if (!reel) {
+          const error = new Error('Reel not found.');
+          error.statusCode = 404;
+          throw error;
       }
-    },
-    { new: true }
-  )
-    .then(data => {
-      if (!data) {
-        return res.status(404).send({
-          message: `Reel not found with id ${req.params.reelId}.`
-        });
-      }
-      res.send(data);
-    })
-    .catch(err => {
-      return res.status(500).send({
-        message: `Error updating reel with id ${req.params.reelId}.`
+
+      const comment = new Comment({
+          content,
+          user: req.user.id
       });
+
+      reel.comments.push(comment);
+
+      await Promise.all([comment.save(), reel.save()]);
+
+      const populatedComment = await Comment.findById(comment._id).populate({
+        path: 'user',
+        select: '_id userName avatar'
     });
+
+      res.status(201).json({  message: 'Comment added!' ,comment : populatedComment});
+
+  } catch (err) {
+      next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
 };
 
-exports.getReels = (req, res) => {
-  Reel.find({}, (err, data) => {
-    if (err) {
-      return res.status(500).send({
-        message: err.message || 'Some error occurred while retrieving reels.'
+exports.toggleLikeComment = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { commentId } = req.params;
+
+  try {
+      const comment = await Comment.findById(commentId);
+      if (!comment) {
+          const error = new Error('Comment not found.');
+          error.statusCode = 404;
+          throw error;
+      }
+
+      const isLiked = comment.likedBy.includes(req.user.id);
+      const updateOp = isLiked ? '$pull' : '$push';
+
+      const updatedComment = await Comment.findByIdAndUpdate(
+          commentId,
+          { [updateOp]: { likedBy: req.user.id } },
+          { new: true }
+      ).populate({
+          path: 'user',
+          select: '_id userName avatar'
       });
-    }
-    res.send(data);
-  });
+
+      res.status(200).json({
+          success: true, 
+          message: isLiked ? 'Comment unliked' : 'Comment liked',
+          comment: updatedComment,
+          likesCount: updatedComment.likedBy.length
+      });
+
+  } catch (err) {
+      next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
+};
+
+exports.getUsersLikedReel = async (req, res, next) => {
+  try {
+    const reels = await Reel.find({ 
+      likes: req.user.id 
+    })
+    .populate({
+      path: 'userId',
+      select: '_id userName avatar'
+    })
+    .populate({
+      path: 'comments',
+      populate: {
+        path: 'user',
+        select: '_id userName avatar'
+      }
+    })
+    .sort({ createdAt: -1 });
+
+    res.status(200).json({ reels });
+  } catch (err) {
+    console.log(err);
+    next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
 };

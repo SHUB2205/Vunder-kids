@@ -16,28 +16,20 @@ const ReelSchema = new mongoose.Schema({
   },
   likes: [
     {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-      }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     }
   ],
   comments: [
     {
-      userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-      },
-      text: {
-        type: String,
-        required: true
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now
-      }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Comment'
+    }
+  ],
+  shares: [
+    {
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'User'
     }
   ],
   createdAt: {
