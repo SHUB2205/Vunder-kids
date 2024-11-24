@@ -22,5 +22,7 @@
     left: 0; /* Keep it aligned to the left */
     top: unset; /* Unset the top property so it doesn't conflict */
     position: fixed; /* Keep the sidebar fixed at the bottom */
+    z-index: 100000;
+    padding-top: 0;
   }
 }

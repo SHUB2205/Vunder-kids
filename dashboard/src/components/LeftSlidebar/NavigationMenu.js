@@ -10,7 +10,13 @@ const menuItems = [
     label: "Notification",
     ariaLabel: "Notifications",
     routePath: "notification",
-    // mode: "mobile",
+    mode: "mobile",
+  },
+  {
+    icon: "🎬",
+    label: "Reels",
+    ariaLabel: "Reels",
+    routePath: "reels",
   },
   {
     icon: "💬",
@@ -33,11 +39,11 @@ function NavigationMenu() {
     <nav className={styles.navigationMenu}>
       {menuItems.map(
         (item, index) =>
-          item.mode !== "mobile" && (
+          (
             <NavLink
               to={`/${item.routePath}`}
               className={({ isActive }) =>
-                `${styles.menuItem} ${isActive ? styles.activeMenuItem : ""}`
+                `${styles.menuItem} ${isActive ? styles.activeMenuItem : ""} ${item.mode === "mobile" ? styles.mobileOnly : ""}`
               }
               style={{ textDecoration: "none", color: "inherit" }}
               key={index}

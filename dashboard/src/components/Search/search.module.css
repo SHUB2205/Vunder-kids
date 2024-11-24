@@ -51,7 +51,7 @@
     margin-bottom: 10px;
     font:var(--font-secondary)
   }
-  .activeToggle,
+.activeToggle,
 .inactiveToggle {
   padding: 0.5rem;
   border: 1px solid var(--border-color);
@@ -72,17 +72,18 @@
   margin-top: 10px;
   margin-bottom: 10px;
 }
-  .gridContainer {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
+
 .mobileOnly {
   display: none;
 }
 .navIcon{
   display:none;
-  size: var(--font-icon);
 }
 
  

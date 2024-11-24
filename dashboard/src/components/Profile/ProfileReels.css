@@ -1,0 +1,172 @@
+.profile-reels-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    padding: 1px;
+    margin-top: 20px;
+}
+
+.reelContainer{
+    margin-bottom: 20px;
+}
+
+.postNav {
+    display: flex;
+    gap:10px;
+    padding-top: 13px;
+}
+.Tab_active{
+    width: Hug (98px)px;
+    height: Hug (32px)px;
+    top: 329px;
+    left: 385px;
+    padding: 6px 10px 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--button-radius);
+    text-align:center;
+    background: var(--hover-icon-color);
+}
+.Tab {
+    font-family: Roboto;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 18.75px;
+    text-align:center;
+    padding: 6px 10px 6px 10px;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+
+
+@media (min-width: 768px) {
+    .profile-reels-container {
+        gap: 16px;
+        padding: 16px;
+    }
+}
+
+@media (max-width: 991px) {
+    .profile-reels-container {
+        gap: 12px; /* Adjust the gap for screens <= 991px */
+        padding: 8px; /* Reduce padding for narrower screens */
+    }
+}
+
+@media (max-width: 767px) {
+    .profile-reels-container {
+        grid-template-columns: repeat(2, 1fr); /* Two columns for smaller screens */
+        gap: 8px; /* Smaller gap for narrow screens */
+        padding: 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-reels-container {
+        grid-template-columns: repeat(2, 1fr); /* Single column for extra small screens */
+        gap: 4px;
+        padding: 2px;
+    }
+}
+
+.reel-item {
+    position: relative;
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    border-radius: 20px;
+    transform: translateZ(0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #000;
+}
+
+.reel-item:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.reel-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    border-radius: 20px;
+}
+
+.reel-item:hover .reel-thumbnail {
+    transform: scale(1.05);
+}
+
+.reel-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    transition: transform 0.5s ease;
+}
+
+.reel-overlay:hover {
+    transform: scale(1.05);
+}
+
+.play-icon {
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.reel-stats {
+    display: flex;
+    gap: 16px;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.reel-modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    object-fit: contain;
+}
+
+/* Loading state styles */
+.profile-reels-container.loading sideBarIcons{
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+/* Media queries for responsive behavior */
+@media (max-width: 991px) {
+    .modal-content {
+        width: 100%;
+        height: 100vh;
+        max-height: calc(100vh - 50px);
+    }
+
+    .modal-video {
+        border-radius: 0; /* Remove border radius on mobile */
+        height: 100%;
+    }
+}

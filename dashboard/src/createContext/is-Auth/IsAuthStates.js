@@ -5,7 +5,7 @@ import axios from "axios";
 const Backend_URL = 'http://localhost:5000';
 
 export default function IsAuthStates(props) {
-    const [token, setToken] = useState(localStorage.getItem('token'));
+    const [token, setToken] = useState(sessionStorage.getItem('token'));
     const [user, setUser] = useState(null);
 
     // Memoize fetchUserInfo

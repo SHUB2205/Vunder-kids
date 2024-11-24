@@ -1,0 +1,165 @@
+.create-reel-box {
+    position: relative;
+    aspect-ratio: 3/4;
+    background-color: var(--background-color, #f0f0f0);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.create-reel-box:hover {
+    background-color: var(--hover-background, #e0e0e0);
+}
+
+.plus-icon {
+    font-size: 48px;
+    color: var(--icon-color, #666);
+}
+
+.create-reel-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal_overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal_content {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    background-color: var(--modal-background, white);
+    border-radius: 12px;
+    padding: 20px;
+    z-index: 1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal_header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color, #333);
+}
+
+.close_button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-color, #333);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.close-button:hover {
+    background-color: var(--hover-background, #f0f0f0);
+}
+
+.create-reel-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-color, #333);
+}
+
+.file-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal_footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.cancel-button,
+.submit-button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cancel-button {
+    background-color: transparent;
+    border: 1px solid var(--border-color, #ddd);
+    color: var(--text-color, #333);
+}
+
+.cancel-button:hover {
+    background-color: var(--hover-background, #f0f0f0);
+}
+
+.submit-button {
+    background-color: var(--button-color-Post-Follow);
+    border: none;
+    color: white;
+}
+
+.submit-button:hover {
+    background-color: black;
+}
+
+.submit-button:disabled,
+.cancel-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .modal_content {
+        width: 95%;
+        padding: 16px;
+    }
+    
+    .modal_header h2 {
+        font-size: 1.25rem;
+    }
+}
