@@ -121,7 +121,60 @@
   margin-left: 0;
 }
 
+
+.ProfileNav {
+  color: #333333;
+  display: flex;
+  vertical-align: text-middle;
+  font-size: 20px;
+  font-family: var(--font-heading);
+  width: 100%;
+  justify-content: space-evenly;
+  margin-top: 20px;
+  flex-wrap: wrap; /* Allow tabs to wrap on small screens */
+  gap: 10px; /* Add gap between wrapped items */
+}
+
+.ProfileTab {
+  position: relative;
+  padding: 12px 8px; /* Add horizontal padding */
+  cursor: pointer;
+  transition: color 0.3s ease;
+  text-align: center; /* Center text when wrapped */
+  min-width: 80px; /* Minimum width to prevent squishing */
+}
+
+.ProfileTab:hover {
+  color: #000000;
+}
+
+.ProfileTab.active {
+  color: #000000;
+  font-weight: 600;
+}
+
+.ProfileTab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #000000;
+}
+
+/* Add responsive styles */
 @media (max-width: 768px) {
+  .ProfileNav {
+    font-size: 16px; /* Slightly smaller font size */
+    padding: 0 10px; /* Add some horizontal padding */
+  }
+
+  .ProfileTab {
+    padding: 8px 4px; /* Reduce padding */
+    min-width: 70px; /* Slightly smaller minimum width */
+  }
+
   .profile-main {
     flex-direction: column;
     align-items: center;
@@ -144,39 +197,19 @@
     justify-content: center;
   }
 }
-.ProfileNav {
-  color: #333333;
-  display: flex;
-  vertical-align: text-middle;
-  font-size: 20px;
-  font-family: var(--font-heading);
-  width: 100%;
-  justify-content: space-evenly;
-  margin-top: 20px;
-}
 
-.ProfileTab {
-  position: relative;
-  padding: 12px 0;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
+@media (max-width: 480px) {
+  .ProfileNav {
+    justify-content: flex-start; /* Align tabs to start on very small screens */
+    padding: 0 15px;
+    gap: 5px;
+  }
 
-.ProfileTab:hover {
-  color: #000000;
-}
-
-.ProfileTab.active {
-  color: #000000;
-  font-weight: 600;
-}
-
-.ProfileTab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: #000000;
+  .ProfileTab {
+    font-size: 14px; /* Even smaller font size */
+    padding: 6px 4px;
+    flex: 1 1 auto; /* Allow tabs to grow and shrink */
+    min-width: auto; /* Remove minimum width */
+    max-width: calc(50% - 5px); /* Ensure two tabs per row if needed */
+  }
 }
