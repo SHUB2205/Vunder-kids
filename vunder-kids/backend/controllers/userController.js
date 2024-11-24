@@ -91,8 +91,10 @@ const loginUser = async (req, res, next) => {
       error.status = 401;
       throw error;
     }
+    console.log(user);
 
     res.json({
+      success:true,
       _id: user._id,
       userName: user.userName,
       name: user.name,
