@@ -61,7 +61,7 @@ exports.createReel = async(req, res) => {
     const uploadPromise = new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: 'posts',
+          folder: 'reels',
           resource_type: 'auto', // Automatically detect resource type
         },
         (error, result) => {
