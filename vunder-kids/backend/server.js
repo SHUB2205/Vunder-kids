@@ -15,12 +15,13 @@ const searchRoute = require('./routes/searchRoute');
 const editRoute = require("./routes/editRoute");
 const calendarRoutes = require ("./routes/calendarRoute")
 const openaiRoute=require("./routes/openaiRoute");
-
+const reelRoute = require("./routes/reelRoutes");
 //for google calender
 const { google } = require('googleapis');
 const dayjs = require('dayjs')
 const User = require('./models/User');
 const { isAuth } = require('./middleware/is-Auth');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -66,6 +67,7 @@ app.use("/api/ai", openaiRoute);
 
 //for website calendar
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/reels',reelRoute);
 
 // For Google Calendar
 // Google OAuth2 credentials

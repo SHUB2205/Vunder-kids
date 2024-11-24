@@ -81,8 +81,9 @@
   .inputLabel {
     color: #333;
     font-weight: 800;
-    font-size: 12px;
+    font-size: 13px;
     display: block;
+    text-align: left;
     margin-left: 10px;
   }
   

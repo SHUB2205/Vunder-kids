@@ -3,7 +3,6 @@ import './Message.css';
 import { ReactComponent as SearchIcon } from '../images/search.svg';
 import { ReactComponent as SendIcon } from '../images/send.svg';
 import { ChatContext } from '../../createContext/Chat/ChatContext';
-import UserPhoto from '../images/UserPhoto3.png';
 import BackIcon from '../images/BackIcon.png'; // Import the PNG image
 
 const Message = () => {

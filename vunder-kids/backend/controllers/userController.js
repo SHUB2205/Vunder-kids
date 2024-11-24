@@ -45,18 +45,12 @@ const registerUser = async (req, res, next) => {
 
     const userExists = await User.findOne({ email });
     if (userExists) {
-      const error = new Error('User already exists');
-      error.status = 400;
-      throw error;
+      const error = 'User already exists change the eamil';
+      res.status(400).json({error})
     }
     const userName = generateUniqueUserName(name);
     const user = await User.create({
-      userName,
-      name,
-      school,
-      userClass,
       email,
-      phoneNumber,
       password,
     });
 
@@ -68,8 +62,6 @@ const registerUser = async (req, res, next) => {
       // });
       res.status(201).json({
         _id: user._id,
-        userName:user.userName,
-        name: user.name,
         email: user.email,
       });
     } else {
@@ -77,8 +69,9 @@ const registerUser = async (req, res, next) => {
       error.status = 400;
       throw error;
     }
-  } catch (error) {
-    next(error);
+  } catch (e) {
+    const error="Server Error"
+    // next(error);
   }
 };
 

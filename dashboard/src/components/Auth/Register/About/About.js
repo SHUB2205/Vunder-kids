@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import "./Register.css";
-import BackgroundSlider from "../BackGround/BackgroundSlider";
-import Logo from "../../images/Logo.png";
-import { InputField } from "./Reuseable/InputField";
+import React, { useState } from "react";
+import "./About.css";
+import BackgroundSlider from "../../BackGround/BackgroundSlider";
+import Logo from "../../../images/Logo.png";
+import { InputField } from "../Reuseable/InputField";
 const Backend_URL = "http://localhost:5000";
 function About() {
   const [formData, setFormData] = useState({
@@ -91,10 +91,10 @@ function About() {
       <div className="header">
         <img src={Logo} alt="Fisko" className="Logo" />
       </div>
-      <div className="register-page">
+      <div className="about-page">
         <BackgroundSlider />
-        <div className="register-box">
-          <main className="registerContainer">
+        <div className="about-box">
+          <main className="aboutContainer">
             <header className="headerSection">
               <h1 className="title">Tell Us About Yourself</h1>
               <h2 className="subtitle">Complete your profile to get started</h2>

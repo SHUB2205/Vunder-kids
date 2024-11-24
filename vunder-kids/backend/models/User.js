@@ -9,20 +9,22 @@ const UserSchema = new mongoose.Schema({
   },
   userName: {
     type: String,
-    required: true,
+    // required: true,
   },
   name: {
     type: String,
-    required: true,
+    // required: true,
   },
-  school: {
-    type: String,
-    required: true,
-  },
-  userClass: {
-    // Renamed 'class' to avoid reserved word conflict
-    type: String,
-    required: true,
+  // school: {
+  //   type: String,
+  //   required: true,
+  // },
+  // userClass: {
+  //   type: String,
+  //   required: true,
+  // },
+  age: {
+    type: Number,
   },
   email: {
     type: String,
@@ -30,11 +32,11 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     index: true, // Indexing for faster queries
   },
-  phoneNumber: {
-    type: String,
-    required: true,
-    index: true, // Indexing for faster queries
-  },
+  // phoneNumber: {
+  //   type: String,
+  //   required: true,
+  //   index: true, // Indexing for faster queries
+  // },
   password: {
     type: String,
     required: function () {

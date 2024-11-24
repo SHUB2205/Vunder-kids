@@ -1,25 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "./Register.css";
 import BackgroundSlider from "../BackGround/BackgroundSlider";
 import Logo from "../../images/Logo.png";
 import { InputField } from "./Reuseable/InputField";
 import { Divider } from "./Reuseable/Divider";
+import RegisterContext from "../../../createContext/Register/RegisterContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Register() {
-  // State to manage form inputs
+  const { registerUser, loading, error } = useContext(RegisterContext);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rePassword: "",
     termsAccepted: false,
-  });
-
-  // State for error messages
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-    rePassword: "",
-    termsAccepted: "",
   });
 
   const handleChange = (e) => {
@@ -31,40 +27,63 @@ function Register() {
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.email) {
-      newErrors.email = "Email is required.";
+    let isValid = true;
+
+    // Email Validation
+    if (!formData.email.trim()) {
+      toast.error("Email is required.");
+      isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Enter a valid email address.";
+      toast.error("Enter a valid email address.");
+      isValid = false;
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required.";
+    // Password Validation
+    if (!formData.password.trim()) {
+      toast.error("Password is required.");
+      isValid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters.";
+      toast.error("Password must be at least 6 characters.");
+      isValid = false;
     }
 
-    if (!formData.rePassword) {
-      newErrors.rePassword = "Please confirm your password.";
+    // Confirm Password Validation
+    if (!formData.rePassword.trim()) {
+      toast.error("Please confirm your password.");
+      isValid = false;
     } else if (formData.rePassword !== formData.password) {
-      newErrors.rePassword = "Passwords do not match.";
+      toast.error("Passwords do not match.");
+      isValid = false;
     }
 
+    // Terms and Conditions Validation
     if (!formData.termsAccepted) {
-      newErrors.termsAccepted = "You must accept the terms and conditions.";
+      toast.error("You must accept the terms and conditions.");
+      isValid = false;
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // No errors mean the form is valid
+    return isValid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (validateForm()) {
-      console.log("Form submitted:", formData);
-      // Replace this with your API call or further processing
+      const { termsAccepted, ...dataToSubmit } = formData;
+
+      try {
+        const response = await registerUser(dataToSubmit);
+        if (response.success) {
+          return response;  // Success response
+        } else {
+          // Return an error message in case of failure
+          toast.error(response.message || "Something went wrong.");
+          return { error: response.message || "Something went wrong." };
+        }
+      } catch (err) {
+      }
     } else {
-      console.log("Form validation failed.");
+      // toast.error("Form validation failed. Please check your input.");
     }
   };
 
@@ -85,33 +104,30 @@ function Register() {
             <form onSubmit={handleSubmit}>
               <InputField
                 label="Email"
-                placeholder="Enter your email"
-                type="email"
                 name="email"
+                type="email"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
               />
-              {errors.email && <p className="error">{errors.email}</p>}
 
               <InputField
                 label="Password"
-                placeholder="Enter your password"
-                type="password"
                 name="password"
+                type="password"
+                placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
               />
-              {errors.password && <p className="error">{errors.password}</p>}
 
               <InputField
                 label="Re-enter Password"
-                placeholder="Re-Enter your password"
-                type="password"
                 name="rePassword"
+                type="password"
+                placeholder="Re-Enter your password"
                 value={formData.rePassword}
                 onChange={handleChange}
               />
-              {errors.rePassword && <p className="error">{errors.rePassword}</p>}
 
               <div className="termsContainer">
                 <input
@@ -126,13 +142,10 @@ function Register() {
                 <label htmlFor="terms" className="termsLabel">
                   Accept Terms & conditions
                 </label>
-                {errors.termsAccepted && (
-                  <p className="error">{errors.termsAccepted}</p>
-                )}
               </div>
 
               <button type="submit" className="submitButton">
-                Create Account
+                {loading ? "Creating Account..." : "Create Account"}
               </button>
             </form>
 
@@ -146,13 +159,14 @@ function Register() {
                 alt="Google logo"
                 className="googleIcon"
               />
-              <span className="googleButtonText">
-                Sign up with Google
-              </span>
+              <span className="googleButtonText">Sign up with Google</span>
             </button>
           </main>
         </div>
       </div>
+
+      {/* Add ToastContainer here to render toast notifications */}
+      <ToastContainer />
     </>
   );
 }

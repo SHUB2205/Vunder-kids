@@ -28,15 +28,7 @@ router.post('/register',
       'Please enter a password of at least 5 characters.'
     )
       .isLength({ min: 5 })
-      .trim(),
-    body('confirmPassword') //this field must be in frontend 
       .trim()
-      .custom((value, { req }) => {
-        if (value !== req.body.password) {
-          throw new Error('Passwords have to match!');
-        }
-        return true;
-      })
   ], registerUser);
 
   
