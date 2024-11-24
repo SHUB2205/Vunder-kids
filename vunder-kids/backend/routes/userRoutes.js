@@ -1,21 +1,10 @@
 const express = require('express');
-const { registerUser, loginUser ,requestResetPassword , resetPassword ,getUserId,sendVerificationEmail,verifyEmail,userInfo,inviteUser,checkUsername,checkVerification} = require('../controllers/userController');
+const { registerUser, loginUser ,requestResetPassword , resetPassword ,getUserId,sendVerificationEmail,verifyEmail,userInfo,inviteUser,checkUsername,checkVerification,aboutUser,submitSports,saveProfilePicture} = require('../controllers/userController');
 const router = express.Router();
 const { body } = require('express-validator');
 const Limiter = require('../middleware/Limiter');
 const {isAuth}=require("../middleware/is-Auth");
 const { route } = require('./matchRoutes.js');
-
-//  POst rquest from client side
-// {
-//   "name":"vikrant",
-//   "school":"St.Marys",
-//   "userClass":"Xth",
-//   "email":"vikrant@example.com",
-//   "phoneNumber":"1234567895",
-//   "password":"vikrant123",
-//   "confirmPassword":"vikrant123"
-// }
 
 router.post('/register',
     [
@@ -55,7 +44,9 @@ router.get("/getUserId",isAuth,getUserId);
 router.get("/users/:id",isAuth,userInfo);
 router.get('/check-username',isAuth,checkUsername);
 router.post("/inviteUser",isAuth,inviteUser);
-
+router.post('/aboutUser',isAuth,aboutUser);
+router.post('/submit-sports',isAuth,submitSports);
+router.post('/saveProfilePicture',isAuth,saveProfilePicture)
 module.exports = router;
 
 

@@ -10,37 +10,92 @@ import Passion from "./components/Auth/Register/Passion/Passion";
 import UploadPicture from "./components/Auth/Register/UploadPicture/UploadPicture";
 import Dashboard from "./Dashboard";
 import RegisterStates from "./createContext/Register/RegisterStates";
-import ReelState from './createContext/Reels/ReelState';
-import SearchState from './createContext/Search/SearchState';
-import WaitingScreen from './components/Auth/Register/WaitingScreen/WaitingScreen';
+import ReelState from "./createContext/Reels/ReelState";
+import SearchState from "./createContext/Search/SearchState";
+import WaitingScreen from "./components/Auth/Register/WaitingScreen/WaitingScreen";
+import ProtectedRoute from "./ProtectedRoute"; // Import ProtectedRoute
+
 function App() {
   return (
     <RegisterStates>
       <IsAuthStates>
         <PostState>
-          {/* <ChatState> */}
-       
-            <ReelState>
-              <SearchState>
+          <ReelState>
+            <SearchState>
+              {/* <ChatState> */}
                 <Router>
                   <Routes>
+                    {/* Public Routes (accessible without token) */}
                     <Route path="/register" element={<Register />} />
-                    <Route path="/register/about" element={<About />} />
-                    <Route path="/register/passion" element={<Passion />} />
+                    <Route path="/login" element={<Login />} />
+
+                    {/* Protected Routes (accessible only with token) */}
+                    <Route
+                      path="/register/about"
+                      element={
+                        <ProtectedRoute>
+                          <About />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/register/passion"
+                      element={
+                        <ProtectedRoute>
+                          <Passion />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route
                       path="/register/uploadPicture"
-                      element={<UploadPicture />}
+                      element={
+                        <ProtectedRoute>
+                          <UploadPicture />
+                        </ProtectedRoute>
+                      }
                     />
-                    <Route path='/register/waiting' element={<WaitingScreen/>}/>
-                    <Route path="/login" element={<Login />} />
-                    {/* <Route path="*" element={<Dashboard />} /> */}
+                    <Route
+                      path="/register/waiting"
+                      element={
+                        <ProtectedRoute>
+                          <WaitingScreen />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Other Protected Routes */}
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* Add other protected routes here */}
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          {/* Profile component */}
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Default route, also protected */}
+                    {/* <Route
+                      path="*"
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    /> */}
                   </Routes>
                 </Router>
-
-               
-              </SearchState>
-            </ReelState>
-          {/* </ChatState> */}
+              {/* </ChatState> */}
+            </SearchState>
+          </ReelState>
         </PostState>
       </IsAuthStates>
     </RegisterStates>

@@ -80,7 +80,7 @@ function Register() {
             sessionStorage.setItem('token', response.token);
             console.log("token is saved");
           }
-          toast.success(response.message);
+          // toast.success(response.message);
           navigate("/register/waiting");
         } else {
           // Return an error message in case of failure

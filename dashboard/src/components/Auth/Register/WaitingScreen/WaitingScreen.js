@@ -11,6 +11,7 @@ function WaitingScreen() {
 
   const { isVerified, checkVerification } =
     useContext(RegisterContext);
+    toast.success("Registration successful! Verification email sent.");
   useEffect(() => {
     checkVerification();
   }, [checkVerification]);

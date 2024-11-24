@@ -73,6 +73,7 @@ const UserSchema = new mongoose.Schema({
   tokenExpiration: {
     type: Date,
   },
+  gender: { type: String, required: true, enum: ["male", "female", "other"] },
   googleId: { type: String, unique: true, sparse: true }, // Sparse index allows multiple null values
   isGoogleUser: { type: Boolean, default: false }, // Flag to indicate Google auth
   likes: [
@@ -127,6 +128,16 @@ const UserSchema = new mongoose.Schema({
     of: Date,
     default: {},
   },
+  location:{
+    type: String,
+    default: null
+  },
+  passions: [
+    {
+      name: { type: String, required: true }, // Passion name (e.g., sport name)
+      skillLevel: { type: String, required: true, enum: ["Beginner","Foundation" ,"Intermediate", "Advance","Pro"] }, // Skill level
+    },
+  ],
 });
 
 UserSchema.pre("save", async function (next) {

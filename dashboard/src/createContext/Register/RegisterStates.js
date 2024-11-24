@@ -97,8 +97,70 @@ export default function RegisterStates({ children }) {
 
     return () => clearInterval(interval); // Cleanup when polling stops
   };
+
+  const aboutForm = async (formData) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${Backend_URL}/api/aboutUser`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json",
+            token: sessionStorage.getItem("token")
+         },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Something went wrong");
+      }
+
+      const result = await response.json();
+
+      setLoading(false);
+      return {
+        success: true,
+        message: "Profile updated successfully.",
+      };
+    } catch (error) {
+      setLoading(false);
+      return {
+        success: false,
+        message: error.message || "Something went wrong.",
+      };
+    }
+  };
+
+  const setPassionData=async(data)=>{
+    const token = sessionStorage.getItem("token"); // Replace with actual token retrieval method
+    setLoading(true);
+    try {
+      const response = await fetch(`${Backend_URL}/api/submit-sports`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token: token,
+        },
+        body: JSON.stringify({ selectedSports: data }),
+      });
+  
+     await response.json();
+      setLoading(false);
+      return {
+        success: true,
+        message: "Profile updated successfully.",
+      } 
+    } catch (error) {
+        setLoading(false);
+        return {
+          success: false,
+          message: error.message || "Something went wrong.",
+        };
+    }
+  
+  }
+
   return (
-    <RegisterContext.Provider value={{ registerUser, loading, error,checkVerification,isVerified }}>
+    <RegisterContext.Provider value={{ registerUser, loading, error,checkVerification,isVerified,aboutForm,setPassionData }}>
       {children}
     </RegisterContext.Provider>
   );

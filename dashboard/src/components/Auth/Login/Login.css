@@ -1,276 +1,276 @@
 .login-page {
-  position: relative;
-  width: 100%;
-  height: 100vh; /* Full viewport height */
-  overflow: hidden;
-  display: flex; /* Use flexbox */
-  justify-content: center; /* Horizontally center */
-  align-items: center; /* Vertically center */
-}
-
-/* Fix the background slider to stay in place while scrolling */
-.login-page .background-slider {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1; /* Keep background slider behind the login content */
-}
-
-.header {
-  background-color: var(--main-color);
-  height: 58px;
-  width: 100%;
-  text-align: center;
-  padding: 7px;
-  display: flex;
-  justify-content: center;
-}
-
-/* The login box is fixed on the screen */
-.login-box {
-  position: relative; /* Ensure the content flows properly within this box */
-  width: 100%;
-  max-width: 380px; /* Limit the max width */
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: to give some shadow effect */
-  padding: 0px;
-}
-
-/* The login container inside the login box */
-.loginContainer {
-  color: #333; /* Text color for better contrast */
-  text-align: center;
-  border-radius: 10px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: Roboto, sans-serif;
-  justify-content: center;
-  padding: 40px;
-  border: 1px solid #e7e7e8;
-}
-
-.headerSection {
-  display: flex;
-  flex-direction: column;
-  color: #333;
-  text-align: center;
-  padding: 10px 20px 0;
-}
-
-.title {
-  font-size: 32px;
-  font-weight: 600;
-}
-
-.subtitle {
-  font-size: 20px;
-  font-weight: 400;
-  margin-top: 21px;
-}
-
-/* Form group styling */
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  margin-top: 10px;
-  font-size: 12px;
-}
-
-.inputLabel {
-  color: #333;
-  font-weight: 800;
-  margin-left: 10px;
-  display: flex;
-  justify-content: left;
-}
-
-.formInput {
-  border-radius: 10px;
-  background: #fff;
-  margin-top: 10px;
-  color: rgba(51, 51, 51, 0.5);
-  font-weight: 300;
-  padding: 13px 10px;
-  border: 1px solid #333;
-  width: 100%;
-}
-
-.rememberMe {
-  display: flex;
-  margin-top: 10px;
-  font-size: 12px;
-  color: #333;
-  font-weight: 800;
-}
-
-.checkbox {
-  width: 8px;
-  height: 8px;
-  margin: auto 0;
-  border: 1px solid #333;
-}
-
-.loginButton {
-  border-radius: 10px;
-  background: #333;
-  margin-top: 10px;
-  width: 100%;
-  font-size: 20px;
-  color: #fff;
-  font-weight: 700;
-  padding: 8px 70px;
-  border: 1px solid #e7e7e8;
-  cursor: pointer;
-}
-.loginButton:hover {
-  background: #555; /* Slightly lighter shade of gray */
-  color: #e7e7e8; /* Text color changes to match the border */
-  border-color: #fff; /* Change border color on hover */
-  transform: scale(1.02); /* Slightly enlarge the button */
-}
-/* Forgot password */
-.forgotPassword {
-  color: #333;
-  font-size: 12px;
-  font-weight: 800;
-  text-align: center;
-  margin-top: 10px;
-  text-decoration: none;
-}
-
-/* Divider */
-.divider {
-  display: flex;
-  margin-top: 10px;
-  width: 100%;
-  align-items: center;
-  gap: 16px;
-  font-size: 12px;
-  color: #333;
-  font-weight: 500;
-}
-
-.dividerLine {
-  flex: 1;
-  height: 1px;
-  background: #333;
-}
-
-.googleButton {
-  display: flex;
-  margin-top: 10px;
-  width: 229px;
-  gap: 17px;
-  font-size: 17px;
-  color: #333;
-  font-weight: 400;
-  text-align: center;
-  padding: 8px 21px;
-  border: 1px solid rgba(51, 51, 51, 0.5);
-  cursor: pointer;
-  align-items: center;
-  border-radius: 10px
-}
-.googleButton:hover {
-  background-color: rgba(51, 51, 51, 0.1); /* Add a light background highlight */
-  color: #000; /* Darken the text color */
-  border-color: #333; /* Make the border more prominent */
-  transform: translateY(-2px); /* Slightly "lift" the button */
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
-}
-.googleIcon {
-  width: 21px;
-  height: 21px;
-}
-
-.signUpButton {
-  border-radius: 8px;
-  margin-top: 10px;
-  width: 268px;
-  font-size: 16px;
-  color: #ffffff;
-  font-weight: 700;
-  padding: 8px 70px;
-  border: 1px solid #333;
-  cursor: pointer;
-  background: #333;
+    position: relative;
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    overflow: hidden;
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+  }
   
-}
-
-.signUpButton:hover {
-  background: #555; /* Change background color */
-  color: #fff; /* Change text color */
-  transform: scale(1.05); /* Slightly enlarge the button */
-}
-/* Responsive styles */
-@media (max-width: 991px) {
+  /* Fix the background slider to stay in place while scrolling */
+  .login-page .background-slider {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Keep background slider behind the login content */
+  }
+  
+  .header {
+    background-color: var(--main-color);
+    height: 58px;
+    width: 100%;
+    text-align: center;
+    padding: 7px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* The login box is fixed on the screen */
   .login-box {
-    width: 90%;
+    position: relative; /* Ensure the content flows properly within this box */
+    width: 100%;
+    max-width: 380px; /* Limit the max width */
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: to give some shadow effect */
     padding: 0px;
   }
-
+  
+  /* The login container inside the login box */
   .loginContainer {
-    padding: 20px;
+    color: #333; /* Text color for better contrast */
+    text-align: center;
+    border-radius: 10px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Roboto, sans-serif;
+    justify-content: center;
+    padding: 40px;
+    border: 1px solid #e7e7e8;
   }
-
+  
+  .headerSection {
+    display: flex;
+    flex-direction: column;
+    color: #333;
+    text-align: center;
+    padding: 10px 20px 0;
+  }
+  
   .title {
-    font-size: 24px;
+    font-size: 32px;
+    font-weight: 600;
   }
-
+  
   .subtitle {
-    font-size: 18px;
-  }
-
-  .formInput {
-    font-size: 14px;
-  }
-
-  .loginButton {
-    font-size: 16px;
-  }
-
-  .signUpButton {
-    font-size: 14px;
-  }
-
-}
-
-@media (max-width: 480px) {
-  .login-box {
-    max-width: 330px;
-    padding: 0px;
-  }
-
-  .loginContainer {
-    padding: 15px;
-  }
-
-  .title {
     font-size: 20px;
+    font-weight: 400;
+    margin-top: 21px;
   }
-
-  .subtitle {
-    font-size: 16px;
+  
+  /* Form group styling */
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    font-size: 12px;
   }
-
+  
+  .inputLabel {
+    color: #333;
+    font-weight: 800;
+    margin-left: 10px;
+    display: flex;
+    justify-content: left;
+  }
+  
   .formInput {
-    font-size: 12px;
+    border-radius: 10px;
+    background: #fff;
+    margin-top: 10px;
+    color: rgba(51, 51, 51, 0.5);
+    font-weight: 300;
+    padding: 13px 10px;
+    border: 1px solid #333;
+    width: 100%;
   }
-
+  
+  .rememberMe {
+    display: flex;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #333;
+    font-weight: 800;
+  }
+  
+  .checkbox {
+    width: 8px;
+    height: 8px;
+    margin: auto 0;
+    border: 1px solid #333;
+  }
+  
   .loginButton {
-    font-size: 16px;
+    border-radius: 10px;
+    background: #333;
+    margin-top: 10px;
+    width: 100%;
+    font-size: 20px;
+    color: #fff;
+    font-weight: 700;
+    padding: 8px 70px;
+    border: 1px solid #e7e7e8;
+    cursor: pointer;
   }
-
-  .signUpButton {
+  .loginButton:hover {
+    background: #555; /* Slightly lighter shade of gray */
+    color: #e7e7e8; /* Text color changes to match the border */
+    border-color: #fff; /* Change border color on hover */
+    transform: scale(1.02); /* Slightly enlarge the button */
+  }
+  /* Forgot password */
+  .forgotPassword {
+    color: #333;
     font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 10px;
+    text-decoration: none;
   }
-
+  
+  /* Divider */
+  .divider {
+    display: flex;
+    margin-top: 10px;
+    width: 100%;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .dividerLine {
+    flex: 1;
+    height: 1px;
+    background: #333;
+  }
+  
   .googleButton {
-    padding: 8px;
+    display: flex;
+    margin-top: 10px;
+    width: 229px;
+    gap: 17px;
+    font-size: 17px;
+    color: #333;
+    font-weight: 400;
+    text-align: center;
+    padding: 8px 21px;
+    border: 1px solid rgba(51, 51, 51, 0.5);
+    cursor: pointer;
+    align-items: center;
+    border-radius: 10px
   }
-}
+  .googleButton:hover {
+    background-color: rgba(51, 51, 51, 0.1); /* Add a light background highlight */
+    color: #000; /* Darken the text color */
+    border-color: #333; /* Make the border more prominent */
+    transform: translateY(-2px); /* Slightly "lift" the button */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  }
+  .googleIcon {
+    width: 21px;
+    height: 21px;
+  }
+  
+  .signUpButton {
+    border-radius: 8px;
+    margin-top: 10px;
+    width: 268px;
+    font-size: 16px;
+    color: #ffffff;
+    font-weight: 700;
+    padding: 8px 70px;
+    border: 1px solid #333;
+    cursor: pointer;
+    background: #333;
+    
+  }
+  
+  .signUpButton:hover {
+    background: #555; /* Change background color */
+    color: #fff; /* Change text color */
+    transform: scale(1.05); /* Slightly enlarge the button */
+  }
+  /* Responsive styles */
+  @media (max-width: 991px) {
+    .login-box {
+      width: 90%;
+      padding: 0px;
+    }
+  
+    .loginContainer {
+      padding: 20px;
+    }
+  
+    .title {
+      font-size: 24px;
+    }
+  
+    .subtitle {
+      font-size: 18px;
+    }
+  
+    .formInput {
+      font-size: 14px;
+    }
+  
+    .loginButton {
+      font-size: 16px;
+    }
+  
+    .signUpButton {
+      font-size: 14px;
+    }
+  
+  }
+  
+  @media (max-width: 480px) {
+    .login-box {
+      max-width: 330px;
+      padding: 0px;
+    }
+  
+    .loginContainer {
+      padding: 15px;
+    }
+  
+    .title {
+      font-size: 20px;
+    }
+  
+    .subtitle {
+      font-size: 16px;
+    }
+  
+    .formInput {
+      font-size: 12px;
+    }
+  
+    .loginButton {
+      font-size: 16px;
+    }
+  
+    .signUpButton {
+      font-size: 12px;
+    }
+  
+    .googleButton {
+      padding: 8px;
+    }
+  }
