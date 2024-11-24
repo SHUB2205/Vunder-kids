@@ -7,8 +7,9 @@ import { Divider } from "./Reuseable/Divider";
 import RegisterContext from "../../../createContext/Register/RegisterContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { useNavigate } from "react-router-dom";
 function Register() {
+  const navigate = useNavigate();
   const { registerUser, loading, error } = useContext(RegisterContext);
 
   const [formData, setFormData] = useState({
@@ -73,8 +74,14 @@ function Register() {
 
       try {
         const response = await registerUser(dataToSubmit);
+        // console.log(response);
         if (response.success) {
-          return response;  // Success response
+          if (response.token) {
+            sessionStorage.setItem('token', response.token);
+            console.log("token is saved");
+          }
+          toast.success(response.message);
+          navigate("/register/waiting");
         } else {
           // Return an error message in case of failure
           toast.error(response.message || "Something went wrong.");
@@ -144,7 +151,7 @@ function Register() {
                 </label>
               </div>
 
-              <button type="submit" className="submitButton">
+              <button type="submit" className="submitButton"  disabled={loading}>
                 {loading ? "Creating Account..." : "Create Account"}
               </button>
             </form>
@@ -153,7 +160,7 @@ function Register() {
 
             <Divider />
 
-            <button className="googleButton">
+            <button className="googleButton" disabled={loading }>
               <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/c2cc1dc754d520e937b31d70deca1c6b8cddc3618bf9567c3ef8a4f408ab25c9?placeholderIfAbsent=true&apiKey=f523408d85c94fc8913d645c993f4c42"
                 alt="Google logo"

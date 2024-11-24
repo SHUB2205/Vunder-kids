@@ -6,13 +6,14 @@ import ProfileMatches from './ProfileMatches'
 import ProfilePosts from './ProfilePosts'
 import IsAuth from '../../createContext/is-Auth/IsAuthContext'
 import ProfilePhotos from './ProfilePhotos'
+import ProfileReels from './ProfileReels'
 
-const tabs = ['Overview','Photos','Post', 'Matches'];
+const tabs = ['Overview','Photos','Post','Reels','Matches'];
 
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('Overview');
-  const {user} = useContext(IsAuth);
+  const {user} = useContext(IsAuth);  
   return (
     <div className="ProfileContainer">
       <div className="ProfileHeader">@{user ? user.userName : ''}</div>
@@ -74,6 +75,7 @@ export default function Profile() {
         {activeTab === 'Overview' &&<ProfileStats/> }
         {activeTab === 'Photos' && <ProfilePhotos/>}
         {activeTab === 'Post' && <ProfilePosts/>}
+        {activeTab === 'Reels' && <ProfileReels />}
         {activeTab === 'Matches' && <ProfileMatches/>}
       </div>
     </div>

@@ -88,19 +88,19 @@ function About() {
 
   return (
     <>
-      <div className="header">
+      <div className="Aboutheader">
         <img src={Logo} alt="Fisko" className="Logo" />
       </div>
       <div className="about-page">
         <BackgroundSlider />
         <div className="about-box">
           <main className="aboutContainer">
-            <header className="headerSection">
+            <header className="AboutheaderSection">
               <h1 className="title">Tell Us About Yourself</h1>
               <h2 className="subtitle">Complete your profile to get started</h2>
             </header>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{width:"65%"}}>
               {/* Username Input */}
               <InputField
                 label="Username"
@@ -139,7 +139,7 @@ function About() {
 
               {/* Gender Dropdown */}
               <div className="inputGroup">
-                <label htmlFor="gender" className="inputLabel">
+                <label htmlFor="gender" className="inputLabel" style={{marginLeft:"0px"}}>
                   Gender
                 </label>
                 <select

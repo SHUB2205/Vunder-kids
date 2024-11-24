@@ -1,8 +1,5 @@
 import React from "react";
 import styles from "./SkillLevelTrack.module.css";
-
-
-
 export default function SkillLevelTrack({ sport, onSkillLevelSelect, onClose }) {
 
   const handleSelectLevel = (level) => {

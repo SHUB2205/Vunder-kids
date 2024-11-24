@@ -1,7 +1,7 @@
 .profilePhotosContainer {
     display: grid;
     grid-template-columns: repeat(3, 203px);
-    gap: 10px;
+    gap: 20px;
     justify-content: center;
     margin-top: 20px;
 }   
@@ -75,8 +75,7 @@
     position: absolute;
     top: -40px;
     right: 0;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: #fff;
     border: none;
     border-radius: 50%;
     width: 40px;
@@ -91,6 +90,47 @@
 
 .close-button:hover {
     background: rgba(255, 255, 255, 0.4);
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 991px) {
+    .profilePhotosContainer {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+        gap: 20px;
+        padding: 0 15px;
+    }
+
+    .profilePhotosContainer img {
+        height: 160px;
+    }
+
+    .image-modal-content {
+        max-width: 95%;
+    }
+
+    .full-screen-image {
+        max-width: 95vw;
+        max-height: 80vh;
+    }
+
+    .close-button {
+        top: -35px;
+        right: 0;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .profilePhotosContainer {
+        grid-template-columns: repeat(1, 1fr);
+        gap: 20px;
+    }
+
+    .profilePhotosContainer img {
+        height: 200px;
+    }
 }
 
 @keyframes fadeIn {

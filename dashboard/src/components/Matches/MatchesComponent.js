@@ -1,6 +1,5 @@
 import React from 'react';
 import styles from './MatchesComponent.module.css';
-import MatchCard from './MatchCard';
 import MatchCardPost from './MatchCardPost';
 
 const MatchesComponent = () => {

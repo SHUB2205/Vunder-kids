@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser ,requestResetPassword , resetPassword ,getUserId,sendVerificationEmail,verifyEmail,userInfo,inviteUser,checkUsername} = require('../controllers/userController');
+const { registerUser, loginUser ,requestResetPassword , resetPassword ,getUserId,sendVerificationEmail,verifyEmail,userInfo,inviteUser,checkUsername,checkVerification} = require('../controllers/userController');
 const router = express.Router();
 const { body } = require('express-validator');
 const Limiter = require('../middleware/Limiter');
@@ -44,12 +44,10 @@ router.post('/login', [
 
 
 
-router.post('/send-verification-email',[
-  body('email').isEmail().withMessage('Please enter a valid email address').normalizeEmail()
-],Limiter.emailVerificationLimiter,sendVerificationEmail);
+router.post('/send-verification-email',sendVerificationEmail);
 
 router.get('/verify-email/:token', verifyEmail);
-
+router.get('/check-verification',isAuth,checkVerification);
 router.post("/request-reset-password",isAuth,requestResetPassword);
 router.get("/reset-password/:token",isAuth,resetPassword);
 router.get("/getUserId",isAuth,getUserId);

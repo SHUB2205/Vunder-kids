@@ -32,37 +32,32 @@ const generateToken = (id, isVerified) => {
 };
 
 const registerUser = async (req, res, next) => {
-  const { name, school, userClass  , email, phoneNumber, password } = req.body;
+  const {  email, password } = req.body;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
-      // const error = new Error('Validation failed');
-      // error.status = 422;
-      // error.data = errors.array();
-      // throw error;
     }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
-      const error = 'User already exists change the eamil';
+      const error = 'User already exists change the e-mail';
       res.status(400).json({error})
+    
     }
-    const userName = generateUniqueUserName(name);
     const user = await User.create({
       email,
       password,
     });
+    
 
     if (user) {
-      // await Notification.create({
-      //   user: user._id,
-      //   type: 'user',
-      //   message: `You were registered with Email ${user.email}.`,
-      // });
+      const token=generateToken(user._id, user.isVerified);
+      // console.log(token);
       res.status(201).json({
         _id: user._id,
         email: user.email,
+        token
       });
     } else {
       const error = new Error('Invalid user data');
@@ -115,50 +110,37 @@ const loginUser = async (req, res,next) => {
 };
 
 const sendVerificationEmail = async (req, res, next) => {
+  const { userId } = req.body;
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      const error = new Error('Validation failed');
-      error.status = 422;
-      error.data = errors.array();
-      throw error;
-    }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findById(userId);
 
     if (!user) {
-      const error = new Error('No account with that email found');
+      const error = new Error('User not found');
       error.status = 404;
       throw error;
     }
 
     if (user.isVerified) {
-      const error = new Error('User is already verified');
-      error.status = 400;
-      throw error;
+      return res.status(400).json({ message: 'User is already verified' });
     }
 
-    user.verifyToken = token;
-    user.tokenExpiration = Date.now() + 3600000; //1 hour
+    const verificationToken = generateToken(); // A function to generate a unique token
+    user.verifyToken = verificationToken;
+    user.tokenExpiration = Date.now() + 3600000; // 1 hour expiration
+
     await user.save();
-
-    const verificationLink = `${BACKEND_URL}/api/verify-email/${token}`;
-
     await transporter.sendMail({
       to: user.email,
-      subject: 'Email Verification',
-      html: `
-        <p>Please click this <a href="${verificationLink}">link</a> to verify your email address.</p>
-      `
+      subject: 'Verify Your Email',
+      text: `Please verify your email by clicking the following link: ${process.env.Backend_URL}/api/verify-email/${verificationToken}`,
     });
 
-    res.status(200).json({ message: 'Verification email sent successfully' });
+    res.status(200).json({ message: 'Verification email sent' });
   } catch (error) {
+    // console.log(error);
     next(error);
   }
 };
-
 const verifyEmail = async (req, res, next) => {
   const token = req.params.token;
   try {
@@ -178,17 +160,26 @@ const verifyEmail = async (req, res, next) => {
     user.isVerified = true;
 
     await user.save();
-    await Notification.create({
-      user: user._id,
-      type: 'user',
-      message: `Your email ${user.email} was verified.`,
-    });
+// console.log(user);
     res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
     next(error);
   }
 };
+const checkVerification=async(req,res)=>{
+  try {
+    const user = await User.findById(req.user.id); // Replace with your user identification logic
 
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    console.log(user);
+
+    res.status(200).json({ isVerified: user.isVerified });
+  } catch (error) {
+    next(error);
+  }
+}
 const requestResetPassword = async (req, res) => {
 
   const { id } = req.user;
@@ -202,7 +193,7 @@ const requestResetPassword = async (req, res) => {
 
     // Generate a verification token
     const token = crypto.randomBytes(32).toString("hex");
-    console.log(token);
+    // console.log(token);
     // Send email
     await transporter.sendMail({
       // to check
@@ -232,7 +223,7 @@ const requestResetPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   // Extract token from URL
   const { token } = req.params;
-  console.log(token);
+  // console.log(token);
   const { newPassword } = req.body;
 
   if (!newPassword) {
@@ -393,5 +384,6 @@ module.exports = {
   sendVerificationEmail,
   userInfo,
   inviteUser,
-  checkUsername
+  checkUsername,
+  checkVerification
 };

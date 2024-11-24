@@ -9,7 +9,7 @@ import Profile from "./components/Profile/Profile";
 import Notification from "./components/Notification/Notification";
 import { FacilitiesLayout } from "./components/Facility/FacilityLayout";
 import Reels from "./components/Reels/Reels";
-
+import MatchesComponent from "./components/Matches/MatchesComponent";
 const Dashboard = () => {
   const location = useLocation();
 
@@ -74,6 +74,15 @@ const Dashboard = () => {
             element={
               <>
                 <Reels />
+                <RightSidebar />
+              </>
+            }
+          />
+          <Route
+            path="/matches"
+            element={
+              <>
+                <MatchesComponent/>
                 <RightSidebar />
               </>
             }
