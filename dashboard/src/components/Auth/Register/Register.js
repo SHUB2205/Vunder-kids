@@ -91,6 +91,33 @@ function Register() {
     }
   };
 
+  const loginWithGoogle = () => {
+    // Open the Google OAuth URL in a new window
+    const oauthWindow = window.open("http://localhost:5000/api/auth/google", "_blank", "width=600,height=600");
+  
+    // Listen for a message from the OAuth window (postMessage)
+    window.addEventListener("message", (event) => {
+      if (event.origin !== "http://localhost:5000") {
+        // Ensure the message is coming from the correct domain
+        return;
+      }
+  
+      // Check if the message contains the expected token
+      const data = event.data;
+      if (data.success) {
+        // Store the token in sessionStorage
+        sessionStorage.setItem("token", data.token);
+  
+        // Redirect the user to the appropriate page
+        navigate("/register/about");
+      } else {
+        // Handle authentication failure
+        console.log(data.message);
+        // Optionally show a message to the user
+      }
+    });
+  };
+  
   return (
     <>
       <div className="header">
@@ -172,7 +199,7 @@ function Register() {
 
             <Divider />
 
-            <button className="googleButton" disabled={loading}>
+            <button className="googleButton" disabled={loading}  onClick={loginWithGoogle}>
               <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/c2cc1dc754d520e937b31d70deca1c6b8cddc3618bf9567c3ef8a4f408ab25c9?placeholderIfAbsent=true&apiKey=f523408d85c94fc8913d645c993f4c42"
                 alt="Google logo"

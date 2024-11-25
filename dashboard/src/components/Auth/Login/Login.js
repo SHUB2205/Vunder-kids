@@ -51,6 +51,14 @@ export default function Login() {
         toast.success("Login successful! Redirecting to the home page.");
 
         // Redirect to the home page after successful login
+        if(!response.data.isVerified){
+          toast.success("Please Check Your Email for Verification");
+        }
+        if(response.data.isVerified){
+          if(!response.data.userName){
+            navigate("/register/about");
+          }
+        }
         navigate("/");
       } else {
         // Show error toast if login failed
@@ -67,6 +75,39 @@ export default function Login() {
   const handleSignUp = () => {
     navigate("/register");
   };
+  const loginWithGoogle = () => {
+    // Open the Google OAuth URL in a new window
+    console.log("Here");
+    const oauthWindow = window.open("http://localhost:5000/api/auth/google", "_blank", "width=600,height=600");
+
+    // Listen for a message from the OAuth window (postMessage)
+    window.addEventListener("message", (event) => {
+        if (event.origin !== "http://localhost:5000") {
+            // Ensure the message is coming from the correct domain
+            return;
+        }
+
+        // Check if the message contains the expected token and the userHasUsername flag
+        const data = event.data;
+        if (data.success) {
+            // Store the token in sessionStorage
+            sessionStorage.setItem("token", data.token);
+
+            // If the user has a username, navigate to the home page
+            if (data.userHasUsername) {
+              console.log(data.userHasUsername)
+                navigate("/"); // Redirect to home page
+            } else {
+                navigate("/register/about"); // Redirect to register/about if username doesn't exist
+            }
+        } else {
+            // Handle authentication failure
+            console.log(data.message);
+            // Optionally show a message to the user
+        }
+    });
+};
+
 
   return (
     <>
@@ -143,11 +184,12 @@ export default function Login() {
               <div className="dividerLine" />
             </div>
 
-            <button className="googleButton">
+            <button className="googleButton"  onClick={loginWithGoogle}>
               <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/60ffd75222757a2a1417f29bb890ca0f536e63ca84f0686f11de1db6ad1a132d?placeholderIfAbsent=true&apiKey=621a9be51e55481592185121250bd32e"
                 alt="Google logo"
                 className="googleIcon"
+               
               />
               <span>Sign in with Google</span>
             </button>

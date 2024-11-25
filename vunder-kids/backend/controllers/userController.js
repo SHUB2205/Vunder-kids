@@ -99,7 +99,13 @@ const loginUser = async (req, res, next) => {
     }
 
     // If validation passes, send the user details and token
-    console.log(user);
+    // console.log(user);
+    if(!user.isVerified){
+      return res.json({
+        success: false,
+        message:"We have sent a verification email to your email address. Please verify your email to login.",
+        });
+    }
     return res.json({
       success: true,
       _id: user._id,

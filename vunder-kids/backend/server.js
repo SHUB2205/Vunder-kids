@@ -52,6 +52,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use('/api', userRoutes);
 // google auth
 app.use("/api/auth", require("./controllers/googleAuth"));
+
 app.use('/api/matches', matchRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/post', postRoutes);
