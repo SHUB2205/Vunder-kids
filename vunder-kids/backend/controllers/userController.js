@@ -1,181 +1,169 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-const bcrypt = require('bcryptjs');
-const Notification = require('../models/Notifiication');
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
+const { validationResult } = require("express-validator");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const bcrypt = require("bcryptjs");
+const Notification = require("../models/Notifiication");
 // console.log(process.env.EMAIL);
 // console.log(process.env.APP_PASSWORD);
 //  For the Unique Name
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 // Middleware to generate unique username
 const generateUniqueUserName = (displayName) => {
-  const shortUuid = uuidv4().split('-')[0];
+  const shortUuid = uuidv4().split("-")[0];
   return `${displayName}-${shortUuid}`;
 };
 
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.EMAIL,
-    pass: process.env.APP_PASSWORD
-  }
+    pass: process.env.APP_PASSWORD,
+  },
 });
 
 const generateToken = (id, isVerified) => {
   return jwt.sign({ id, isVerified }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
+    expiresIn: "30d",
   });
 };
 
 const registerUser = async (req, res, next) => {
-  const { name, school, userClass  , email, phoneNumber, password } = req.body;
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-      // const error = new Error('Validation failed');
-      // error.status = 422;
-      // error.data = errors.array();
-      // throw error;
-    }
-
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      const error = new Error('User already exists');
-      error.status = 400;
-      throw error;
-    }
-    const userName = generateUniqueUserName(name);
-    const user = await User.create({
-      userName,
-      name,
-      school,
-      userClass,
-      email,
-      phoneNumber,
-      password,
-    });
-
-    if (user) {
-      // await Notification.create({
-      //   user: user._id,
-      //   type: 'user',
-      //   message: `You were registered with Email ${user.email}.`,
-      // });
-      res.status(201).json({
-        _id: user._id,
-        userName:user.userName,
-        name: user.name,
-        email: user.email,
-      });
-    } else {
-      const error = new Error('Invalid user data');
-      error.status = 400;
-      throw error;
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-
-// Login The User //
-const loginUser = async (req, res,next) => {
   const { email, password } = req.body;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error('Validation failed');
-      error.status = 422;
-      error.data = errors.array();
-      throw error;
+      return res.status(400).json({ errors: errors.array() });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) {  
-      const error = new Error('User not found');
-      error.status = 401;
-      throw error;
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      const error = "User already exists change the e-mail";
+      res.status(400).json({ error });
     }
-
-    if (!(await user.matchPassword(password))) {
-      const error = new Error('Invalid password');
-      error.status = 401;
-      throw error;
-    }
-
-    res.json({
-      _id: user._id,
-      userName:user.userName,
-      name: user.name,
-      email: user.email,
-      isVerified: user.isVerified,
-      token: generateToken(user._id, user.isVerified)
+    const user = await User.create({
+      email,
+      password,
     });
-  } catch (error) {
-    next(error);
+
+    if (user) {
+      const token = generateToken(user._id, user.isVerified);
+      console.log(token);
+      res.status(201).json({
+        _id: user._id,
+        email: user.email,
+        token,
+      });
+    } else {
+      const error = new Error("Invalid user data");
+      error.status = 400;
+      throw error;
+    }
+  } catch (e) {
+    // console.log(e);
+    // const error = "Server Error";
+    next(e);
   }
 };
 
-const sendVerificationEmail = async (req, res, next) => {
+// Login The User //
+const loginUser = async (req, res, next) => {
+  const { email, password } = req.body;
+  console.log(req.body);
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error('Validation failed');
-      error.status = 422;
-      error.data = errors.array();
-      throw error;
+      return res.json({
+        success: false,
+        message: "Validation failed",
+        errors: errors.array(),
+      });
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const isPasswordValid = await user.matchPassword(password);
+    if (!isPasswordValid) {
+      return res.json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // If validation passes, send the user details and token
+    // console.log(user);
+    if(!user.isVerified){
+      return res.json({
+        success: false,
+        message:"We have sent a verification email to your email address. Please verify your email to login.",
+        });
+    }
+    return res.json({
+      success: true,
+      _id: user._id,
+      userName: user.userName,
+      name: user.name,
+      email: user.email,
+      isVerified: user.isVerified,
+      token: generateToken(user._id, user.isVerified),
+    });
+  } catch (error) {
+    console.error("Error in loginUser:", error);
+    next(error); // Pass error to global error handler
+  }
+};
+
+
+const sendVerificationEmail = async (req, res, next) => {
+  const { userId } = req.body;
+  try {
+    const user = await User.findById(userId);
 
     if (!user) {
-      const error = new Error('No account with that email found');
+      const error = new Error("User not found");
       error.status = 404;
       throw error;
     }
 
     if (user.isVerified) {
-      const error = new Error('User is already verified');
-      error.status = 400;
-      throw error;
+      return res.status(400).json({ message: "User is already verified" });
     }
 
-    user.verifyToken = token;
-    user.tokenExpiration = Date.now() + 3600000; //1 hour
+    const verificationToken = generateToken(); // A function to generate a unique token
+    user.verifyToken = verificationToken;
+    user.tokenExpiration = Date.now() + 3600000; // 1 hour expiration
+
     await user.save();
-
-    const verificationLink = `${BACKEND_URL}/api/verify-email/${token}`;
-
     await transporter.sendMail({
       to: user.email,
-      subject: 'Email Verification',
-      html: `
-        <p>Please click this <a href="${verificationLink}">link</a> to verify your email address.</p>
-      `
+      subject: "Verify Your Email",
+      text: `Please verify your email by clicking the following link: ${process.env.Backend_URL}/api/verify-email/${verificationToken}`,
     });
 
-    res.status(200).json({ message: 'Verification email sent successfully' });
+    res.status(200).json({ message: "Verification email sent" });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
-
 const verifyEmail = async (req, res, next) => {
   const token = req.params.token;
   try {
-    const user = await User.findOne({ 
-      verifyToken: token, 
-      tokenExpiration: { $gt: Date.now() } 
+    const user = await User.findOne({
+      verifyToken: token,
+      tokenExpiration: { $gt: Date.now() },
     });
 
     if (!user) {
-      const error = new Error('Invalid or expired token');
+      const error = new Error("Invalid or expired token");
       error.status = 400;
       throw error;
     }
@@ -185,23 +173,30 @@ const verifyEmail = async (req, res, next) => {
     user.isVerified = true;
 
     await user.save();
-    await Notification.create({
-      user: user._id,
-      type: 'user',
-      message: `Your email ${user.email} was verified.`,
-    });
-    res.status(200).json({ message: 'Email verified successfully' });
+    // console.log(user);
+    res.status(200).json({ message: "Email verified successfully" });
   } catch (error) {
     next(error);
   }
 };
+const checkVerification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id); // Replace with your user identification logic
 
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    console.log(user);
+
+    res.status(200).json({ isVerified: user.isVerified });
+  } catch (error) {
+    next(error);
+  }
+};
 const requestResetPassword = async (req, res) => {
-
   const { id } = req.user;
 
   try {
-
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -209,27 +204,28 @@ const requestResetPassword = async (req, res) => {
 
     // Generate a verification token
     const token = crypto.randomBytes(32).toString("hex");
-    console.log(token);
+    // console.log(token);
     // Send email
     await transporter.sendMail({
       // to check
-      to: req.body.email, 
+      to: req.body.email,
       subject: "Password Reset Request",
       html: `
         <p>Click this <a href="http://localhost:5000/api/reset-password/${token}">link</a> to reset your password.</p>
       `,
     });
-    
+
     // Token valid fo 1 hour
     user.verifyToken = token;
     user.tokenExpiration = Date.now() + 3600000;
     await user.save();
 
-
-
     return res
       .status(200)
-      .json({ message: "Password reset email sent successfully" ,link:`http://localhost:5000/api/reset-password/${token}`});
+      .json({
+        message: "Password reset email sent successfully",
+        link: `http://localhost:5000/api/reset-password/${token}`,
+      });
   } catch (error) {
     console.error("Error sending password reset email:", error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -239,7 +235,7 @@ const requestResetPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   // Extract token from URL
   const { token } = req.params;
-  console.log(token);
+  // console.log(token);
   const { newPassword } = req.body;
 
   if (!newPassword) {
@@ -247,11 +243,9 @@ const resetPassword = async (req, res) => {
   }
 
   try {
-
     // This is set by the isAuth middleware
     const { id } = req.user;
     const user = await User.findById(id);
-
 
     if (!user) {
       return res.status(400).json({ message: "Invalid or expired token" });
@@ -259,12 +253,12 @@ const resetPassword = async (req, res) => {
 
     // Find user associated with the token
     const tokenExpiration = user.tokenExpiration;
-    const verifyToken=user.verifyToken;
+    const verifyToken = user.verifyToken;
     if (!verifyToken || tokenExpiration < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    // Update password 
+    // Update password
     // Hash the new password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
@@ -283,28 +277,27 @@ const resetPassword = async (req, res) => {
 
 //  fetching the inforamtion of the user by his id
 
-const userInfo=async(req,res)=>{
+const userInfo = async (req, res) => {
   try {
     let userId = req.params.id;
-    if (userId === "myInfo"){
+    if (userId === "myInfo") {
       userId = req.user.id;
+    } else if (userId === undefined) {
+      userId = await getUserId();
     }
-    else if(userId===undefined){
-      userId=await getUserId();
-    }
-    
-    const user = await User.findById(userId,'-password');
+
+    const user = await User.findById(userId, "-password");
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ message: 'An error occurred' });
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "An error occurred" });
   }
-}
+};
 
 //  To get the User Id Form the Token in the localStorage //
 
@@ -313,7 +306,12 @@ const getUserId = async (req, res) => {
     let userId = req.user.id;
     const client = await User.findById(userId).select("-password");
     const profileCompletion = client.getProfileCompletion();
-    res.json({ msg: "Id of the user", client,profileCompletion: profileCompletion.toFixed(2), success: true });
+    res.json({
+      msg: "Id of the user",
+      client,
+      profileCompletion: profileCompletion.toFixed(2),
+      success: true,
+    });
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({ error: "Token has expired" });
@@ -325,13 +323,31 @@ const getUserId = async (req, res) => {
   }
 };
 
+const checkUsername = async (req, res) => {
+  const { userName } = req.query;
+
+  try {
+    // Check if the username already exists in the database
+    const user = await User.findOne({ userName });
+
+    if (user) {
+      return res.json({ isAvailable: false });
+    } else {
+      return res.json({ isAvailable: true });
+    }
+  } catch (error) {
+    console.error("Error checking username:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while checking username." });
+  }
+};
+
 const inviteUser = async (req, res, next) => {
   const { email } = req.body;
   const inviterId = req.user.id;
 
   try {
-    
-
     const inviteLink = `${process.env.CORS_ORIGIN}/register/${inviterId}`;
 
     const htmlContent = `
@@ -361,15 +377,116 @@ const inviteUser = async (req, res, next) => {
     await transporter.sendMail({
       to: email,
       subject: "You're invited to join our platform!",
-      html: htmlContent
+      html: htmlContent,
     });
 
-    res.status(200).json({ message: 'Invitation sent successfully' });
+    res.status(200).json({ message: "Invitation sent successfully" });
   } catch (error) {
     next(error);
   }
 };
 
+const aboutUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const { userName, name, location, age, gender } = req.body;
+    // console.log(req.body);
+    // Validate required fields
+    if (!userName || !name || !location) {
+      return res
+        .status(400)
+        .json({ error: "All required fields must be filled." });
+    }
+
+    // Validate gender
+    const allowedGenders = ["male", "female", "other", ""];
+    if (!allowedGenders.includes(gender)) {
+      return res.status(400).json({ error: "Invalid gender value." });
+    }
+
+    // Update the user data
+    user.userName = userName || user.userName;
+    user.name = name || user.name;
+    user.location = location || user.location;
+    user.age = age || user.age;
+    user.gender = gender || user.gender;
+
+    const updatedUser = await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "User information updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error saving user data:", error.message);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while saving the user data." });
+  }
+};
+
+const submitSports = async (req, res) => {
+  try {
+    const { selectedSports } = req.body;
+    const userId = req.user.id; // Assumes user ID is in `req.user` (after authentication)
+
+    if (!selectedSports || Object.keys(selectedSports).length === 0) {
+      return res.status(400).json({ message: "No sports selected" });
+    }
+
+    // Prepare the passions array from selected sports and their skill levels
+    const passions = Object.keys(selectedSports).map((sportName) => ({
+      name: sportName,
+      skillLevel: selectedSports[sportName],
+    }));
+
+    // Find the user by userId and update the passions field
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update the user's passions field
+    user.passions = passions;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Passion data saved successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+const saveProfilePicture = async (req, res) => {
+  const { imageUrl } = req.body;
+  
+  try {
+    // Assuming you're using some kind of user authentication
+    const result = await User.updateOne(
+      { _id: req.user.id }, // Find user by ID
+      { $set: { avatar: imageUrl } } // Update the avatar field
+    );
+
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: "Profile picture saved successfully" });
+    } else {
+      res.status(400).json({ message: "Failed to update profile picture" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error saving profile image" });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -380,5 +497,10 @@ module.exports = {
   verifyEmail,
   sendVerificationEmail,
   userInfo,
-  inviteUser
+  inviteUser,
+  checkUsername,
+  checkVerification,
+  aboutUser,
+  submitSports,
+  saveProfilePicture
 };

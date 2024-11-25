@@ -1,11 +1,17 @@
-import React, { useEffect, useState, useContext,useCallback, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useContext,
+  useCallback,
+  useRef,
+} from "react";
 import { ChatContext } from "./ChatContext";
 import axios from "axios";
 import IsAuth from "../is-Auth/IsAuthContext";
 import io from "socket.io-client";
 export default function ChatState(props) {
-    const Chat_Url = "http://localhost:4000";
-     const Backend_URL = 'http://localhost:5000';
+  const Chat_Url = "http://localhost:4000";
+  const Backend_URL = "http://localhost:5000";
 
   const { token, fetchUserInfo, user } = useContext(IsAuth); // Get fetchUserInfo and user from context
   const [userInfo, setUserInfo] = useState(null); // State to store user info
@@ -58,11 +64,10 @@ export default function ChatState(props) {
 
     return userInfoDetails;
   };
-  
 
-//   socket wok
+  //   socket wok
   const [activeChat, setActiveChat] = useState(null);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [chats, setChats] = useState({ users: [], groups: [] });
   const [messages, setMessages] = useState([]);
   const [socket, setSocket] = useState(null);
@@ -71,15 +76,20 @@ export default function ChatState(props) {
   useEffect(() => {
     // console.log("Active chat updated:", JSON.stringify(activeChat));
   }, [activeChat]);
-  
-  const handleMessageClick = async(user) => {
+
+  const handleMessageClick = async (user) => {
     // console.log("user after clicked "+user.id+  " " + user.name)  ;
-    const tempActiceChat=activeChat
+    const tempActiceChat = activeChat;
     // console.log("Active chat details: ", JSON.stringify(tempActiceChat));
-    setActiveChat({ type: "user", id: user.id, name: user.name,avatar:user.avatar });
+    setActiveChat({
+      type: "user",
+      id: user.id,
+      name: user.name,
+      avatar: user.avatar,
+    });
     // console.log(activeChat);
     // console.log("changed");
-    const type='user';
+    const type = "user";
     //  making the chat seen and updating the last seen time
     try {
       const response = await axios.post(
@@ -88,29 +98,31 @@ export default function ChatState(props) {
         {
           headers: {
             token: token,
-          }
+          },
         }
       );
-      
+
       // console.log('Messages marked as seen:', response.data);
     } catch (error) {
-      console.error('Error marking messages as seen:', error.response?.data || error.message);
+      console.error(
+        "Error marking messages as seen:",
+        error.response?.data || error.message
+      );
     }
     setUnseenCounts((prev) => {
       if (!Array.isArray(prev)) {
         console.error("unseenCounts is not an array:", prev);
         return [];
       }
-  
+
       // Update the unseen count for this chatId
       return prev.map((item) =>
         item.chatId === user.id ? { ...item, unseenCount: 0 } : item
       );
     });
-    const rightContent = document.querySelector('.message-right-content');
-    rightContent.classList.add('active');
+    const rightContent = document.querySelector(".message-right-content");
+    rightContent.classList.add("active");
   };
-
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -126,78 +138,75 @@ export default function ChatState(props) {
       setError("Failed to connect to chat server. Please try again later.");
     });
 
- 
-    
-    
     newSocket.on("new private message", handleNewMessage);
     newSocket.on("new group message", handleNewMessage);
     setSocket(newSocket);
-    
+
     return () => newSocket.close();
-    
   }, []);
-  
-const incrementUnseenCount = (chatId) => {
-  setUnseenCounts((prev) => {
-    const existing = prev.find((item) => item.chatId === chatId);
-    if (existing) {
-      return prev.map((item) =>
-        item.chatId === chatId
-          ? { ...item, unseenCount: item.unseenCount + 1 }
-          : item
-      );
-    } else {
-      return [...prev, { chatId, unseenCount: 1 }];
-    }
-  });
-};
 
-const activeChatRef = useRef(activeChat);
+  const incrementUnseenCount = (chatId) => {
+    setUnseenCounts((prev) => {
+      const existing = prev.find((item) => item.chatId === chatId);
+      if (existing) {
+        return prev.map((item) =>
+          item.chatId === chatId
+            ? { ...item, unseenCount: item.unseenCount + 1 }
+            : item
+        );
+      } else {
+        return [...prev, { chatId, unseenCount: 1 }];
+      }
+    });
+  };
 
-useEffect(() => {
-  activeChatRef.current = activeChat;
-}, [activeChat]);
+  const activeChatRef = useRef(activeChat);
 
-const handleNewMessage = useCallback(
-  (message) => {
-    const currentActiveChat = activeChatRef.current; // Use ref for the latest value
-    if (!currentActiveChat) {
-      // console.log("No active chat selected.");
-      return;
-    }
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
 
-    // console.log("Active chat ID:", currentActiveChat.id);
-    // console.log("Message sender ID:", message.sender);
-    // console.log("Received message:", message);
+  const handleNewMessage = useCallback(
+    (message) => {
+      const currentActiveChat = activeChatRef.current; // Use ref for the latest value
+      if (!currentActiveChat) {
+        // console.log("No active chat selected.");
+        return;
+      }
 
-    if (
-      (currentActiveChat.type === "user" && currentActiveChat.id === message.sender) ||
-      (currentActiveChat.type === "group" && currentActiveChat.id === message.groupId)
-    ) {
-      // console.log("Message belongs to active chat.");
-      setMessages((prevMessages) => [...prevMessages, message]);
-      
-      const updatedChats = chats.users.map((user) => {
-        if (user.id === currentActiveChat.id) {
-          return {
-            ...user,
-            lastMessage: message.content, // Set the last message as the content
-            timestamp: new Date().toISOString(), // Set the current timestamp
-          };
-        }
-        return user;
-      });
-  
-      // Update the chats state with the new last message and timestamp
-      setChats({ ...chats, users: updatedChats });
-    } else {
-      incrementUnseenCount(message.sender);
-      // console.log("Message does not belong to the active chat.");
-    }
-  },
-  [] // No need for activeChat dependency
-);
+      // console.log("Active chat ID:", currentActiveChat.id);
+      // console.log("Message sender ID:", message.sender);
+      // console.log("Received message:", message);
 
+      if (
+        (currentActiveChat.type === "user" &&
+          currentActiveChat.id === message.sender) ||
+        (currentActiveChat.type === "group" &&
+          currentActiveChat.id === message.groupId)
+      ) {
+        // console.log("Message belongs to active chat.");
+        setMessages((prevMessages) => [...prevMessages, message]);
+
+        const updatedChats = chats.users.map((user) => {
+          if (user.id === currentActiveChat.id) {
+            return {
+              ...user,
+              lastMessage: message.content, // Set the last message as the content
+              timestamp: new Date().toISOString(), // Set the current timestamp
+            };
+          }
+          return user;
+        });
+
+        // Update the chats state with the new last message and timestamp
+        setChats({ ...chats, users: updatedChats });
+      } else {
+        incrementUnseenCount(message.sender);
+        // console.log("Message does not belong to the active chat.");
+      }
+    },
+    [] // No need for activeChat dependency
+  );
 
   // fetching all the chat
   useEffect(() => {
@@ -213,7 +222,7 @@ const handleNewMessage = useCallback(
       });
       if (!response.ok) throw new Error("Failed to fetch chats");
       const data = await response.json();
-  
+
       // Process and log data directly
       const users = data.filter((chat) => chat.type === "user");
       const groups = data.filter((chat) => chat.type === "group");
@@ -222,7 +231,7 @@ const handleNewMessage = useCallback(
         chatId: chat.id,
         unseenCount: chat.unseenCount,
       }));
-  
+
       // Update the state
       setChats({ users, groups });
       setUnseenCounts(unseenCounts); // New state for unseen counts
@@ -232,7 +241,6 @@ const handleNewMessage = useCallback(
       setError("Failed to load chats. Please refresh the page.");
     }
   }, []);
-  
 
   // fetching all the messages
   useEffect(() => {
@@ -242,16 +250,14 @@ const handleNewMessage = useCallback(
       if (socket) {
         socket.emit("join room", activeChat.id);
       }
-
     }
-  
+
     return () => {
       if (socket && activeChat) {
         socket.emit("leave room", activeChat.id);
       }
     };
   }, [activeChat, socket]);
-  
 
   const fetchMessages = async (chatId, chatType) => {
     try {
@@ -280,21 +286,20 @@ const handleNewMessage = useCallback(
     // console.log("content "+ content);
     const eventName =
       activeChat.type === "user" ? "private message" : "group message";
-    
+
     const payload =
       activeChat.type === "user"
         ? { recipientId: activeChat.id, content }
         : { groupId: activeChat.id, content };
 
- 
-        const message = {
-          id: Date.now(), // Unique key
-          sender: userInfo._id,
-          recipient: activeChat.id,
-          content,
-          timestamp: new Date().toISOString(), // Proper timestamp
-        };
-      
+    const message = {
+      id: Date.now(), // Unique key
+      sender: userInfo._id,
+      recipient: activeChat.id,
+      content,
+      timestamp: new Date().toISOString(), // Proper timestamp
+    };
+
     // console.log("send message payload "+ JSON.stringify(message));
     setMessages((prevMessages) => [...prevMessages, message]);
     // Emit the message via socket
@@ -314,21 +319,22 @@ const handleNewMessage = useCallback(
           }
           return user;
         });
-  
+
         // Update the chats state with the new last message and timestamp
         setChats({ ...chats, users: updatedChats });
       }
     });
     // Clear the input message after sending
-    setInputMessage('');
+    setInputMessage("");
   };
-  
 
   const updateChats = (user) => {
     setChats((prevChats) => {
       // Check if the user already exists
       handleMessageClick(user);
-      const userExists = prevChats.users.some((existingUser) => existingUser.id === user.id);
+      const userExists = prevChats.users.some(
+        (existingUser) => existingUser.id === user.id
+      );
 
       // If the user doesn't exist, add them
       if (!userExists) {
@@ -343,15 +349,33 @@ const handleNewMessage = useCallback(
   };
   const handleBackClick = () => {
     setActiveChat(null);
-    const rightContent = document.querySelector('.message-right-content');
-    rightContent.classList.remove('active');
+    const rightContent = document.querySelector(".message-right-content");
+    rightContent.classList.remove("active");
   };
-  const updateUnseenCounts=(chatId)=>{
+  const updateUnseenCounts = (chatId) => {};
 
-  }
-  
   return (
-    <ChatContext.Provider value={{ updateUnseenCounts,unseenCounts,userInfo, loading, error, updateChats,fetchAllMembers,token,activeChat,setChats,handleBackClick,inputMessage, setInputMessage,chats,messages,handleMessageClick,sendMessage}}>
+    <ChatContext.Provider
+      value={{
+        updateUnseenCounts,
+        unseenCounts,
+        userInfo,
+        loading,
+        error,
+        updateChats,
+        fetchAllMembers,
+        token,
+        activeChat,
+        setChats,
+        handleBackClick,
+        inputMessage,
+        setInputMessage,
+        chats,
+        messages,
+        handleMessageClick,
+        sendMessage,
+      }}
+    >
       {props.children}
     </ChatContext.Provider>
   );

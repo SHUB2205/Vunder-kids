@@ -9,16 +9,16 @@ export default function LoginPage() {
   const loginWithGoogle =() => {
    const json=window.open("http://localhost:5000/api/auth/google", "_self");
    console.log(json);
-    // if(json.success===true){
+    if(json.success===true){
 
-    //    localStorage.setItem('token',json.token);
-    // //    console.log(json);
-    //    navigate('/home');
-    //    showalert({grole:json.role,gshow:true,gmsg:json.msg})
-    // }else {
-    // //   console.log(json.msg);
-    //   showalert({grole:json.role,gshow:true,gmsg:json.msg})
-    // }
+       sessionStorage.setItem('token',json.token);
+    //    console.log(json);
+       navigate('/register/about');
+      //  showalert({grole:json.role,gshow:true,gmsg:json.msg})
+    }else {
+    //   console.log(json.msg);
+      // showalert({grole:json.role,gshow:true,gmsg:json.msg})
+    }
   }
 
   return (

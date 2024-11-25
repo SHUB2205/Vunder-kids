@@ -18,7 +18,11 @@ const generateUniqueUserName = (displayName) => {
     const shortUuid = uuidv4().split('-')[0];
     return `${displayName}-${shortUuid}`;
 };
-
+const generateToken = (id, isVerified) => {
+    return jwt.sign({ id, isVerified }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+  };
 // Setup session middleware
 router.use(session({
     secret: "YOUR_SECRET_KEY", 
@@ -49,9 +53,9 @@ passport.use(new OAuth2Strategy({
                 user = new User({
                     googleId: profile.id,
                     name: profile.displayName,
-                    userName,
                     email: profile.emails[0].value,
-                    isGoogleUser:true
+                    isGoogleUser:true,
+                    isVerified:true
                     // image: profile.photos[0].value
                 });
          
@@ -86,39 +90,57 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 
 //  two ways to do this
 // 1. redirect way
-router.get("/google/callback", passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000" // Redirect to login page on failure
-}), (req, res) => {
-    let data = {
-                user: {
-                  id: req.user.id,
-                },  
-              };
-        
-            const token = jwt.sign(data, jwt_word);
-    // Successful authentication
-    // res.redirect("http://localhost:3000/home"); // Redirect to dashboard or appropriate route
-    res.redirect(`http://localhost:3000/auth-redirect/?token=${token}`);
-});
-
-//  2. my way Here i am sending the user
 // router.get("/google/callback", passport.authenticate("google", {
-//     //  Need to do it later
-//     failureRedirect: "http://localhost:3001/" // Redirect to login page on failure (if necessary)  
+//     failureRedirect: "http://localhost:3000" // Redirect to login page on failure
 // }), (req, res) => {
-//     // Handle successful authentication without redirection
-//     // Example: Respond with JSON data or other response
 //     let data = {
-//         user: {
-//           id: req.user.id,
-//         },  
-//       };
-
-//     const token = jwt.sign(data, jwt_word);
-//     // localStorage.setItem("token",token);
-//     // Send the token to the client
-//     res.json({ msg: 'Authentication successful', user: req.user, token, success: true });
+//                 user: {
+//                   id: req.user.id,
+//                 },  
+//               };
+        
+//             const token = jwt.sign(data, jwt_word);
+//     // Successful authentication
+//     // res.redirect("http://localhost:3000/home"); // Redirect to dashboard or appropriate route
+//     res.redirect(`http://localhost:3000/register/about`);
 // });
 
+//  2. my way Here i am sending the user
+// Google OAuth callback
+router.get("/google/callback", passport.authenticate("google", {
+    failureRedirect: "http://localhost:3000/register",  // Redirect on failure
+}), (req, res) => {
+    // Remove password from the user object
+    const { password, ...userWithoutPassword } = req.user;
+
+    // Check the user data in the '_doc' property
+    const user = userWithoutPassword._doc;
+
+    // Create the JWT token
+    const token = generateToken(user._id, user.isVerified);
+
+    // Check if the user has a username
+    const userHasUsername = user.userName ? true : false;
+
+    // Send the response with the token and user data
+    const response = {
+        success: true,
+        token: token,
+        user: user,  // Sending the user object without the password
+        message: "Authentication successful",
+        userHasUsername: userHasUsername,  // Add a flag to indicate if username exists
+    };
+
+    // Instead of redirecting, send a message to the OAuth window
+    res.send(`
+        <script>
+            window.opener.postMessage(${JSON.stringify(response)}, "http://localhost:3000");
+            window.close();
+        </script>
+    `);
+});
+
+  
+  
 
 module.exports = router;
