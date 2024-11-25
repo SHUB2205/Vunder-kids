@@ -22,7 +22,6 @@ function App() {
         <PostState>
           <ReelState>
             <SearchState>
-             
                 <Router>
                   <Routes>
                     {/* Public Routes (accessible without token) */}
@@ -63,25 +62,6 @@ function App() {
                       }
                     />
 
-                    {/* Other Protected Routes */}
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    {/* Add other protected routes here */}
-                    <Route
-                      path="/profile"
-                      element={
-                        <ProtectedRoute>
-                          {/* Profile component */}
-                        </ProtectedRoute>
-                      }
-                    />
-
                     {/* Default route, also protected */}
                     <Route
                       path="*"
@@ -93,7 +73,6 @@ function App() {
                     />
                   </Routes>
                 </Router>
-             
             </SearchState>
           </ReelState>
         </PostState>
