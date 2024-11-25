@@ -107,6 +107,12 @@ const UserSchema = new mongoose.Schema({
       ref: "Group",
     },
   ],
+  privateChats: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   //for gogle calendar
   google: {
     accessToken: {

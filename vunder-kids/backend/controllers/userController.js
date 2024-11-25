@@ -50,7 +50,7 @@ const registerUser = async (req, res, next) => {
 
     if (user) {
       const token = generateToken(user._id, user.isVerified);
-      console.log(token);
+      // console.log(token);
       res.status(201).json({
         _id: user._id,
         email: user.email,
@@ -71,7 +71,7 @@ const registerUser = async (req, res, next) => {
 // Login The User //
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
-  console.log(req.body);
+  // console.log(req.body);
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -186,7 +186,7 @@ const checkVerification = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    console.log(user);
+    // console.log(user);
 
     res.status(200).json({ isVerified: user.isVerified });
   } catch (error) {
