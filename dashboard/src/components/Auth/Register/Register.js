@@ -8,6 +8,7 @@ import RegisterContext from "../../../createContext/Register/RegisterContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+
 function Register() {
   const navigate = useNavigate();
   const { registerUser, loading, error } = useContext(RegisterContext);
@@ -68,29 +69,25 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    console.log("Clicked");
     if (validateForm()) {
       const { termsAccepted, ...dataToSubmit } = formData;
 
       try {
         const response = await registerUser(dataToSubmit);
-        // console.log(response);
         if (response.success) {
           if (response.token) {
-            sessionStorage.setItem('token', response.token);
+            sessionStorage.setItem("token", response.token);
             console.log("token is saved");
           }
-          // toast.success(response.message);
           navigate("/register/waiting");
         } else {
-          // Return an error message in case of failure
           toast.error(response.message || "Something went wrong.");
           return { error: response.message || "Something went wrong." };
         }
       } catch (err) {
+        toast.error("Error submitting form.");
       }
-    } else {
-      // toast.error("Form validation failed. Please check your input.");
     }
   };
 
@@ -108,7 +105,7 @@ function Register() {
               <h2 className="subtitle">Join our community today</h2>
             </header>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit}   style={{width:"75%"}}>
               <InputField
                 label="Email"
                 name="email"
@@ -151,16 +148,31 @@ function Register() {
                 </label>
               </div>
 
-              <button type="submit" className="submitButton"  disabled={loading}>
+              <button
+                type="submit"
+                className="submitButton"
+                disabled={loading}
+              
+              >
                 {loading ? "Creating Account..." : "Create Account"}
               </button>
             </form>
 
-            <p className="loginLink">Already have an account!</p>
+            <p className="loginLink">Already have an account?</p>
+            
+            {/* Sign in button */}
+            <button
+              style={{width:"75%"}}
+                  className="submitButton"
+              onClick={() => navigate("/login")} // Navigate back to login
+              disabled={loading}
+            >
+              Sign In
+            </button>
 
             <Divider />
 
-            <button className="googleButton" disabled={loading }>
+            <button className="googleButton" disabled={loading}>
               <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/c2cc1dc754d520e937b31d70deca1c6b8cddc3618bf9567c3ef8a4f408ab25c9?placeholderIfAbsent=true&apiKey=f523408d85c94fc8913d645c993f4c42"
                 alt="Google logo"
@@ -172,7 +184,6 @@ function Register() {
         </div>
       </div>
 
-      {/* Add ToastContainer here to render toast notifications */}
       <ToastContainer />
     </>
   );

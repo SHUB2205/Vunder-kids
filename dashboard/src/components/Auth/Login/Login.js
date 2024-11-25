@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import BackgroundSlider from "../BackGround/BackgroundSlider";
 import "./Login.css";
 import Logo from "../../images/Logo.png";
-import axios from "axios"; 
-import { toast, ToastContainer } from "react-toastify"; // Import toast
-import "react-toastify/dist/ReactToastify.css"; // Import styles
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Login() {
   const navigate = useNavigate(); // Hook for navigation
@@ -21,7 +21,16 @@ export default function Login() {
   // Handle login form submission
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent default form submission
-    console.log("Login button clicked");
+
+    // Input validation
+    if (!email.trim()) {
+      toast.error("Email is required.");
+      return;
+    }
+    if (!password.trim()) {
+      toast.error("Password is required.");
+      return;
+    }
 
     // Prepare the request body
     const loginData = {
@@ -37,7 +46,7 @@ export default function Login() {
       if (response.data.success) {
         // Store the token in session storage
         sessionStorage.setItem("token", response.data.token);
-        
+
         // Show success toast
         toast.success("Login successful! Redirecting to the home page.");
 
@@ -45,7 +54,7 @@ export default function Login() {
         navigate("/");
       } else {
         // Show error toast if login failed
-        toast.error(response.data.message || "Invalid email or password");
+        toast.error(response.data.message || "Invalid email or password.");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -56,7 +65,6 @@ export default function Login() {
 
   // Handle redirect to the register page
   const handleSignUp = () => {
-    console.log("Navigating to register page"); // Debug log
     navigate("/register");
   };
 
@@ -103,7 +111,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)} // Update password state
                   required
-                  autoComplete="current-password"  // Add autocomplete for password
+                  autoComplete="current-password" // Add autocomplete for password
                 />
               </div>
 
@@ -145,13 +153,14 @@ export default function Login() {
             </button>
 
             {/* Sign up button */}
-            <button
-              type="button" // Ensure it's a button and not a submit button
-              className="signUpButton"
-              onClick={handleSignUp}
-            >
-              Sign up
-            </button>
+            <div onClick={handleSignUp}>
+              <button
+                type="button" // Ensure it's a button and not a submit button
+                className="signUpButton"
+              >
+                Sign up
+              </button>
+            </div>
           </main>
         </div>
       </div>

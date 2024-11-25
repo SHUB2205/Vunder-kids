@@ -2,7 +2,7 @@ import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import PostState from "./createContext/Post/PostState";
 import IsAuthStates from "./createContext/is-Auth/IsAuthStates";
-import ChatState from "./createContext/Chat/ChatStates";
+
 import Register from "./components/Auth/Register/Register";
 import Login from "./components/Auth/Login/Login";
 import About from "./components/Auth/Register/About/About";
@@ -22,7 +22,7 @@ function App() {
         <PostState>
           <ReelState>
             <SearchState>
-              {/* <ChatState> */}
+             
                 <Router>
                   <Routes>
                     {/* Public Routes (accessible without token) */}
@@ -83,17 +83,17 @@ function App() {
                     />
 
                     {/* Default route, also protected */}
-                    {/* <Route
+                    <Route
                       path="*"
                       element={
                         <ProtectedRoute>
                           <Dashboard />
                         </ProtectedRoute>
                       }
-                    /> */}
+                    />
                   </Routes>
                 </Router>
-              {/* </ChatState> */}
+             
             </SearchState>
           </ReelState>
         </PostState>

@@ -10,6 +10,7 @@ import Notification from "./components/Notification/Notification";
 import { FacilitiesLayout } from "./components/Facility/FacilityLayout";
 import Reels from "./components/Reels/Reels";
 import MatchesComponent from "./components/Matches/MatchesComponent";
+import ChatState from "./createContext/Chat/ChatStates";
 const Dashboard = () => {
   const location = useLocation();
 
@@ -17,6 +18,8 @@ const Dashboard = () => {
   const noSidebarRoutes = ["/register", "/login"];
 
   return (
+    <>
+     <ChatState>
     <div className="dashboard">
       <div className="dashboardWrapper">
         {/* Conditionally render the LeftSidebar */}
@@ -31,7 +34,7 @@ const Dashboard = () => {
                 <RightSidebar />
               </>
             }
-          />
+            />
           <Route
             path="/search"
             element={
@@ -40,7 +43,7 @@ const Dashboard = () => {
                 <RightSidebar />
               </>
             }
-          />
+            />
           <Route path="/messages" element={<Messages />} />
           <Route
             path="/profile"
@@ -68,7 +71,7 @@ const Dashboard = () => {
                 <RightSidebar />
               </>
             }
-          />
+            />
           <Route
             path="/reels"
             element={
@@ -77,7 +80,7 @@ const Dashboard = () => {
                 <RightSidebar />
               </>
             }
-          />
+            />
           <Route
             path="/matches"
             element={
@@ -86,10 +89,12 @@ const Dashboard = () => {
                 <RightSidebar />
               </>
             }
-          />
+            />
         </Routes>
       </div>
     </div>
+    </ChatState>
+            </>
   );
 };
 

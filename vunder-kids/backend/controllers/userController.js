@@ -50,7 +50,7 @@ const registerUser = async (req, res, next) => {
 
     if (user) {
       const token = generateToken(user._id, user.isVerified);
-      // console.log(token);
+      console.log(token);
       res.status(201).json({
         _id: user._id,
         email: user.email,
@@ -62,39 +62,46 @@ const registerUser = async (req, res, next) => {
       throw error;
     }
   } catch (e) {
-    const error = "Server Error";
-    // next(error);
+    // console.log(e);
+    // const error = "Server Error";
+    next(e);
   }
 };
 
 // Login The User //
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
+  console.log(req.body);
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const error = new Error("Validation failed");
-      error.status = 422;
-      error.data = errors.array();
-      throw error;
+      return res.json({
+        success: false,
+        message: "Validation failed",
+        errors: errors.array(),
+      });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      const error = new Error("User not found");
-      error.status = 401;
-      throw error;
+      return res.json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
 
-    if (!(await user.matchPassword(password))) {
-      const error = new Error("Invalid password");
-      error.status = 401;
-      throw error;
+    const isPasswordValid = await user.matchPassword(password);
+    if (!isPasswordValid) {
+      return res.json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
+
+    // If validation passes, send the user details and token
     console.log(user);
-
-    res.json({
-      success:true,
+    return res.json({
+      success: true,
       _id: user._id,
       userName: user.userName,
       name: user.name,
@@ -103,9 +110,11 @@ const loginUser = async (req, res, next) => {
       token: generateToken(user._id, user.isVerified),
     });
   } catch (error) {
-    next(error);
+    console.error("Error in loginUser:", error);
+    next(error); // Pass error to global error handler
   }
 };
+
 
 const sendVerificationEmail = async (req, res, next) => {
   const { userId } = req.body;
@@ -135,7 +144,7 @@ const sendVerificationEmail = async (req, res, next) => {
 
     res.status(200).json({ message: "Verification email sent" });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     next(error);
   }
 };

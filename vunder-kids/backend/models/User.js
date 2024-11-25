@@ -73,7 +73,7 @@ const UserSchema = new mongoose.Schema({
   tokenExpiration: {
     type: Date,
   },
-  gender: { type: String, required: true, enum: ["male", "female", "other"] },
+  gender: { type: String, enum: ["male", "female", "other"] },
   googleId: { type: String, unique: true, sparse: true }, // Sparse index allows multiple null values
   isGoogleUser: { type: Boolean, default: false }, // Flag to indicate Google auth
   likes: [

@@ -21,15 +21,7 @@ router.post('/register',
   ], registerUser);
 
   
-router.post('/login', [
-    body('email')
-      .isEmail()
-      .withMessage('Please enter a valid email address.')
-      .normalizeEmail(),
-    body('password', 'Password has to be valid.')
-      .isLength({ min: 5 })
-      .trim()
-  ],loginUser);
+router.post('/login',loginUser);
 
 
 
