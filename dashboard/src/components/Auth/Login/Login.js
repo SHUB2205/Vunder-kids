@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import BackgroundSlider from "../BackGround/BackgroundSlider";
 import "./Login.css";
 import Logo from "../../images/Logo.png";
+import axios from "axios"; 
+import { toast, ToastContainer } from "react-toastify"; // Import toast
+import "react-toastify/dist/ReactToastify.css"; // Import styles
 
 export default function Login() {
   const navigate = useNavigate(); // Hook for navigation
@@ -12,24 +15,48 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Backend URL
+  const Backend_URL = "http://localhost:5000";
+
   // Handle login form submission
-  const handleLogin = (e) => {
-    e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+    console.log("Login button clicked");
 
-    // Check for valid login (mocked for now)
-    if (email === "user@example.com" && password === "password123") {
-      // Store the token in session storage (mock login)
-      sessionStorage.setItem("token", "your-token");
+    // Prepare the request body
+    const loginData = {
+      email,
+      password,
+    };
 
-      // Redirect to the home page
-      navigate("/");
-    } else {
-      alert("Invalid email or password");
+    try {
+      // Send a POST request to the backend login endpoint
+      const response = await axios.post(`${Backend_URL}/api/login`, loginData);
+      console.log(response);
+
+      if (response.data.success) {
+        // Store the token in session storage
+        sessionStorage.setItem("token", response.data.token);
+        
+        // Show success toast
+        toast.success("Login successful! Redirecting to the home page.");
+
+        // Redirect to the home page after successful login
+        navigate("/");
+      } else {
+        // Show error toast if login failed
+        toast.error(response.data.message || "Invalid email or password");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      // Show error toast in case of network issues or other errors
+      toast.error("An error occurred while trying to log in. Please try again.");
     }
   };
 
   // Handle redirect to the register page
   const handleSignUp = () => {
+    console.log("Navigating to register page"); // Debug log
     navigate("/register");
   };
 
@@ -76,6 +103,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)} // Update password state
                   required
+                  autoComplete="current-password"  // Add autocomplete for password
                 />
               </div>
 
@@ -116,16 +144,20 @@ export default function Login() {
               <span>Sign in with Google</span>
             </button>
 
-            {/* Sign up button - corrected */}
+            {/* Sign up button */}
             <button
+              type="button" // Ensure it's a button and not a submit button
               className="signUpButton"
-              onClick={handleSignUp} // Make sure this is triggering the function
+              onClick={handleSignUp}
             >
               Sign up
             </button>
           </main>
         </div>
       </div>
+
+      {/* Toast container */}
+      <ToastContainer />
     </>
   );
 }
