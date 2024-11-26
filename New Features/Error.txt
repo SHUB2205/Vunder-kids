@@ -1,0 +1,2 @@
+1. LeftSidebar.js:25 Unable to preventDefault inside passive event listener invocation. Status : Not Fixed
+2.Message.js:189 Warning: Each child in a list should have a unique "key" prop.

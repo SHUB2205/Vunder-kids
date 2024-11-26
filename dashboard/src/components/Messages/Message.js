@@ -151,15 +151,15 @@ const Message = () => {
                     <div className="message-item-name">
                       {user.name}
                     </div>
-                    {user.lastMessage && (
+                    {/* {user.lastMessage && (
                       <div className="message-item-text">{user.lastMessage}</div>
-                    )}
+                    )} */}
                   </div>
                   {user.timestamp && (
                     <>
-                    <div className="message-item-date">
+                    {/* <div className="message-item-date">
                     {new Date(user.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                    </div>
+                    </div> */}
                     <div className="message-unseen-count">
                       {getUnseenCount(user.id) > 0 && (
                         <span className="unseen-count-badge">

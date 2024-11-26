@@ -1,0 +1,1 @@
+1. If user delete his/her account then need to be deleted from all the the users following and followers. status : Not fixed
