@@ -187,19 +187,26 @@ export default function ChatState(props) {
         // console.log("Message belongs to active chat.");
         setMessages((prevMessages) => [...prevMessages, message]);
 
-        const updatedChats = chats.users.map((user) => {
-          if (user.id === currentActiveChat.id) {
-            return {
-              ...user,
-              lastMessage: message.content, // Set the last message as the content
-              timestamp: new Date().toISOString(), // Set the current timestamp
-            };
-          }
-          return user;
+        // console.log("Before update, chats:", chats);
+        setChats((prevChats) => {
+          // console.log("Previous chats state:", prevChats);
+        
+          const updatedUsers = (prevChats.users || []).map((user) => {
+            if (user.id === currentActiveChat.id) {
+              return {
+                ...user,
+                lastMessage: message.content,
+                timestamp: new Date().toISOString(),
+              };
+            }
+            return user;
+          });
+        
+          const updatedChats = { ...prevChats, users: updatedUsers };
+          console.log("Updated chats state:", updatedChats);
+          return updatedChats;
         });
-
-        // Update the chats state with the new last message and timestamp
-        setChats({ ...chats, users: updatedChats });
+        
       } else {
         incrementUnseenCount(message.sender);
         // console.log("Message does not belong to the active chat.");
