@@ -43,7 +43,7 @@
 .dateSelectorWrapper {
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
 }
 
 .dateSelector {
@@ -201,4 +201,12 @@
 .calendarIcon {
   width: 25px;
   height: 27px;
+}
+.animateUp {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.calendarContainer {
+  position: relative;
+  z-index: 10;
 }
