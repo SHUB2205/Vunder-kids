@@ -55,7 +55,6 @@
 // module.exports = Match;
 
 
-
 const mongoose = require('mongoose');
 
 const MatchSchema = new mongoose.Schema({
@@ -64,8 +63,7 @@ const MatchSchema = new mongoose.Schema({
         required: true
     },
     location: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Location',
+        type: String,
         required: true
     },
     sport: {
@@ -84,9 +82,23 @@ const MatchSchema = new mongoose.Schema({
             default: 0
         }
     }],
-    winner: {
+    isTeamMatch: {
+        type: Boolean,
+        default: false
+    },
+    players: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Team'
+        ref: 'User'
+    }],
+    winner: {
+        type: {
+            type: String,
+            enum: ['Team', 'User'],
+        },
+        ref: {
+            type: mongoose.Schema.Types.ObjectId,
+            refPath: 'winner.type'
+        }
     },
     matchmakingTeam: {
         type: mongoose.Schema.Types.ObjectId,
@@ -96,20 +108,15 @@ const MatchSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    agreedTeams: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Team'
-    }],
     status: {
         type: String,
         enum: ['in-progress','scheduled','completed', 'cancelled'],
         default: 'in-progress'
     },
-    agreementTime: {  // New field to store the deadline for agreement
+    agreementTime: {
         type: Number,
         required: true
     },
-        //link calendar here for schedule, complete, cancle
     CalendarEvent: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'CalendarEvent'

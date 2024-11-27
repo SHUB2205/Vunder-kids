@@ -1,90 +1,135 @@
 .matchesSection {
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    align-items: center;
-    padding: 0 80px 9px;
-  }
-  
-  .matchesContainer {
-    display: flex;
-    margin-top: 5px;
-    width: 100%;
-    max-width: 641px;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .matchesTitle {
-    border-radius: 10px;
-    width: 100%;
-    overflow: hidden;
-    color: #333;
-    padding: 15px 28px;
-    font: 600 18px Roboto, sans-serif;
-    border: 1px solid #e7e7e8;
-  }
-  
-  .filterContainer {
-    display: flex;
-    margin-top: 8px;
-    width: 100%;
-    gap: 10px;
-    color: #333;
-    flex-wrap: wrap;
-    font: 400 14px Roboto, sans-serif;
-  }
-  
-  .locationFilter,
-  .matchTypeFilter,
-  .filterButton {
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border: 1px solid #e7e7e8;
-  }
-  
-  .locationIcon {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .sportTypeFilter {
-    overflow-x: auto;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 17px;
-    font-weight: 300;
-  }
-  
-  .activeFilter {
-    background-color: #e7e7e8;
-  }
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex:var(--middleContentWidth);
+  padding: 20px;
+}
+
+.matchesContainer {
+  display: flex;
+  margin-top: 5px;
+  width: 100%;
+  max-width: 641px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.matchesTitle {
+  border-radius: 10px;
+  width: 100%;
+  color: #333;
+  padding: 12px 20px;
+  font: 600 18px Roboto, sans-serif;
+  border: 1px solid #e7e7e8;
+}
+
+.filterContainer {
+  display: flex;
+  margin-top: 8px;
+  width: 100%;
+  gap: 10px;
+  color: #333;
+  font: 400 14px Roboto, sans-serif;
+}
+
+.fixedFilters {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.typeFilters {
+  display: flex;
+  gap: 10px;
+}
+
+.locationFilter,
+.filterButton {
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e7e7e8;
+  white-space: nowrap;
+}
+
+.locationIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.sportTypeFilterWrapper {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.sportTypeFilter {
+  display: flex;
+  gap: 5px;
+  font-size: 17px;
+  font-weight: 300;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.sportTypeFilter::-webkit-scrollbar {
+  display: none;
+}
+
+.activeFilter {
+  background-color: #e7e7e8;
+}
+
+.matchCardContainer {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  justify-content: start;
+  padding: 10px 10px 0;
+}
+
+@media (max-width: 991px) {
   
   .matchCardContainer {
-    align-self: stretch;
-    display: flex;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .filterContainer {
     flex-direction: column;
-    overflow: hidden;
-    justify-content: start;
-    padding: 10px 10px 0;
   }
-  
-  @media (max-width: 991px) {
-    .matchesSection {
-      padding: 0 20px;
-    }
-  
-    .matchesTitle {
-      white-space: initial;
-      padding: 15px 20px;
-    }
-  
-    .matchCardContainer {
-      max-width: 100%;
-    }
+
+  .fixedFilters {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
   }
+
+  .locationFilter {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .typeFilters {
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .sportTypeFilterWrapper {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .sportTypeFilter {
+    width: 100%;
+  }
+}

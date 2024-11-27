@@ -32,7 +32,7 @@ const PostState = ({ children }) => {
     try {
       setLoading(true);
       if (isUser && user){
-        const response = await axios.get(`${Backend_URL}/api/post/posts?username=${user.userName}`);
+        const response = await axios.get(`${Backend_URL}/api/post/posts/${user.userName}`);
         setMyPosts(response.data.posts);
       }
       else{

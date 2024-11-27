@@ -2,9 +2,9 @@ import React from 'react';
 import styles from './SearchItem.module.css';
 import labelSearchIcon from '../images/labelSearchIcon.png';
 
-const SearchItem = ({ src, label }) => {
+const SearchItem = ({ src, label,onClick }) => {
     return (
-        <div className={styles.imageCard}>
+        <div className={styles.imageCard} onClick={onClick}>
             <img src={src} alt={label} className={styles.image} />
             <div className={styles.label}>
                 {label}
