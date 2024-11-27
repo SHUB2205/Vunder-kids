@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./Header.module.css";
 import UserPhoto from "../../../images/UserPhoto.png";
+
 export default function Header({
   caption,
   setCaption,

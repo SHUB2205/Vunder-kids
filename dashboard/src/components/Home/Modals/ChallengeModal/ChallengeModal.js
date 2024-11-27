@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import styles from "./ChallengeModal.module.css";
 import FormSection from "./FormSection";
 import Modal from "../../../Reusable/Modal/Modal";
 import Header from "../Header/Header";
 import DateTimeModal from "../DateTimeModal/DateTimeModal";
+import { MatchContext } from "../../../../createContext/Match/MatchContext";
 
 const ChallengeModal = (props) => {
+  const {createMatch} = useContext(MatchContext);
   const [caption, setCaption] = useState("");
   const [matchType, setMatchType] = useState("1on1");
   const [sport, setSport] = useState("");
@@ -20,6 +22,7 @@ const ChallengeModal = (props) => {
   });
   const [venue, setVenue] = useState("");
   const [teamName, setTeamName] = useState("");
+  const [OppTeamName, setOppTeamName] = useState("");
   const [players, setPlayers] = useState("");
   const isDateTime=true;
   const monthNames = [
@@ -45,6 +48,7 @@ const ChallengeModal = (props) => {
       placeholder: "Tennis",
       value: sport,
       onChange: (e) => setSport(e.target.value),
+      type:"sports"
     },
     {
       label: "Choose opponent",
@@ -53,6 +57,7 @@ const ChallengeModal = (props) => {
       placeholder: "@john",
       value: opponent,
       onChange: (e) => setOpponent(e.target.value),
+      type:"player"
     },
     {
       label: "Choose date & time *",
@@ -88,6 +93,7 @@ const ChallengeModal = (props) => {
       placeholder: "Tennis",
       value: sport,
       onChange: (e) => setSport(e.target.value),
+      type: "sports"
     },
     {
       label: "Choose date & time *",
@@ -130,6 +136,15 @@ const ChallengeModal = (props) => {
       placeholder: "@john, @batista, @alex",
       value: players,
       onChange: (e) => setPlayers(e.target.value),
+      type:"players"
+    },
+    {
+      label: "Choose Opponent's team name *",
+      icon: "📋",
+      inputType: "text",
+      placeholder: "Fisko FC",
+      value: OppTeamName,
+      onChange: (e) => setOppTeamName(e.target.value),
     },
     {
       label: "Choose opponent *",
@@ -138,6 +153,7 @@ const ChallengeModal = (props) => {
       placeholder: "@john",
       value: opponent,
       onChange: (e) => setOpponent(e.target.value),
+      type:"players"  
     },
   ];
 
@@ -147,6 +163,88 @@ const ChallengeModal = (props) => {
     }, 100);
   };
 
+  const handleSubmit = async() => {  
+    try{
+      const my_players = players.map(player => player._id);
+      const opponent_players = opponent.map(player => player._id);
+
+      const dateObj = new Date(
+        selectedDate.year,
+        selectedDate.month - 1,
+        selectedDate.day,
+        selectedDate.hours,
+        selectedDate.minutes
+      );
+        
+      // Convert to ISO format and epoch time
+      const date = dateObj.toISOString();
+
+      const matchdata = {
+        date,
+        agreementTime : Math.floor(dateObj.getTime() / 1000),
+        location:venue,
+        sport: sport._id
+      }
+      const teamData = {
+        team1 :{ name : teamName,participants: my_players},
+        team2 : {name : teamName,participants: opponent_players}
+      };
+
+      createMatch(teamData,matchdata);
+    }
+    catch(e){
+      console.log(e);
+    }
+
+  }
+
+  const handleSubmit2 = async() => {  
+    try {      
+      const dateObj = new Date(
+        selectedDate.year,
+        selectedDate.month - 1,
+        selectedDate.day,
+        selectedDate.hours,
+        selectedDate.minutes
+      );
+        
+      // Convert to ISO format and epoch time
+      const date = dateObj.toISOString();
+
+      const matchdata = {
+        date,
+        agreementTime : Math.floor(dateObj.getTime() / 1000),
+        location: venue,
+        sport: sport._id
+      }
+  
+      if (matchType === '1on1') {
+        // For 1on1 match
+        createMatch(
+          "1on1",
+          opponent._id,
+          matchdata
+        );
+      } else {
+        // For team match
+        const my_players = players.map(player => player._id);
+        const opponent_players = opponent.map(player => player._id);
+        createMatch("team",{
+          team1: { 
+            name: teamName,
+            participants: my_players
+          },
+          team2: {
+            name: OppTeamName,
+            participants: opponent_players
+          }
+        },matchdata);
+      }
+    }
+    catch(e){
+      console.log(e);
+    }
+  }
 
   return (
     <>
@@ -170,10 +268,11 @@ const ChallengeModal = (props) => {
               onChange={field.onChange}
               onClick={field.onClick}
               isDateTime={isDateTime}
+              type={field.type}
             />
           ))}
           <div className={styles.submitButtonWrapper}>
-            <button className={styles.submitButton}  onClick={()=>props.onClose()}>Send</button>
+            <button className={styles.submitButton}  onClick={()=>{props.onClose();handleSubmit2()}}>Send</button>
           </div>
         </Modal>
       )}
@@ -199,6 +298,7 @@ const ChallengeModal = (props) => {
                   value={field.value}
                   onChange={field.onChange}
                   onClick={field.onClick}
+                  type={field.type}
                 />
               ))}
             </div>
@@ -212,12 +312,13 @@ const ChallengeModal = (props) => {
                   placeholder={field.placeholder}
                   value={field.value}
                   onChange={field.onChange}
+                  type={field.type}
                 />
               ))}
             </div>
           </div>
           <div className={styles.submitButtonWrapper}>
-            <button className={styles.submitButton} onClick={()=>props.onClose()}>Send</button>
+            <button className={styles.submitButton} onClick={()=>{props.onClose();handleSubmit2()}}>Send</button>
           </div>
         </Modal>
       )}

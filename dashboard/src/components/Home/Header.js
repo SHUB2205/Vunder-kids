@@ -59,7 +59,7 @@ function Header() {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    handleShowDateTimeModal();
+    setShowDateTimeModal(false);
   };
 
   return (

@@ -8,15 +8,15 @@ exports.createTeam = async (req, res) => {
     const admin = req.user.id; // Extract the admin from req.user.id
     
     // Add the admin to the participants list if not already present
-    if (!participants.includes(admin)) {
-      participants.push(admin);
-    }
+    // if (!participants.includes(admin)) {
+    //   participants.push(admin);
+    // }
     
     // Create a new team with the admins field as an array containing the current admin
     const newTeam = new Team({
       name,
       participants,
-      admins: [admin], // Initialize the admins array with the current admin
+      admins: [participants[0]], // Initialize the admins array with the current admin
     });
     
     // Save the new team to the database

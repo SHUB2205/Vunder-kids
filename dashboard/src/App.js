@@ -11,9 +11,11 @@ import UploadPicture from "./components/Auth/Register/UploadPicture/UploadPictur
 import Dashboard from "./Dashboard";
 import RegisterStates from "./createContext/Register/RegisterStates";
 import ReelState from "./createContext/Reels/ReelState";
+import MatchState from "./createContext/Match/MatchState";
 import SearchState from "./createContext/Search/SearchState";
 import WaitingScreen from "./components/Auth/Register/WaitingScreen/WaitingScreen";
 import ProtectedRoute from "./ProtectedRoute"; // Import ProtectedRoute
+import ProfileState from "./createContext/Profile/ProfileState";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
         <PostState>
           <ReelState>
             <SearchState>
+              <MatchState>
+                <ProfileState>
                 <Router>
                   <Routes>
                     {/* Public Routes (accessible without token) */}
@@ -36,7 +40,7 @@ function App() {
                           <About />
                         </ProtectedRoute>
                       }
-                    />
+                      />
                     <Route
                       path="/register/passion"
                       element={
@@ -44,7 +48,7 @@ function App() {
                           <Passion />
                         </ProtectedRoute>
                       }
-                    />
+                      />
                     <Route
                       path="/register/uploadPicture"
                       element={
@@ -52,7 +56,7 @@ function App() {
                           <UploadPicture />
                         </ProtectedRoute>
                       }
-                    />
+                      />
                     <Route
                       path="/register/waiting"
                       element={
@@ -60,7 +64,7 @@ function App() {
                           <WaitingScreen />
                         </ProtectedRoute>
                       }
-                    />
+                      />
 
                     {/* Default route, also protected */}
                     <Route
@@ -70,9 +74,11 @@ function App() {
                           <Dashboard />
                         </ProtectedRoute>
                       }
-                    />
+                      />
                   </Routes>
                 </Router>
+                </ProfileState>
+              </MatchState>
             </SearchState>
           </ReelState>
         </PostState>

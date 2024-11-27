@@ -1,4 +1,3 @@
-// Search.js
 import React, { useState, useContext, useCallback } from 'react';
 import styles from './search.module.css';
 import SearchItem from './SearchItem';
@@ -33,15 +32,25 @@ function Search() {
   );
 
   const handleSearchInput = (e) => {
-    const query = e.target.value;
+    const query = typeof e === 'string' ? e : e.target.value;
     setSearchQuery(query);
-    debouncedSearch(query);
-    setActiveTab("foryou");
-    console.log(searchResults);
+    if (query) {
+      setActiveTab("foryou");
+      debouncedSearch(query);
+    } else {
+      setActiveTab("search");
+      clearSearch();
+    }
   };
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
+  };
+
+  const handleSearchItemClick = (label) => {
+    console.log("asdasd",label);
+    setSearchQuery(label);
+    handleSearchInput(label);
   };
 
   const topSearchItems = [
@@ -53,14 +62,11 @@ function Search() {
     { src: SearchIcon6, label: 'Football' },
   ];
 
+  const showDefaultContent = !searchQuery || activeTab === "search";
+
   return (
     <div className={styles.mainContent}>
       <div className={styles.topHeader}>
-        {/* <img
-          src={BackIcon}
-          alt="Back Button"
-          className={styles.navIcon}
-        /> */}
         <div className={styles.searchHeader}>
           <img
             loading="lazy"
@@ -79,65 +85,57 @@ function Search() {
         </div>
       </div>
 
-      
-
       {loading ? (
         <div className={styles.loading}>Loading...</div>
       ) : (
         <>
           {searchQuery ? (
             <>
-            <div className={styles.searchToggle}>
-              <button
-                className={activeTab === "foryou" ? styles.activeToggle : styles.inactiveToggle}
-                onClick={() => handleTabClick("foryou")}
-              >
-                For you
-              </button>
-              <button
-                className={activeTab === "people" ? styles.activeToggle : styles.inactiveToggle}
-                onClick={() => handleTabClick("people")}
-              >
-                People
-              </button>
-            </div>
-
-            {activeTab === 'foryou' && <ForYou users={searchResults.users} posts={searchResults.posts} />}
-
-            {activeTab === 'people' && <People users={searchResults.users} />}
-
-            {searchResults.users.length === 0 && searchResults.posts.length === 0 && (
-              <div className={styles.noResults}>
-                No results found for "{searchQuery}"
+              <div className={styles.searchToggle}>
+                <button
+                  className={activeTab === "foryou" ? styles.activeToggle : styles.inactiveToggle}
+                  onClick={() => handleTabClick("foryou")}
+                >
+                  For you
+                </button>
+                <button
+                  className={activeTab === "people" ? styles.activeToggle : styles.inactiveToggle}
+                  onClick={() => handleTabClick("people")}
+                >
+                  People
+                </button>
               </div>
-            )}
+
+              {activeTab === 'foryou' && <ForYou users={searchResults.users} posts={searchResults.posts} />}
+              {activeTab === 'people' && <People users={searchResults.users} />}
+
+              {searchResults.users.length === 0 && searchResults.posts.length === 0 && (
+                <div className={styles.noResults}>
+                  No results found for "{searchQuery}"
+                </div>
+              )}
             </>
           ) : (
             // Default Content
             <>
               <div className={styles.heading}>Top Search</div>
-              {activeTab === "search" && (
-                <div>
-                  <div className={styles.notificationWrapper}>
-                    <div className={styles.gridContainer}>
-                      {topSearchItems.map((item, index) => (
-                        <SearchItem 
-                          key={index} 
-                          label={item.label} 
-                          src={item.src}
-                          onClick={() => {
-                            setSearchQuery(item.label);
-                            handleSearchInput();
-                          }} 
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className={styles.mobileOnly}>
-                    <StayUpdated />
+              <div>
+                <div className={styles.notificationWrapper}>
+                  <div className={styles.gridContainer}>
+                    {topSearchItems.map((item, index) => (
+                      <SearchItem 
+                        key={index} 
+                        label={item.label} 
+                        src={item.src}
+                        onClick={() => handleSearchItemClick(item.label)}
+                      />
+                    ))}
                   </div>
                 </div>
-              )}
+                <div className={styles.mobileOnly}>
+                  <StayUpdated />
+                </div>
+              </div>
             </>
           )}
         </>

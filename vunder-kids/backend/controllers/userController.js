@@ -280,13 +280,32 @@ const resetPassword = async (req, res) => {
 const userInfo = async (req, res) => {
   try {
     let userId = req.params.id;
+    let user = null;
+
     if (userId === "myInfo") {
       userId = req.user.id;
+      user = await User.findById(userId)
+      .populate({
+        path: 'following',
+        select: 'avatar userName name followers',
+        transform: (doc) => ({
+          ...doc.toObject(),
+          followers:doc.followers.length
+        })
+      })
+      .populate({
+        path: 'followers',
+        select: 'avatar userName name followers',
+        transform: (doc) => ({
+          ...doc.toObject(),
+          followers:doc.followers.length
+        })
+      })
+      .select('-password -matchIds -teamIds');
     } else if (userId === undefined) {
       userId = await getUserId();
+      user = await User.findById(userId, "-password");
     }
-
-    const user = await User.findById(userId, "-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -298,6 +317,33 @@ const userInfo = async (req, res) => {
     res.status(500).json({ message: "An error occurred" });
   }
 };
+
+const getByUsername = async (req,res) => {
+  try{
+    const username = req.params.username;
+    if (!username){
+      return res.status(400).json({ message: "Username not provided" });
+    }
+    const user = await User.findOne({userName : username},'_id name userName avatar following followers totalMatches wonMatches');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({
+      _id: user._id,
+      name: user.name,
+      userName: user.userName,
+      avatar: user.avatar,
+      totalMatches: user.totalMatches,
+      wonMatches: user.wonMatches,
+      following: user.following.length, 
+      followers: user.followers.length
+    });
+    }
+  catch (err){
+    console.error(err);
+    res.status(500).json({ message: "An error occurred" });
+  }
+}
 
 //  To get the User Id Form the Token in the localStorage //
 
@@ -488,6 +534,19 @@ const saveProfilePicture = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({}, '_id userName');
+    const renamedUsers = users.map(user => ({
+      _id: user._id,
+      name: user.userName, // Rename 'userName' to 'name'
+    }));
+    res.json(renamedUsers);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -502,5 +561,7 @@ module.exports = {
   checkVerification,
   aboutUser,
   submitSports,
-  saveProfilePicture
+  saveProfilePicture,
+  getAllUsers,
+  getByUsername
 };
