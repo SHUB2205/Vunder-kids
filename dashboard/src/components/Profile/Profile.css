@@ -163,11 +163,38 @@
   background-color: #000000;
 }
 
+.profile-divider{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.followButton {
+  background-color: var(--button-color-Post-Follow);
+  color: #fff;
+  border: none;
+  border-radius: var(--button-radius);
+  padding: 5px 15px;
+  font:var(--font-secondary);
+  cursor: pointer;
+  font-size: medium;
+}
+
+.followButton:hover{
+  background-color: #000000;
+}
+
 /* Add responsive styles */
 @media (max-width: 768px) {
   .ProfileNav {
     font-size: 16px; /* Slightly smaller font size */
     padding: 0 10px; /* Add some horizontal padding */
+  }
+
+  .profile-divider{
+    justify-content: center;
+    flex-direction: column;
+    gap:5px
   }
 
   .ProfileTab {
@@ -213,3 +240,4 @@
     max-width: calc(50% - 5px); /* Ensure two tabs per row if needed */
   }
 }
+

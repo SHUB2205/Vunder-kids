@@ -28,94 +28,81 @@ const {updateScore}=require("./progressController.js")
 //create match
 exports.createMatch = async (req, res) => {
   try {
-    const newMatchData = req.body;
+    const { team1, team2, matchdata } = req.body;
 
-    // Ensure the `teams` field contains at least one team
-    if (!newMatchData.teams || newMatchData.teams.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "At least one team must be provided" });
+    // Determine if it's a team match
+    const isTeamMatch = !!team1 && !!team2;
+
+    let teams = [];
+    let players = [];
+    let team1Obj = {};
+    let team2Obj = {}
+
+    if (isTeamMatch) {
+      // Team match logic
+      team1Obj = await Team.findById(team1);
+      team2Obj = await Team.findById(team2);
+
+      if (!team1Obj || !team2Obj) {
+        return res.status(404).json({ error: "Teams not found" });
+      }
+
+      teams = [
+        { team: team1Obj._id },
+        { team: team2Obj._id }
+      ];
+
+      // Combine participants from both teams
+      players = [...team1Obj.participants, ...team2Obj.participants];
+    } else {
+      // 1on1 match logic
+      // Assuming players are passed directly in the request
+      players = req.body.players;
     }
 
-    // Extract team IDs from the teams array
-    const teamIds = newMatchData.teams.map(team => team.team);
-
-    // Fetch all teams using the teamIds
-    const teams = await Team.find({ _id: { $in: teamIds } });
-    if (teams.length !== teamIds.length) {
-      return res.status(404).json({ error: "Some teams were not found" });
-    }
-
-    // Gather all participants from all teams
-    const allParticipants = teams.flatMap(team => team.participants);
-
-    // Check for duplicate participants
-    const participantCount = allParticipants.reduce((acc, participant) => {
-      acc[participant] = (acc[participant] || 0) + 1;
-      return acc;
-    }, {});
-
-    const duplicateParticipants = Object.entries(participantCount)
-      .filter(([_, count]) => count > 1)
-      .map(([participant]) => participant);
-
-    if (duplicateParticipants.length > 0) {
-      return res
-        .status(400)
-        .json({
-          error: "A player cannot be part of more than one team in the same match",
-          duplicates: duplicateParticipants,
-        });
-    }
-
-    // Set default match properties
-    newMatchData.status = "in-progress";
-    newMatchData.agreedTeams = teamIds;
-    newMatchData.winner = null;
+    // Prepare match data
+    const newMatchData = {
+      ...matchdata,
+      isTeamMatch,
+      teams: isTeamMatch ? teams : [],
+      players: players,
+      status: "in-progress"
+    };
 
     const newMatch = new Match(newMatchData);
     const savedMatch = await newMatch.save();
 
-    // Notify all other team admins
-    const admins = teams.flatMap(team => team.admins);
+    // Notify participants
+    const notificationRecipients = isTeamMatch 
+      ? [...team1Obj.admins, ...team2Obj.admins] 
+      : players;
 
     notificationService(
-      admins,
+      notificationRecipients,
       'matchmaking',
-      `You have a new match request. Please review the details.`
+      `You have a new ${isTeamMatch ? 'team' : 'individual'} match request. Please review the details.`
     );
 
-    // Remove duplicates from allParticipants (in case of same player in multiple teams)
-    const uniqueParticipants = [...new Set(allParticipants)];
-
-    // Update each participant's matchIds field
+    // Update participants' match history
     await User.updateMany(
-      { _id: { $in: uniqueParticipants } }, // Match all participants
-      { $addToSet: { matchIds: savedMatch._id } } // Add the match ID to the user's matchIds array, avoiding duplicates
+      { _id: { $in: players } },
+      { $addToSet: { matchIds: savedMatch._id } }
     );
 
-    // Schedule a job to check the agreement deadline if agreementTime is provided
-    if (newMatchData.agreementTime) {
-      const agreementTimeEpoch = parseInt(newMatchData.agreementTime, 10); // Ensure it's an integer
-      const agreementDate = new Date(agreementTimeEpoch * 1000); // Convert seconds to milliseconds if necessary
-
-      console.log('Scheduling Job for Agreement Deadline:', agreementDate);
+    // Schedule agreement deadline job (similar to previous implementation)
+    if (matchdata.agreementTime) {
+      const agreementTimeEpoch = parseInt(matchdata.agreementTime, 10);
+      const agreementDate = new Date(agreementTimeEpoch * 1000);
 
       schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
-        console.log('Job Triggered at:', new Date());
-
         const currentMatch = await Match.findById(savedMatch._id);
         if (currentMatch && currentMatch.status !== 'scheduled' && !currentMatch.agreement) {
           currentMatch.status = 'cancelled';
-          console.log('Match cancelled due to no agreement within the time limit.');
           await currentMatch.save();
 
-          // Notify both teams about the match cancellation
-          const teams = await Team.find({ _id: { $in: currentMatch.teams.map(t => t.team) } });
-          const participants = teams.flatMap(team => team.participants);
-          
+          // Notify participants about cancellation
           notificationService(
-            participants,
+            players,
             'match-cancelled',
             `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`
           );
@@ -125,10 +112,11 @@ exports.createMatch = async (req, res) => {
 
     res.status(201).json(savedMatch);
   } catch (error) {
-    console.error('Error creating match:', error); // Log the error for debugging
+    console.error('Error creating match:', error);
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // Get all matches
 exports.getAllMatches = async (req, res) => {

@@ -11,6 +11,7 @@ import { FacilitiesLayout } from "./components/Facility/FacilityLayout";
 import Reels from "./components/Reels/Reels";
 import MatchesComponent from "./components/Matches/MatchesComponent";
 import ChatState from "./createContext/Chat/ChatStates";
+import FollowersList from "./components/Profile/Components/PeopleList";
 const Dashboard = () => {
   const location = useLocation();
 
@@ -46,10 +47,19 @@ const Dashboard = () => {
             />
           <Route path="/messages" element={<Messages />} />
           <Route
-            path="/profile"
+            path="/profile/:username?"
             element={
               <>
                 <Profile />
+                <RightSidebar />
+              </>
+            }
+          />
+          <Route
+            path="/list/:type"
+            element={
+              <>
+                <FollowersList />
                 <RightSidebar />
               </>
             }

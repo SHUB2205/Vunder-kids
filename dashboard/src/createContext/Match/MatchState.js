@@ -1,0 +1,90 @@
+import React, { useContext, useState, useEffect } from 'react';
+import { MatchContext } from './MatchContext';
+import axios from 'axios';
+import IsAuth from '../is-Auth/IsAuthContext';
+const Backend_URL = 'http://localhost:5000';
+
+const MatchState = ({ children }) => {
+    const [sports, setSports] = useState([]);
+    const [players , setPlayers] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const {token,user} = useContext(IsAuth);
+
+    const fetchSports = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${Backend_URL}/api/sport/`);
+            setSports(response.data);
+        } 
+        catch (err) {
+            setSports([]);
+          console.log(err);
+        }
+        finally{
+            setLoading(false);
+        }
+      };
+    
+      const fetchPlayers = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${Backend_URL}/api/getusers/`);
+            setPlayers(response.data);
+        } catch (err) {
+            setPlayers([]);
+          console.log(err);
+        }
+        finally{
+            setLoading(false);
+        }
+      };
+      
+      //teamData = {team1 : {name , participant} , team2 : {name, participant}}
+      const createMatch = async(type,teamData,matchData) => {
+        try {
+            setLoading(true);
+            //team creation
+            let req_data;
+            if (type === "team"){
+                const team1 = await axios.post(`${Backend_URL}/api/teams/create`,teamData.team1,{headers:{token}});
+                const team2 = await axios.post(`${Backend_URL}/api/teams/create`,teamData.team2,{headers:{token}});
+                req_data = {matchdata:matchData ,team1:team1.data._id,team2:team2.data._id};
+            }
+            else{
+                req_data = {matchdata:matchData ,players : [user._id,teamData]};
+            }
+            console.log(req_data);
+            const match = await axios.post(`${Backend_URL}/api/matches/create`,req_data,{headers:{token}});
+            console.log(match.data);
+        }
+        catch (err) {
+            setSports([]);
+            console.log(err);
+        }
+        finally{
+            setLoading(false);
+        }
+      };
+
+    useEffect(() => {
+        if (sports.length ==0)
+            fetchSports();
+        if (players.length == 0)
+            fetchPlayers();
+    }, []);
+
+    return (
+        <MatchContext.Provider value={{
+            sports,
+            players,
+            loading,
+            createMatch,
+            error
+        }}>
+            {children}
+        </MatchContext.Provider>
+    );
+};
+
+export default MatchState;
