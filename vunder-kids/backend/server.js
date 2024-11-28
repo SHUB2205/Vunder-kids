@@ -28,14 +28,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 // For fireBase Admin
 
-// const admin = require('firebase-admin');
+const admin = require('firebase-admin');
 
-// const serviceAccount = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccount = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-//   projectId: 'vunder-kids-bb948',
-// });
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  projectId: 'vunder-kids-bb948',
+});
 // end her firebase
 app.use(cors());
 app.use(express.json());

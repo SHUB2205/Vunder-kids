@@ -1,1 +1,6 @@
 1. If user delete his/her account then need to be deleted from all the the users following and followers. status : Not fixed
+2. On openning of the dashboard the user avatar does not appear. status : Not fixed
+3. On clicking on the user profile picture the user profile page is not opening. status : Not fixed
+4. Post Time need to be the IST . status : Not fixed
+5. In message, if it is new message it does not apper on the reciver side. status: Not fixed
+6. Untile and unless user click on the chat icon , it soed not show the new messages. status : Not fixed

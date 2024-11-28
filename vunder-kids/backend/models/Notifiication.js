@@ -22,7 +22,10 @@ const NotificationSchema = new mongoose.Schema({
       'match-completed',
       'match-result',
       'match-update',
-      'user'
+      'user',
+      "all",
+      "match",
+      "message"
     ], // Enum to restrict notification types
     required: true
   },

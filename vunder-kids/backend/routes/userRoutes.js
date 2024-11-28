@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser ,requestResetPassword , resetPassword ,getUserId,sendVerificationEmail,verifyEmail,userInfo,inviteUser,checkUsername,checkVerification,aboutUser,submitSports,saveProfilePicture,getAllUsers,getByUsername} = require('../controllers/userController');
+const { registerUser, loginUser ,requestResetPassword , resetPassword ,getUserId,sendVerificationEmail,verifyEmail,userInfo,inviteUser,checkUsername,checkVerification,aboutUser,submitSports,saveProfilePicture,getAllUsers,getByUsername,notificationToken} = require('../controllers/userController');
 const router = express.Router();
 const { body } = require('express-validator');
 const Limiter = require('../middleware/Limiter');
@@ -41,7 +41,7 @@ router.post('/submit-sports',isAuth,submitSports);
 router.post('/saveProfilePicture',isAuth,saveProfilePicture);
 router.get('/getusers',getAllUsers);
 router.get('/getUser/:username',getByUsername);
-
+router.post('/notification-token',isAuth,notificationToken);
 module.exports = router;
 
 

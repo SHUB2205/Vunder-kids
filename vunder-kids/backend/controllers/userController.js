@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const Notification = require("../models/Notifiication");
+
 // console.log(process.env.EMAIL);
 // console.log(process.env.APP_PASSWORD);
 //  For the Unique Name
@@ -547,6 +548,29 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
+const notificationToken=async(req,res)=>{
+  const userId=req.user.id;
+  const token=req.body.token
+  // console.log("Here");
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update or remove the token
+    user.notificationToken = token || null;
+    await user.save();
+    // console.log(user);
+
+    res.status(200).json({ message: "Token updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 module.exports = {
   registerUser,
   loginUser,
@@ -563,5 +587,6 @@ module.exports = {
   submitSports,
   saveProfilePicture,
   getAllUsers,
-  getByUsername
+  getByUsername,
+  notificationToken
 };

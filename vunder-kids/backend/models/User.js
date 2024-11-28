@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const { type } = require("@testing-library/user-event/dist/type");
 const Schema = mongoose.Schema;
 
 const UserSchema = new mongoose.Schema({
@@ -144,6 +145,10 @@ const UserSchema = new mongoose.Schema({
       skillLevel: { type: String, required: true, enum: ["Beginner","Foundation" ,"Intermediate", "Advance","Pro"] }, // Skill level
     },
   ],
+  notificationToken:{
+    type:String,
+    default: null
+  }
 });
 
 UserSchema.pre("save", async function (next) {
