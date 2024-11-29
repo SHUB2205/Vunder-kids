@@ -303,8 +303,7 @@ const userInfo = async (req, res) => {
         })
       })
       .select('-password -matchIds -teamIds');
-    } else if (userId === undefined) {
-      userId = await getUserId();
+    } else if (userId) {
       user = await User.findById(userId, "-password");
     }
 

@@ -60,6 +60,7 @@ export default function Login() {
           }
         }
         navigate("/");
+        window.location.reload();
       } else {
         // Show error toast if login failed
         toast.error(response.data.message || "Invalid email or password.");
