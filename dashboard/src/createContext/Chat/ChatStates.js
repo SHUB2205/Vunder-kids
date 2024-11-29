@@ -44,16 +44,17 @@ export default function ChatState(props) {
     const userInfoDetails = await Promise.all(
       uniqueIds.map(async (id) => {
         try {
-          const response = await axios.get(`${Backend_URL}/api/users/${id}`, {
+          const response = await axios.get(`${Backend_URL}/api/users/${id._id}`, {
             headers: {
               "Content-Type": "application/json",
               token: token,
             },
           });
           return {
-            id: id,
+            id: id._id,
             userName: response.data.userName || "Unknown User",
             name: response.data.name || "Unknown",
+            avatar:response.data.avatar || ""
           };
         } catch (error) {
           console.error(`Error fetching data for ID ${id}:`, error);

@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useState,useEffect} from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import LeftSidebar from "./components/LeftSlidebar/LeftSidebar";
 import MainContent from "./components/Home/MainContent";
@@ -12,11 +12,31 @@ import Reels from "./components/Reels/Reels";
 import MatchesComponent from "./components/Matches/MatchesComponent";
 import ChatState from "./createContext/Chat/ChatStates";
 import FollowersList from "./components/Profile/Components/PeopleList";
+import {requestPermission} from "./notification/requestPermission";
+import {setupOnMessage} from './notification/onMessage';
+
 const Dashboard = () => {
   const location = useLocation();
 
   // Routes where LeftSidebar is hidden
   const noSidebarRoutes = ["/register", "/login"];
+
+  const [permission, setPermission] = useState(false);
+  const [token, setToken] = useState(undefined);
+
+  // Notification
+  useEffect(() => {
+    // Call requestPermission inside useEffect and update the state
+    const fetchPermission = async () => {
+      const result = await requestPermission();
+      setPermission(result.permission);
+      setToken(result.token);
+    };
+    fetchPermission();
+    setupOnMessage(); 
+    // eslint-disable-next-line
+  }, []);
+
 
   return (
     <>

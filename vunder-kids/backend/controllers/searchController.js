@@ -38,7 +38,7 @@ const search = async (req, res, next) => {
     const users = await User.aggregate([
       {
         $match: {
-          _id: { $ne: ObjectId(userId) },
+          _id: { $ne: new ObjectId(userId) },
           $or: [
             { userName: { $regex: query, $options: 'i' } },
             { name: { $regex: query, $options: 'i' } }
@@ -69,6 +69,7 @@ const search = async (req, res, next) => {
       posts
     });
   } catch (err) {
+    console.log(err);
     if (!err.statusCode) {
       err.statusCode = 500;
     }

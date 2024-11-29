@@ -9,10 +9,22 @@ const messageRoutes = require("./routes/messageRoutes");
 const socketAuth=require("./middleware/socketAuth");
 const app = express();
 const PORT = process.env.PORT || 4000;
-const User=require('./models/User')
+const User=require('./models/User');
+const notificationService = require("./services/notification/notificationService");
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// For fireBase Admin
+const admin = require('firebase-admin');
+
+const serviceAccount = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  projectId: 'vunder-kids-bb948',
+});
+// end her firebase
 
 // MongoDB Connection
 mongoose
@@ -113,9 +125,20 @@ io.on("connection", (socket) => {
         { new: true }                                   // Return the updated document
       );
       
-      console.log(updatedMessage);
+      // console.log(updatedMessage);
       
       io.to(recipientId).emit("new private message", updatedMessage);
+
+      const recipient = await User.findById(recipientId);
+      const sender=await User.findById(senderId);
+      // console.log(recipient);
+      if (recipient.notificationToken) {
+        notificationService(
+          [recipientId], // Token of the recipient
+          "message", // Notification type
+          `You have a new message from ${sender.name}`, // Message content
+        );
+      }
 
       callback({ success: true, message });
     } catch (error) {
