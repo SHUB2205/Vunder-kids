@@ -10,6 +10,7 @@ const socketAuth=require("./middleware/socketAuth");
 const app = express();
 const PORT = process.env.PORT || 4000;
 const User=require('./models/User');
+const router = express.Router();
 const notificationService = require("./services/notification/notificationService");
 // Middleware
 app.use(cors());
@@ -43,12 +44,26 @@ mongoose
 // Routes
 app.use("/api/messages", messageRoutes);
 
+app.use(router);
+router.post('/api/send-notification', async (req, res) => {
+  console.log("Received notification request:", req.body);
+  const { senderId, recipientId } = req.body;
+  try {
+    await notificationService(senderId, recipientId);
+    res.status(200).json({ success: true, message: 'Notification sent successfully' });
+  } catch (error) {
+    console.error('Error in sending notification:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 404 Error Handler
 app.use((req, res, next) => {
   const error = new Error("Not Found");
   error.status = 404;
   next(error);
 });
+
 
 // General Error Handler
 app.use((error, req, res, next) => {
@@ -125,21 +140,11 @@ io.on("connection", (socket) => {
         { new: true }                                   // Return the updated document
       );
       
-      // console.log(updatedMessage);
-      
+      // console.log(updatedMessage); 
+      console.log(recipientId);
+
       io.to(recipientId).emit("new private message", updatedMessage);
-
-      const recipient = await User.findById(recipientId);
-      const sender=await User.findById(senderId);
-      // console.log(recipient);
-      if (recipient.notificationToken) {
-        notificationService(
-          [recipientId], // Token of the recipient
-          "message", // Notification type
-          `You have a new message from ${sender.name}`, // Message content
-        );
-      }
-
+      
       callback({ success: true, message });
     } catch (error) {
       console.error("Error sending private message:", error);

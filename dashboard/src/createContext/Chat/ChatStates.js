@@ -167,54 +167,76 @@ export default function ChatState(props) {
     activeChatRef.current = activeChat;
   }, [activeChat]);
 
-  const handleNewMessage = useCallback(
-    (message) => {
-      const currentActiveChat = activeChatRef.current; // Use ref for the latest value
-      if (!currentActiveChat) {
-        // console.log("No active chat selected.");
-        return;
-      }
-
-      // console.log("Active chat ID:", currentActiveChat.id);
-      // console.log("Message sender ID:", message.sender);
-      // console.log("Received message:", message);
-
-      if (
-        (currentActiveChat.type === "user" &&
-          currentActiveChat.id === message.sender) ||
-        (currentActiveChat.type === "group" &&
-          currentActiveChat.id === message.groupId)
-      ) {
-        // console.log("Message belongs to active chat.");
-        setMessages((prevMessages) => [...prevMessages, message]);
-
-        // console.log("Before update, chats:", chats);
-        setChats((prevChats) => {
-          // console.log("Previous chats state:", prevChats);
+    const handleNewMessage = useCallback(
+      (message) => {
+        console.log("User",user);
+        console.log("User Info:", userInfo?._id);
+        console.log("Message sender:", message.sender);
         
-          const updatedUsers = (prevChats.users || []).map((user) => {
-            if (user.id === currentActiveChat.id) {
-              return {
-                ...user,
-                lastMessage: message.content,
-                timestamp: new Date().toISOString(),
-              };
-            }
-            return user;
+        if (message.sender === userInfo?._id) {
+          console.log("Ignoring message sent by self");
+          return;
+        }
+        const currentActiveChat = activeChatRef.current; // Use ref for the latest value
+        if (!currentActiveChat) {
+          // console.log("No active chat selected.");
+          return;
+        }
+
+        console.log("Active chat ID:", currentActiveChat.id);
+        console.log("Message sender ID:", message.sender);
+        console.log("Received message:", message);
+
+        if (
+          (currentActiveChat.type === "user" &&
+            currentActiveChat.id === message.sender) ||
+          (currentActiveChat.type === "group" &&
+            currentActiveChat.id === message.groupId)
+        ) {
+          // console.log("Message belongs to active chat.");
+          setMessages((prevMessages) => [...prevMessages, message]);
+
+          // console.log("Before update, chats:", chats);
+          setChats((prevChats) => {
+            // console.log("Previous chats state:", prevChats);
+          
+            const updatedUsers = (prevChats.users || []).map((user) => {
+              if (user.id === currentActiveChat.id) {
+                return {
+                  ...user,
+                  lastMessage: message.content,
+                  timestamp: new Date().toISOString(),
+                };
+              }
+              return user;
+            });
+          
+            const updatedChats = { ...prevChats, users: updatedUsers };
+            console.log("Updated chats state:", updatedChats);
+            return updatedChats;
           });
-        
-          const updatedChats = { ...prevChats, users: updatedUsers };
-          console.log("Updated chats state:", updatedChats);
-          return updatedChats;
-        });
-        
-      } else {
-        incrementUnseenCount(message.sender);
-        // console.log("Message does not belong to the active chat.");
-      }
-    },
-    [] // No need for activeChat dependency
-  );
+          
+        } else {
+          incrementUnseenCount(message.sender);
+          // fetch(`${Chat_Url}/api/send-notification`, {
+          //   method: "POST",
+          //   headers: {
+          //     "Content-Type": "application/json",
+          //     token: sessionStorage.getItem('token'), // Authorization token
+          //   },
+          //   body: JSON.stringify({
+          //     recipientId :message.recipient, // Use the recipient of the message
+          //     senderId:message.sender, // Notification message
+          //   }),
+          // })
+          // .then(response => response.json())
+          // .then(data => console.log('Notification sent:', data))
+          // .catch(error => console.error('Error sending notification:', error));
+          console.log("Message does not belong to the active chat.");
+        }
+      },
+      [] // No need for activeChat dependency
+    );
 
   // fetching all the chat
   useEffect(() => {
@@ -308,7 +330,7 @@ export default function ChatState(props) {
       timestamp: new Date().toISOString(), // Proper timestamp
     };
 
-    // console.log("send message payload "+ JSON.stringify(message));
+    console.log("send message payload "+ JSON.stringify(message));
     setMessages((prevMessages) => [...prevMessages, message]);
     // Emit the message via socket
     socket.emit(eventName, payload, (response) => {
