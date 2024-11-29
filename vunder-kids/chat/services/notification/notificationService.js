@@ -1,28 +1,25 @@
-// notificationService.js
+
 const sendNotification= require('./fireBaseSendNotification');
-// Simulate a service worker that runs in the background
-// users should be the id not the complete user
+
 const User =require('../../models/User');
-const notificationService = (users, type, message) => {
-  // Use setImmediate to ensure non-blocking behavior
+const notificationService = (senderId, recipientId) => {
+
   setImmediate(async () => {
     try {
-      // const notifications = users.map(user => ({
-      //   user: user,
-      //   type: type,
-      //   message: message,
-      // }));
-      // await Notification.insertMany(notifications); // Batch insert notifications
+      const sender=await User.findById(senderId);
+
       const usersWithTokens = await User.find({ 
-        _id: { $in: users },
+        _id: { $in: recipientId },
         notificationToken: { $exists: true, $ne: null } // Ensure tokens exist and are not null
       }).select('notificationToken');
     
       const fcmTokens = [...new Set(usersWithTokens.map(user => user.notificationToken))];
+      console.log(fcmTokens);
       if (fcmTokens && fcmTokens.length > 0) {
         fcmTokens.forEach(async (fcmToken) => {
           try {
-            await sendNotification(fcmToken, "New Notification", message);
+            await sendNotification(fcmToken, "New Notification", `You have a new message from ${sender.name}`);
+            console.log("send");
           } catch (error) {
             console.error("Error sending FCM notification to token", fcmToken, error);
           }

@@ -5,6 +5,5 @@ import { onMessage } from "firebase/messaging"; // Import the onMessage function
 export const setupOnMessage = () => {
   onMessage(messaging, (payload) => {
     console.log(payload); // Log the incoming message payload
-    console.log("here"); // Log a message indicating the handler was triggered
   });
 };
