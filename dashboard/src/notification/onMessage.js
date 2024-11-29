@@ -4,6 +4,17 @@ import { onMessage } from "firebase/messaging"; // Import the onMessage function
 // Define the onMessage handler
 export const setupOnMessage = () => {
   onMessage(messaging, (payload) => {
-    console.log(payload); // Log the incoming message payload
+    console.log("Foreground message received:", payload); // Log the incoming message payload
+
+    const notificationTitle = payload.notification.title;
+    const notificationOptions = {
+      body: payload.notification.body,
+      icon: payload.notification.image,
+    };
+
+    // Check if Notification permission is granted and show the notification
+    if (Notification.permission === "granted") {
+      new Notification(notificationTitle, notificationOptions);
+    }
   });
 };

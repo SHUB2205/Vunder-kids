@@ -141,9 +141,9 @@ io.on("connection", (socket) => {
       );
       
       // console.log(updatedMessage); 
-      console.log(recipientId);
+      // console.log(recipientId);
 
-      io.to(recipientId).emit("new private message", updatedMessage);
+        io.to(recipientId).emit("new private message", updatedMessage);
       
       callback({ success: true, message });
     } catch (error) {

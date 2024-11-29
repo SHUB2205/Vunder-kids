@@ -33,6 +33,7 @@ export default function ChatState(props) {
       setLoading(false); // Set loading to false after the user info is available
     }
   }, [user]); // This effect depends on the user state
+  
   const fetchAllMembers = async () => {
     if (!userInfo) return [];
     const { followers, following } = userInfo;
@@ -92,7 +93,7 @@ export default function ChatState(props) {
     // console.log("changed");
     const type = "user";
     //  making the chat seen and updating the last seen time
-    try {
+    try {     
       const response = await axios.post(
         `${Chat_Url}/api/messages/markMessagesAsSeen/${user.id}`, // The endpoint
         { type }, // Request body
@@ -167,26 +168,60 @@ export default function ChatState(props) {
     activeChatRef.current = activeChat;
   }, [activeChat]);
 
+  const fetchUserInfo2 = async () => {
+    try {
+        const response = await axios.get(`${Backend_URL}/api/users/myInfo`, {
+            headers: { token },
+        });
+        if (JSON.stringify(response.data) !== JSON.stringify(user)) {
+            // Update user only if data has changed to avoid unnecessary renders
+            setUserInfo(response.data);
+        }
+        console.log("Fetched user info:", JSON.stringify(response.data));
+        return response.data; // Return the data so it can be used elsewhere
+    } catch (error) {
+        console.error("Error fetching user info:", error);
+        throw error; // Re-throw the error for handling
+    }
+};
+
     const handleNewMessage = useCallback(
-      (message) => {
-        console.log("User",user);
-        console.log("User Info:", userInfo?._id);
+      async(message) => {
+        const userInfo2 = await fetchUserInfo2();
+        console.log("User Info:", userInfo2?._id);
         console.log("Message sender:", message.sender);
         
-        if (message.sender === userInfo?._id) {
+        if (message.sender === userInfo2?._id) {
           console.log("Ignoring message sent by self");
           return;
         }
+        console.log("Before proceeding with notification logic"); 
         const currentActiveChat = activeChatRef.current; // Use ref for the latest value
         if (!currentActiveChat) {
-          // console.log("No active chat selected.");
+          incrementUnseenCount(message.sender);
+          console.log("Message does not belong to active chat.");
+          fetch(`${Chat_Url}/api/send-notification`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              token: sessionStorage.getItem('token'), // Authorization token
+            },
+            body: JSON.stringify({
+              recipientId :message.recipient, // Use the recipient of the message
+              senderId:message.sender, // Notification message
+            }),
+          })
+          .then(response => response.json())
+          .then(data => console.log('Notification sent:', data))
+          .catch(error => console.error('Error sending notification:', error));
+          console.log("Message does not belong to the active chat.");
           return;
         }
 
         console.log("Active chat ID:", currentActiveChat.id);
         console.log("Message sender ID:", message.sender);
         console.log("Received message:", message);
-
+        console.log(currentActiveChat);
         if (
           (currentActiveChat.type === "user" &&
             currentActiveChat.id === message.sender) ||
@@ -218,20 +253,21 @@ export default function ChatState(props) {
           
         } else {
           incrementUnseenCount(message.sender);
-          // fetch(`${Chat_Url}/api/send-notification`, {
-          //   method: "POST",
-          //   headers: {
-          //     "Content-Type": "application/json",
-          //     token: sessionStorage.getItem('token'), // Authorization token
-          //   },
-          //   body: JSON.stringify({
-          //     recipientId :message.recipient, // Use the recipient of the message
-          //     senderId:message.sender, // Notification message
-          //   }),
-          // })
-          // .then(response => response.json())
-          // .then(data => console.log('Notification sent:', data))
-          // .catch(error => console.error('Error sending notification:', error));
+          console.log("Message does not belong to active chat.");
+          fetch(`${Chat_Url}/api/send-notification`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              token: sessionStorage.getItem('token'), // Authorization token
+            },
+            body: JSON.stringify({
+              recipientId :message.recipient, // Use the recipient of the message
+              senderId:message.sender, // Notification message
+            }),
+          })
+          .then(response => response.json())
+          .then(data => console.log('Notification sent:', data))
+          .catch(error => console.error('Error sending notification:', error));
           console.log("Message does not belong to the active chat.");
         }
       },

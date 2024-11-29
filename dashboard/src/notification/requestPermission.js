@@ -6,7 +6,7 @@ export const requestPermission = async (userId) => {
   const permission = await Notification.requestPermission();
 
   const updateTokenOnServer = async (token) => {
-    console.log("here");
+    // console.log("here");
     const response = await fetch(`${Backend_URL}/api/notification-token`, {
       method: "POST",
       headers: {
@@ -16,6 +16,7 @@ export const requestPermission = async (userId) => {
       body: JSON.stringify({token}),
     });
     // console.log(response);
+    // console.log("token saved"+ response);
     if (!response.ok) {
       console.error("Failed to update token on the server");
     }
