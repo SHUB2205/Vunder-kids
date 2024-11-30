@@ -17,6 +17,7 @@ const calendarRoutes = require ("./routes/calendarRoute")
 const openaiRoute=require("./routes/openaiRoute");
 const reelRoute = require("./routes/reelRoutes");
 const sportRoute = require("./routes/sportRoute");
+const notificationRoute=require("./routes/notificationRoute");
 //for google calender
 const { google } = require('googleapis');
 const dayjs = require('dayjs')
@@ -71,6 +72,7 @@ app.use("/api/ai", openaiRoute);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/reels',reelRoute);
 app.use('/api/sport',sportRoute);
+app.use('/api/notification',notificationRoute)
 // For Google Calendar
 // Google OAuth2 credentials
 const CLIENT_ID = 'ID';
