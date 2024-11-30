@@ -57,6 +57,10 @@
   white-space: nowrap;
 }
 
+.locationFilter input {
+  outline: none;
+}
+
 .locationIcon {
   width: 16px;
   height: 16px;
@@ -76,6 +80,7 @@
   padding-bottom: 5px;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  align-items: center;
 }
 
 .sportTypeFilter::-webkit-scrollbar {

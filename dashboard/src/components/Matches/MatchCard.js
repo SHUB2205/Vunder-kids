@@ -1,89 +1,85 @@
 import React from 'react';
 import styles from './MatchCard.module.css';
 
-const MatchCard = ({ isSimplified = false }) => {
-  const matchInfo = {
-    type: '1 on 1',
-    location: 'Jacksonville,',
-    venue: 'TIAA Bank Field',
-    player1: { 
-      name: 'Tyler', 
-      image: 'https://cdn.builder.io/api/v1/image/assets/TEMP/0ad91c78db796de1249db6649a8c84b9694b72c0270fc0ede8d8b96cefc04002?placeholderIfAbsent=true&apiKey=b883bcf213724f38a6f53982628f709c',
-      prediction: 0
-    },
-    player2: { 
-      name: 'Ryan', 
-      image: 'https://cdn.builder.io/api/v1/image/assets/TEMP/0ad91c78db796de1249db6649a8c84b9694b72c0270fc0ede8d8b96cefc04002?placeholderIfAbsent=true&apiKey=b883bcf213724f38a6f53982628f709c',
-      prediction: 0
-    },
-    sport: 'Football',
-    date: 'Mon, Sep 7, 9:30 AM',
-    votes: '67 votes | 64 h 23 m left'
+const MatchCard = ({matchData}) => {
+
+  const formatDate = (isoDate) => {
+    const options = {
+      weekday: 'short', // Mon, Tue, etc.
+      month: 'short',   // Sep, Oct, etc.
+      day: 'numeric',   // 7, 29, etc.
+      hour: 'numeric',  // 9, 10, etc.
+      minute: 'numeric', // 30, 59, etc.
+      hour12: true,     // AM/PM format
+    };
+  
+    return new Intl.DateTimeFormat('en-US', options).format(new Date(isoDate));
   };
+
+  const image_url_default = 'https://cdn.builder.io/api/v1/image/assets/TEMP/0ad91c78db796de1249db6649a8c84b9694b72c0270fc0ede8d8b96cefc04002?placeholderIfAbsent=true&apiKey=b883bcf213724f38a6f53982628f709c';
 
   return (
     <div className={styles.matchCard}>
       <div className={styles.matchHeader}>
         <div className={styles.matchInfo}>
-          <span>{matchInfo.type}</span>
-          <span>{matchInfo.location}</span>
-          <span>{matchInfo.venue}</span>
+          <span>{matchData.isTeamMatch ? "Team" : "1 on 1"}</span>
+          <span>Location: {matchData.location}</span>
+          {/* <span>{matchInfo.venue}</span> */}
         </div>
-        {!isSimplified && (
-          <div className={styles.predictLabel}>
-            Predict
-          </div>
-        )}
+        
+      <div className={styles.predictLabel}>
+        Predict
       </div>
-      {!isSimplified && (
-        <>
+
+      </div>
           <div className={styles.playerSection}>
-            <img src={matchInfo.player1.image} alt={matchInfo.player1.name} className={styles.playerImage} />
-            <span>{matchInfo.player1.name}</span>
+          {matchData.isTeamMatch ?  (
+              <>
+                <img src={image_url_default} alt={matchData.teams[0].team.name} className={styles.playerImage} />
+                <span>{matchData.teams[0].team.name}</span>
+              </>) :
+            (<>
+              <img src={matchData.players[0].avatar} alt={matchData.players[0].name} className={styles.playerImage} />
+              <span>{matchData.players[0].name}</span>
+            </>)}
             <div className={styles.predictionBar}>
               <div className={styles.checkbox} />
               <div className={styles.progressBarContainer}>
                 <div 
                   className={styles.progressBar} 
-                  style={{ width: `${matchInfo.player1.prediction}%` }}
+                  style={{ width: `${0}%` }}
                 />
               </div>
-              <span className={styles.predictionText}>{matchInfo.player1.prediction}%</span>
+              <span className={styles.predictionText}>{0}%</span>
             </div>
           </div>
           <div className={styles.playerSection}>
-            <img src={matchInfo.player2.image} alt={matchInfo.player2.name} className={styles.playerImage} />
-            <span>{matchInfo.player2.name}</span>
+            {matchData.isTeamMatch ?  (
+              <>
+                <img src={image_url_default} alt={matchData.teams[1].team.name} className={styles.playerImage} />
+                <span>{matchData.teams[1].team.name}</span>
+              </>) :
+            (<>
+              <img src={matchData.players[1].avatar} alt={matchData.players[1].name} className={styles.playerImage} />
+              <span>{matchData.players[1].name}</span>
+            </>)}
             <div className={styles.predictionBar}>
               <div className={styles.checkbox} />
               <div className={styles.progressBarContainer}>
                 <div 
                   className={styles.progressBar} 
-                  style={{ width: `${matchInfo.player2.prediction}%` }}
+                  style={{ width: `${0}%` }}
                 />
               </div>
-              <span className={styles.predictionText}>{matchInfo.player2.prediction}%</span>
+              <span className={styles.predictionText}>{0}%</span>
             </div>
           </div>
-          <div className={styles.voteInfo}>{matchInfo.votes}</div>
-        </>
-      )}
-      {isSimplified && (
-        <>
-          <div className={styles.playerSimple}>
-            <img src={matchInfo.player1.image} alt={matchInfo.player1.name} className={styles.playerImage} />
-            <span>{matchInfo.player1.name}</span>
-          </div>
-          <div className={styles.playerSimple}>
-            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/1133a3250d3011fc0b6d38c5871c465cdaf6f2f3b44e12b7edb26dce2817b24b?placeholderIfAbsent=true&apiKey=b883bcf213724f38a6f53982628f709c" alt="Unknown player" className={styles.playerImage} />
-            <span>?</span>
-          </div>
-        </>
-      )}
+          <div className={styles.voteInfo}>{'67 votes | 64 h 23 m left'}</div>
+      
       <div className={styles.matchFooter}>
         <div className={styles.matchDetails}>
-          <span className={styles.sportType}>{matchInfo.sport},</span>
-          <span>{matchInfo.date}</span>
+        <span className={styles.sportType}>{matchData.sport.name.charAt(0).toUpperCase() + matchData.sport.name.slice(1)},</span>
+          <span>{<span>{formatDate(matchData.date)}</span>}</span>
         </div>
       </div>
     </div>

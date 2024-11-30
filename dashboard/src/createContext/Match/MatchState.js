@@ -7,6 +7,11 @@ const Backend_URL = 'http://localhost:5000';
 const MatchState = ({ children }) => {
     const [sports, setSports] = useState([]);
     const [players , setPlayers] = useState([]);
+    const [matches, setMatches] = useState([]);
+    const [fullMatchData, setFullMatchData] = useState({
+        myMatches: [],
+        friendsMatches: []
+      });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const {token,user} = useContext(IsAuth);
@@ -67,12 +72,42 @@ const MatchState = ({ children }) => {
         }
       };
 
+    const fetchMatches = async () => {
+    try {
+        const response = await axios.get('http://localhost:5000/api/matches/upcoming-matches', {
+        headers: { token }
+        });
+        
+        setFullMatchData({
+        myMatches: response.data.myMatches,
+        friendsMatches: response.data.friendsMatches
+        });
+    } catch (err) {
+        console.error('Error fetching matches:', err);
+        setFullMatchData({ myMatches: [], friendsMatches: [] });
+    }
+    };
+
+    const fetchScheduledMatches = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/matches/sch-matches');
+            setMatches(response.data);
+            setLoading(false);
+        } catch (err) {
+            setError('Failed to fetch scheduled matches');
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (sports.length ==0)
             fetchSports();
         if (players.length == 0)
             fetchPlayers();
-    }, []);
+
+        fetchMatches();
+        fetchScheduledMatches();
+    }, [token]);
 
     return (
         <MatchContext.Provider value={{
@@ -80,7 +115,9 @@ const MatchState = ({ children }) => {
             players,
             loading,
             createMatch,
-            error
+            error,
+            fullMatchData,
+            matches
         }}>
             {children}
         </MatchContext.Provider>
