@@ -210,3 +210,29 @@
   position: relative;
   z-index: 10;
 }
+
+.paginationControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.paginationButton {
+  background-color: var(--hover-icon-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--button-radius);
+  cursor: pointer;
+  font: var(--font-secondary);
+}
+
+.paginationButton:disabled {
+  background-color: var(--border-color);
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font: var(--font-secondary);
+}

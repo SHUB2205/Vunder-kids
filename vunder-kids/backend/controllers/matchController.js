@@ -88,11 +88,13 @@ exports.createMatch = async (req, res) => {
       { _id: { $in: players } },
       { $addToSet: { matchIds: savedMatch._id } }
     );
+    console.log(savedMatch.agreementTime);
 
     // Schedule agreement deadline job (similar to previous implementation)
-    if (matchdata.agreementTime) {
+    if (savedMatch.agreementTime) {
       const agreementTimeEpoch = parseInt(matchdata.agreementTime, 10);
       const agreementDate = new Date(agreementTimeEpoch * 1000);
+      console.log(agreementDate);
 
       schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
         const currentMatch = await Match.findById(savedMatch._id);
@@ -415,5 +417,84 @@ exports.updateAgreement = async (req, res) => {
     res.status(200).json(match);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.scheduledMatches = async (req, res) => {
+  try {
+    const scheduledMatches = await Match.find({ status: 'scheduled' })
+      .populate('sport' , '_id name')     // If sport is a reference
+      .populate('teams.team') // Populate team details
+      .populate('players' , '_id avatar userName name')    // Populate player details
+      .sort({ date: 1 });     // Sort by earliest date first
+
+    res.json(scheduledMatches);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching scheduled matches', error: error.message });
+  }
+};
+
+exports.getUpcomingMatches = async (req, res) => {
+  try {
+    // Ensure user is authenticated
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    // Get today's date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set the time to the start of the day
+    // Query for my matches
+    const myMatchesQuery = {
+      status: { $in: ['scheduled', 'in-progress'] },
+      date: { $gte: today }, // Ensure matches are for today or later
+      $or: [
+        { players: userId },
+        { 'teams.team': { $in: user.teamIds } }
+      ]
+    };
+
+    // Query for friends matches
+    const friendIds = user.following.map(friend => friend._id);
+
+    const friendsMatchesQuery = {
+      status: { $in: ['scheduled'] },
+      date: { $gte: today },
+      $or: [
+        { players: { $in: friendIds } },
+        { 'teams.team': { $in: user.following.flatMap(f => f.teamIds) } }
+      ]
+    };
+
+    // Fetch matches for both types
+    const myMatches = await Match.find(myMatchesQuery)
+      .populate('sport')
+      .populate({
+        path: 'teams.team',
+        select: 'name'
+      })
+      .populate('players', '_id name userName avatar')
+      .sort({ date: 1 });
+
+    const friendsMatches = await Match.find(friendsMatchesQuery)
+      .populate('sport')
+      .populate({
+        path: 'teams.team',
+        select: 'name'
+      })
+      .populate('players', '_id name userName avatar')
+      .sort({ date: 1 });
+
+    res.json({
+      myMatches,
+      friendsMatches
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching matches', 
+      error: error.message 
+    });
   }
 };
