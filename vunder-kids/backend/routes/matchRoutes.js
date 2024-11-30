@@ -9,6 +9,9 @@ router.post('/create', isAuth, matchController.createMatch);
 // Get all matches
 router.get('/all/:userid', isAuth, matchController.getAllMatches);
 
+router.get('/upcoming-matches',isAuth, matchController.getUpcomingMatches);
+
+router.get('/sch-matches',matchController.scheduledMatches);
 // Get a match by ID
 router.get('/:id', isAuth, matchController.getMatchById);
 
@@ -17,5 +20,6 @@ router.put('/:id', isAuth, matchController.updateMatch);
 
 // Route for a team to agree to a match
 router.post('/agreement', isAuth ,matchController.updateAgreement);
+
 
 module.exports = router;
