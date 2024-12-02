@@ -69,6 +69,7 @@ exports.getPosts = async (req,res,next) => {
     res.status(200).json({posts : posts});
   }
   catch (err){
+    console.log(err);
     next(err.statusCode ? err : { ...err, statusCode: 500 });
   }
 }

@@ -12,7 +12,9 @@ const People = ({ users = [] }) => {
     setPeople(
       users.map((userItem) => ({
         ...userItem,
-        isFollowed: user.following.some(followed => followed._id === userItem._id),
+        isFollowed: user.following
+          ?.filter(followed => followed !== null && followed !== undefined) // Filter out null or undefined
+          .some(followed => followed._id === userItem._id),
       }))
     );
   }, [users, user]);

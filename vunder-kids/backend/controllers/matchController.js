@@ -6,26 +6,7 @@ const CalendarEvent = require("../models/calendarEvent");
 const notificationService = require("../services/notification/notificationService.js");
 const User = require("../models/User.js");
 const {updateScore}=require("./progressController.js")
-//when creating a match
-// {
-//   "date": "2024-08-10T14:00:00Z",
-//   "location": "66b4a9ea7db1567036cf1b0a",
-//   "sport": "66b4aa437db1567036cf1b0f",
-//   "teams": [
-//       {
-//           "team": "66b5e9259485cf1dc0a47038",
-//           "score": 0
-//       },
-//       {
-//           "team": "66b4ad4a7db1567036cf1b19",
-//           "score": 0
-//       }
-//   ],
-//   "matchmakingTeam": "66b5e9259485cf1dc0a47038",
-//   "agreementTime" : 1723266230     (this is epoch time : https://www.epochconverter.com/)
-// }
 
-//create match
 exports.createMatch = async (req, res) => {
   try {
     const { team1, team2, matchdata } = req.body;
@@ -36,10 +17,21 @@ exports.createMatch = async (req, res) => {
     let teams = [];
     let players = [];
     let team1Obj = {};
-    let team2Obj = {}
+    let team2Obj = {};
+
+    // Get the creator's ID (assuming it's in the request body or determined in some other way)
+    const creatorUserId = req.user.id;
+    const creatorUser = await User.findById(creatorUserId);
+
+    if (!creatorUser) {
+      return res.status(404).json({ error: "Creator not found" });
+    }
+
+    // You can also retrieve the creator's image here (if available)
+    const creatorUserImage = creatorUser.avatar; // Example: assuming the user has an image field
 
     if (isTeamMatch) {
-      // Team match logic
+      // Fetch team data
       team1Obj = await Team.findById(team1);
       team2Obj = await Team.findById(team2);
 
@@ -54,10 +46,48 @@ exports.createMatch = async (req, res) => {
 
       // Combine participants from both teams
       players = [...team1Obj.participants, ...team2Obj.participants];
+
+      // Fetch team leader data including their image
+      const team1Leader = await User.findById(team1Obj.admins[0]);
+      const team2Leader = await User.findById(team2Obj.admins[0]);
+
+      if (!team1Leader || !team2Leader) {
+        return res.status(404).json({ error: "Team leaders not found" });
+      }
+
+      // Notify team 1 participants (excluding the creator)
+      const team1Participants = team1Obj.participants.filter(participant => participant.toString() !== creatorUserId);
+      notificationService(
+        team1Participants,
+        'matchmaking',
+        `You have been selected as a player for a match. Your team leader is ${team1Leader.name}.`,
+        team1Leader._id,
+        team1Leader.avatar // Pass the team leader's image
+      );
+      console.log("Team 1 particpants", team1Participants);
+      // Notify team 2 participants (excluding the creator)
+      const team2Participants = team2Obj.participants.filter(participant => participant.toString() !== creatorUserId);
+      notificationService(
+        team2Participants,
+        'matchmaking',
+        `You have been selected as a player for a match. Your team leader is ${team2Leader.name}.`,
+        team2Leader._id,
+        team2Leader.avatar // Pass the team leader's image
+      );
+      console.log("team 2 participants",team2Participants);
     } else {
-      // 1on1 match logic
-      // Assuming players are passed directly in the request
+      // Handle individual match logic
       players = req.body.players;
+
+      // Notify players (excluding the creator)
+      const otherPlayers = players.filter(player => player.toString() !== creatorUserId);
+      notificationService(
+        otherPlayers,
+        'matchmaking',
+        `You have been chosen for a new individual match. Please check the match details.`,
+        creatorUserId, // Pass the creator as the person who initiated the match
+        creatorUserImage // Pass the creator's image
+      );
     }
 
     // Prepare match data
@@ -66,51 +96,44 @@ exports.createMatch = async (req, res) => {
       isTeamMatch,
       teams: isTeamMatch ? teams : [],
       players: players,
-      status: "in-progress"
+      status: "in-progress",
+      creator: creatorUserId, // Adding creator to the match data
+      admins: isTeamMatch 
+      ? [team1Obj.admins[0], team2Obj.admins[0]] // For team matches
+      : players // For 1-on-1, creator is admin along with the player
+    
     };
 
     const newMatch = new Match(newMatchData);
     const savedMatch = await newMatch.save();
 
-    // Notify participants
-    const notificationRecipients = isTeamMatch 
-      ? [...team1Obj.admins, ...team2Obj.admins] 
-      : players;
-
-    notificationService(
-      notificationRecipients,
-      'matchmaking',
-      `You have a new ${isTeamMatch ? 'team' : 'individual'} match request. Please review the details.`
-    );
-
-    // Update participants' match history
     await User.updateMany(
       { _id: { $in: players } },
       { $addToSet: { matchIds: savedMatch._id } }
     );
-    console.log(savedMatch.agreementTime);
 
-    // Schedule agreement deadline job (similar to previous implementation)
-    if (savedMatch.agreementTime) {
-      const agreementTimeEpoch = parseInt(matchdata.agreementTime, 10);
-      const agreementDate = new Date(agreementTimeEpoch * 1000);
-      console.log(agreementDate);
+    // // Schedule agreement deadline job
+    // if (savedMatch.agreementTime) {
+    //   const agreementTimeEpoch = parseInt(matchdata.agreementTime, 10);
+    //   const agreementDate = new Date(agreementTimeEpoch * 1000);
 
-      schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
-        const currentMatch = await Match.findById(savedMatch._id);
-        if (currentMatch && currentMatch.status !== 'scheduled' && !currentMatch.agreement) {
-          currentMatch.status = 'cancelled';
-          await currentMatch.save();
+    //   schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
+    //     const currentMatch = await Match.findById(savedMatch._id);
+    //     if (currentMatch && currentMatch.status !== 'scheduled' && !currentMatch.agreement) {
+    //       currentMatch.status = 'cancelled';
+    //       await currentMatch.save();
 
-          // Notify participants about cancellation
-          notificationService(
-            players,
-            'match-cancelled',
-            `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`
-          );
-        }
-      });
-    }
+    //       // Notify players about cancellation (excluding the creator)
+    //       notificationService(
+    //         players.filter(player => player.toString() !== creatorUserId),
+    //         'match-cancelled',
+    //         `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`,
+    //         null,
+    //         null
+    //       );
+    //     }
+    //   });
+    // }
 
     res.status(201).json(savedMatch);
   } catch (error) {
@@ -118,6 +141,10 @@ exports.createMatch = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+
+
+
 
 
 // Get all matches

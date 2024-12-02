@@ -3,9 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 // const http = require('http');
-
-
-
 const matchRoutes = require('./routes/matchRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const postRoutes = require('./routes/postRoute');
@@ -28,9 +25,7 @@ const { isAuth } = require('./middleware/is-Auth');
 const app = express();
 const PORT = process.env.PORT || 5000;
 // For fireBase Admin
-
 const admin = require('firebase-admin');
-
 const serviceAccount = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 console.log("asd",serviceAccount)
 
@@ -39,6 +34,7 @@ admin.initializeApp({
   projectId: 'vunder-kids-bb948',
 });
 // end her firebase
+
 app.use(cors());
 app.use(express.json());
 
@@ -73,7 +69,7 @@ app.use("/api/ai", openaiRoute);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/reels',reelRoute);
 app.use('/api/sport',sportRoute);
-app.use('/api/notification',notificationRoute)
+app.use('/api/notifications',notificationRoute)
 // For Google Calendar
 // Google OAuth2 credentials
 const CLIENT_ID = 'ID';
