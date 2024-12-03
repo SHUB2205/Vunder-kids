@@ -9,6 +9,7 @@ import { MatchContext } from "../../../../createContext/Match/MatchContext";
 const ChallengeModal = (props) => {
   const {createMatch} = useContext(MatchContext);
   const [caption, setCaption] = useState("");
+  const [matchName, setMatchName] = useState(""); // New state for match name
   const [matchType, setMatchType] = useState("1on1");
   const [sport, setSport] = useState("");
   const [opponent, setOpponent] = useState("");
@@ -41,6 +42,14 @@ const ChallengeModal = (props) => {
   ];
 
   const formFields1on1 = [
+    {
+      label: "Match Name *",
+      icon: "🏆",
+      inputType: "text",
+      placeholder: "Championship Final",
+      value: matchName,
+      onChange: (e) => setMatchName(e.target.value),
+    },
     {
       label: "Choose sport *",
       icon: "🏀",
@@ -86,6 +95,14 @@ const ChallengeModal = (props) => {
   ];
 
   const leftColumnFields = [
+    {
+      label: "Match Name *",
+      icon: "🏆",
+      inputType: "text",
+      placeholder: "Championship Final",
+      value: matchName,
+      onChange: (e) => setMatchName(e.target.value),
+    },
     {
       label: "Choose sport *",
       icon: "🏀",
@@ -163,41 +180,6 @@ const ChallengeModal = (props) => {
     }, 100);
   };
 
-  const handleSubmit = async() => {  
-    try{
-      const my_players = players.map(player => player._id);
-      const opponent_players = opponent.map(player => player._id);
-
-      const dateObj = new Date(
-        selectedDate.year,
-        selectedDate.month - 1,
-        selectedDate.day,
-        selectedDate.hours,
-        selectedDate.minutes
-      );
-        
-      // Convert to ISO format and epoch time
-      const date = dateObj.toISOString();
-
-      const matchdata = {
-        date,
-        agreementTime : Math.floor(dateObj.getTime() / 1000),
-        location:venue,
-        sport: sport._id
-      }
-      const teamData = {
-        team1 :{ name : teamName,participants: my_players},
-        team2 : {name : teamName,participants: opponent_players}
-      };
-
-      createMatch(teamData,matchdata);
-    }
-    catch(e){
-      console.log(e);
-    }
-
-  }
-
   const handleSubmit2 = async() => {  
     try {      
       const dateObj = new Date(
@@ -212,6 +194,7 @@ const ChallengeModal = (props) => {
       const date = dateObj.toISOString();
 
       const matchdata = {
+        name: matchName, // Include match name
         date,
         agreementTime : Math.floor(dateObj.getTime() / 1000),
         location: venue,

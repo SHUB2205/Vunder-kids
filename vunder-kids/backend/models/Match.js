@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const MatchSchema = new mongoose.Schema({
+  name: {
+    type: String, // Added match name field
+    required: true,
+  },
   date: {
     type: Date,
     required: true,
@@ -77,6 +81,11 @@ const MatchSchema = new mongoose.Schema({
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User", // Reference to the User model for the creator of the match
+  },
+  createdAt: {
+    // Timestamp when the notification was created
+    type: Date,
+    default: Date.now,
   },
 });
 

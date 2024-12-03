@@ -13,7 +13,6 @@ exports.createMatch = async (req, res) => {
 
     // Determine if it's a team match
     const isTeamMatch = !!team1 && !!team2;
-
     let teams = [];
     let players = [];
     let team1Obj = {};
@@ -31,51 +30,91 @@ exports.createMatch = async (req, res) => {
     const creatorUserImage = creatorUser.avatar; // Example: assuming the user has an image field
 
     if (isTeamMatch) {
-      // Fetch team data
       team1Obj = await Team.findById(team1);
       team2Obj = await Team.findById(team2);
-
+    
       if (!team1Obj || !team2Obj) {
         return res.status(404).json({ error: "Teams not found" });
       }
-
+    
       teams = [
         { team: team1Obj._id },
         { team: team2Obj._id }
       ];
-
+    
       // Combine participants from both teams
       players = [...team1Obj.participants, ...team2Obj.participants];
-
+    
       // Fetch team leader data including their image
       const team1Leader = await User.findById(team1Obj.admins[0]);
       const team2Leader = await User.findById(team2Obj.admins[0]);
-
+    
       if (!team1Leader || !team2Leader) {
         return res.status(404).json({ error: "Team leaders not found" });
       }
-
-      // Notify team 1 participants (excluding the creator)
-      const team1Participants = team1Obj.participants.filter(participant => participant.toString() !== creatorUserId);
-      notificationService(
-        team1Participants,
-        'matchmaking',
-        `You have been selected as a player for a match. Your team leader is ${team1Leader.name}.`,
-        team1Leader._id,
-        team1Leader.avatar // Pass the team leader's image
+    
+      // Separate participants excluding the creator
+      const team1RemainingPlayers = team1Obj.participants.filter(
+        (participant) =>
+          participant.toString() !== creatorUserId &&
+          participant.toString() !== team1Leader._id.toString()
       );
-      console.log("Team 1 particpants", team1Participants);
-      // Notify team 2 participants (excluding the creator)
-      const team2Participants = team2Obj.participants.filter(participant => participant.toString() !== creatorUserId);
-      notificationService(
-        team2Participants,
-        'matchmaking',
-        `You have been selected as a player for a match. Your team leader is ${team2Leader.name}.`,
-        team2Leader._id,
-        team2Leader.avatar // Pass the team leader's image
+    
+      const team2RemainingPlayers = team2Obj.participants.filter(
+        (participant) =>
+          participant.toString() !== creatorUserId &&
+          participant.toString() !== team2Leader._id.toString()
       );
-      console.log("team 2 participants",team2Participants);
-    } else {
+    
+      // Notify Team 1 Leader
+      if (team1Leader._id.toString() !== creatorUserId) {
+        notificationService(
+          [team1Leader._id],
+          "matchmaking",
+          `You have been chosen as the team leader for the match: ${matchdata.name}. `,
+          team2Leader._id,
+          team2Leader.avatar  // Pass creator image as initiator
+        );
+      }
+    
+      // Notify Team 2 Leader
+      if (team2Leader._id.toString() !== creatorUserId) {
+        notificationService(
+          [team2Leader._id],
+          "matchmaking",
+          `You have been chosen as the team leader for the match: ${matchdata.name}.`,
+          team1Leader._id,
+          team1Leader.avatar // Pass creator image as initiator
+        );
+      }
+    
+      // Notify Team 1 Players (excluding the creator and leader)
+      if (team1RemainingPlayers.length > 0) {
+        notificationService(
+          team1RemainingPlayers,
+          "matchmaking",
+          `You have been selected as a player for the match: ${matchdata.name}. Your team leader is ${team1Leader.name}.`,
+          team1Leader._id,
+          team1Leader.avatar // Pass team leader's image
+        );
+      }
+    
+      // Notify Team 2 Players (excluding the creator and leader)
+      if (team2RemainingPlayers.length > 0) {
+        notificationService(
+          team2RemainingPlayers,
+          "matchmaking",
+          `You have been selected as a player for the match: ${matchdata.name}. Your team leader is ${team2Leader.name}.`,
+          team2Leader._id,
+          team2Leader.avatar // Pass team leader's image
+        );
+      }
+    
+      console.log("Team 1 remaining players:", team1RemainingPlayers);
+      console.log("Team 2 remaining players:", team2RemainingPlayers);
+    }
+    
+    else {
       // Handle individual match logic
       players = req.body.players;
 
@@ -84,7 +123,7 @@ exports.createMatch = async (req, res) => {
       notificationService(
         otherPlayers,
         'matchmaking',
-        `You have been chosen for a new individual match. Please check the match details.`,
+        `You have been chosen for a new individual match : ${matchdata.name} . Please check the match details.`,
         creatorUserId, // Pass the creator as the person who initiated the match
         creatorUserImage // Pass the creator's image
       );
@@ -112,28 +151,28 @@ exports.createMatch = async (req, res) => {
       { $addToSet: { matchIds: savedMatch._id } }
     );
 
-    // // Schedule agreement deadline job
-    // if (savedMatch.agreementTime) {
-    //   const agreementTimeEpoch = parseInt(matchdata.agreementTime, 10);
-    //   const agreementDate = new Date(agreementTimeEpoch * 1000);
+    // Schedule agreement deadline job
+    if (savedMatch.agreementTime) {
+      const agreementTimeEpoch = parseInt(matchdata.agreementTime, 10);
+      const agreementDate = new Date(agreementTimeEpoch * 1000);
 
-    //   schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
-    //     const currentMatch = await Match.findById(savedMatch._id);
-    //     if (currentMatch && currentMatch.status !== 'scheduled' && !currentMatch.agreement) {
-    //       currentMatch.status = 'cancelled';
-    //       await currentMatch.save();
+      schedule.scheduleJob(savedMatch._id.toString(), agreementDate, async () => {
+        const currentMatch = await Match.findById(savedMatch._id);
+        if (currentMatch && currentMatch.status !== 'scheduled' && !currentMatch.agreement) {
+          currentMatch.status = 'cancelled';
+          await currentMatch.save();
 
-    //       // Notify players about cancellation (excluding the creator)
-    //       notificationService(
-    //         players.filter(player => player.toString() !== creatorUserId),
-    //         'match-cancelled',
-    //         `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`,
-    //         null,
-    //         null
-    //       );
-    //     }
-    //   });
-    // }
+          // Notify players about cancellation (excluding the creator)
+          notificationService(
+            players.filter(player => player.toString() !== creatorUserId),
+            'match-cancelled',
+            `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`,
+            null,
+            null
+          );
+        }
+      });
+    }
 
     res.status(201).json(savedMatch);
   } catch (error) {
@@ -141,10 +180,6 @@ exports.createMatch = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
-
-
-
 
 
 // Get all matches
@@ -208,7 +243,7 @@ exports.getMatchById = async (req, res) => {
 //   ]
 // }
 
-// Update a match
+// Update a match (score)
 exports.updateMatch = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id);

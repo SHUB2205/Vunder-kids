@@ -71,6 +71,36 @@ const Message = () => {
     const countObj = unseenCounts.find((item) => item.chatId === chatId);
     return countObj ? countObj.unseenCount : 0;
   };
+
+
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 991);
+
+  // Monitor window resize for mobile view
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 991);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Control navigation menu visibility
+  useEffect(() => {
+    const navMenu = document.querySelector('.navigationMenu');
+    if (navMenu) {
+      if (isMobile && activeChat) {
+        navMenu.style.display = 'none';
+      } else {
+        navMenu.style.display = 'block';
+      }
+    }
+  }, [isMobile, activeChat]);
+
+  
   return (
     <div className="message-container">
       {error && <div className="error-banner">{error}</div>}

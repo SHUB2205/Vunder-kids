@@ -32,11 +32,11 @@ export default function IsAuthStates(props) {
         if (token) {
             fetchUserInfo();
         }
-    }, [token, fetchUserInfo]);
+    }, [token]);
 
     // Watch for user changes and trigger actions if needed
-    useEffect(() => {
-    }, [user]);
+    // useEffect(() => {
+    // }, [user]);
 
     // Store token in sessionStorage when it's updated
     const setAuthToken = (newToken) => {
