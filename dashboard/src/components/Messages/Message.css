@@ -101,6 +101,7 @@
   border: 1px solid var(--border-color);
   overflow-y: hidden; /* Prevent overflow here, scrolling is inside the chat container */
   border-radius: var(--border-raduis);
+  z-index: 1000000;
 }
 
 .message-chat-container {

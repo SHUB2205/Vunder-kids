@@ -55,6 +55,7 @@ export default function Login() {
           toast.success("Please Check Your Email for Verification");
         }
         if(response.data.isVerified){
+          console.log(response.data.userName);
           if(!response.data.userName){
             navigate("/register/about");
           }
@@ -98,6 +99,7 @@ export default function Login() {
             if (data.userHasUsername) {
               console.log(data.userHasUsername)
                 navigate("/"); // Redirect to home page
+                window.location.reload();
             } else {
                 navigate("/register/about"); // Redirect to register/about if username doesn't exist
             }

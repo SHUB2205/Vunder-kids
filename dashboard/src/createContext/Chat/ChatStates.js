@@ -177,7 +177,7 @@ export default function ChatState(props) {
             // Update user only if data has changed to avoid unnecessary renders
             setUserInfo(response.data);
         }
-        console.log("Fetched user info:", JSON.stringify(response.data));
+        // console.log("Fetched user info:", JSON.stringify(response.data));
         return response.data; // Return the data so it can be used elsewhere
     } catch (error) {
         console.error("Error fetching user info:", error);
@@ -188,18 +188,18 @@ export default function ChatState(props) {
     const handleNewMessage = useCallback(
       async(message) => {
         const userInfo2 = await fetchUserInfo2();
-        console.log("User Info:", userInfo2?._id);
-        console.log("Message sender:", message.sender);
+        // console.log("User Info:", userInfo2?._id);
+        // console.log("Message sender:", message.sender);
         
         if (message.sender === userInfo2?._id) {
-          console.log("Ignoring message sent by self");
+          // console.log("Ignoring message sent by self");
           return;
         }
-        console.log("Before proceeding with notification logic"); 
+        // console.log("Before proceeding with notification logic"); 
         const currentActiveChat = activeChatRef.current; // Use ref for the latest value
         if (!currentActiveChat) {
           incrementUnseenCount(message.sender);
-          console.log("Message does not belong to active chat.");
+          // console.log("Message does not belong to active chat.");
           fetch(`${Chat_Url}/api/send-notification`, {
             method: "POST",
             headers: {
@@ -214,14 +214,14 @@ export default function ChatState(props) {
           .then(response => response.json())
           .then(data => console.log('Notification sent:', data))
           .catch(error => console.error('Error sending notification:', error));
-          console.log("Message does not belong to the active chat.");
+          // console.log("Message does not belong to the active chat.");
           return;
         }
 
-        console.log("Active chat ID:", currentActiveChat.id);
-        console.log("Message sender ID:", message.sender);
-        console.log("Received message:", message);
-        console.log(currentActiveChat);
+        // console.log("Active chat ID:", currentActiveChat.id);
+        // console.log("Message sender ID:", message.sender);
+        // console.log("Received message:", message);
+        // console.log(currentActiveChat);
         if (
           (currentActiveChat.type === "user" &&
             currentActiveChat.id === message.sender) ||
@@ -247,13 +247,13 @@ export default function ChatState(props) {
             });
           
             const updatedChats = { ...prevChats, users: updatedUsers };
-            console.log("Updated chats state:", updatedChats);
+            // console.log("Updated chats state:", updatedChats);
             return updatedChats;
           });
           
         } else {
           incrementUnseenCount(message.sender);
-          console.log("Message does not belong to active chat.");
+          // console.log("Message does not belong to active chat.");
           fetch(`${Chat_Url}/api/send-notification`, {
             method: "POST",
             headers: {
@@ -266,9 +266,9 @@ export default function ChatState(props) {
             }),
           })
           .then(response => response.json())
-          .then(data => console.log('Notification sent:', data))
+          // .then(data => console.log('Notification sent:', data))
           .catch(error => console.error('Error sending notification:', error));
-          console.log("Message does not belong to the active chat.");
+          // console.log("Message does not belong to the active chat.");
         }
       },
       [] // No need for activeChat dependency
@@ -366,7 +366,7 @@ export default function ChatState(props) {
       timestamp: new Date().toISOString(), // Proper timestamp
     };
 
-    console.log("send message payload "+ JSON.stringify(message));
+    // console.log("send message payload "+ JSON.stringify(message));
     setMessages((prevMessages) => [...prevMessages, message]);
     // Emit the message via socket
     socket.emit(eventName, payload, (response) => {

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const NotificationSchema = new mongoose.Schema({
-    user: { // User who will receive the notification
+  user: { // User who will receive the notification
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
@@ -13,6 +13,7 @@ const NotificationSchema = new mongoose.Schema({
   type: { // Type of notification
     type: String,
     enum: [
+      'team-making',
       'follow', 
       'matchmaking',
       'match-scheduled',
@@ -36,6 +37,13 @@ const NotificationSchema = new mongoose.Schema({
   createdAt: { // Timestamp when the notification was created
     type: Date,
     default: Date.now
+  },
+  creatorUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  creatorUserImage: { // Image URL of the user who created the notification
+    type: String,
   }
 });
 

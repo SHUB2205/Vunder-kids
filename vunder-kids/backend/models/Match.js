@@ -1,128 +1,94 @@
-// const mongoose = require('mongoose');
-
-// const MatchSchema = new mongoose.Schema({
-//     date: {
-//         type: Date,
-//         required: true
-//     },
-//     location: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: 'Location',
-//         required: true
-//     },
-//     sport: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: 'Sport',
-//         required: true
-//     },
-//     teams: [{
-//         team: {
-//             type: mongoose.Schema.Types.ObjectId,
-//             ref: 'Team',
-//             required: true
-//         },
-//         score: {
-//             type: Number,
-//             default: 0 // Changed to default: 0 to ensure consistency
-//         }
-//     }],
-//     winner: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: 'Team'
-//     },
-//     matchmakingTeam: { // Added field
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: 'Team'
-//     },
-//     agreement: {
-//         type: Boolean,
-//         default: false, // Default value to ensure a match isn't fixed unless both teams agree
-//     },
-    
-//     agreedTeams: [{
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: 'Team'
-//     }],
-//     status: {
-//         type: String,
-//         enum: ['in-progress','scheduled','completed', 'cancelled'], // Enum to ensure valid status values
-//         default: 'in-progress' // Default status when the match is first created
-//     }
-// });
-
-// const Match = mongoose.model('Match', MatchSchema);
-
-// module.exports = Match;
-
-
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const MatchSchema = new mongoose.Schema({
-    date: {
-        type: Date,
-        required: true
-    },
-    location: {
-        type: String,
-        required: true
-    },
-    sport: {
+  name: {
+    type: String, // Added match name field
+    required: true,
+  },
+  date: {
+    type: Date,
+    required: true,
+  },
+  location: {
+    type: String,
+    required: true,
+  },
+  sport: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Sport",
+    required: true,
+  },
+  teams: [
+    {
+      team: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Sport',
-        required: true
-    },
-    teams: [{
-        team: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Team',
-            required: true
-        },
-        score: {
-            type: Number,
-            default: 0
-        }
-    }],
-    isTeamMatch: {
-        type: Boolean,
-        default: false
-    },
-    players: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
-    winner: {
-        type: {
-            type: String,
-            enum: ['Team', 'User'],
-        },
-        ref: {
-            type: mongoose.Schema.Types.ObjectId,
-            refPath: 'winner.type'
-        }
-    },
-    matchmakingTeam: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Team'
-    },
-    agreement: {
-        type: Boolean,
-        default: false
-    },
-    status: {
-        type: String,
-        enum: ['in-progress','scheduled','completed', 'cancelled'],
-        default: 'in-progress'
-    },
-    agreementTime: {
+        ref: "Team",
+        required: true,
+      },
+      score: {
         type: Number,
-        required: true
+        default: 0,
+      },
     },
-    CalendarEvent: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'CalendarEvent'
-    }
+  ],
+  isTeamMatch: {
+    type: Boolean,
+    default: false,
+  },
+  players: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  winner: {
+    type: {
+      type: String,
+      enum: ["Team", "User"],
+    },
+    ref: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "winner.type",
+    },
+  },
+  matchmakingTeam: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Team",
+  },
+  agreement: {
+    type: Boolean,
+    default: false,
+  },
+  status: {
+    type: String,
+    enum: ["in-progress", "scheduled", "completed", "cancelled"],
+    default: "in-progress",
+  },
+  agreementTime: {
+    type: Number,
+    required: true,
+  },
+  CalendarEvent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "CalendarEvent",
+  },
+  admins: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // Reference to the User model for admins
+    },
+  ], // New field to store the admins of the match
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // Reference to the User model for the creator of the match
+  },
+  createdAt: {
+    // Timestamp when the notification was created
+    type: Date,
+    default: Date.now,
+  },
 });
 
-const Match = mongoose.model('Match', MatchSchema);
+const Match = mongoose.model("Match", MatchSchema);
 
 module.exports = Match;

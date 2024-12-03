@@ -4,3 +4,10 @@
 4. Post Time need to be the IST . status : Not fixed
 5. In message, if it is new message it does not apper on the reciver side. status: Not fixed
 6. Untile and unless user click on the chat icon , it soed not show the new messages. status : Not fixed
+7. Google auth  Failed to execute 'postMessage' on 'DOMWindow': The target origin provided ('http://localhost:3000') does not match the recipient window's origin ('http://localhost:3001').
+8. tost in the setmatches
+9. make set mtch optimized
+10. limited postMessage
+11. profile folowed seen below
+12. getpost gives error some times
+13 . remove back arrow btn

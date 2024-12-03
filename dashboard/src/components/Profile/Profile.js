@@ -21,26 +21,26 @@ import { PostContext } from '../../createContext/Post/PostContext'
     const {getProfile ,profile,toggleFollow,setProfile,userPosts = [], getUserPosts} = useContext(ProfileContext);
     const [isFollowed,setFollowed] = useState(false);
     const {Myposts,getPosts} = useContext(PostContext);
-
     useEffect(() => {
       if (!profile) {
         getProfile(username);
       }
+      
       if (user && profile) {
-        if (user.following.some(followed => followed._id === profile._id)){
+        // Ensure following is an array and all objects in it have _id
+        if (Array.isArray(user.following) && user.following.some(followed => followed?._id === profile._id)) {
           setFollowed(true);
         }
       }
-
-      if (username && userPosts.length ===  0) {
+    
+      if (username && userPosts.length === 0) {
         getUserPosts(username);
       }
-      if(!username && Myposts.length === 0) {
+      
+      if (!username && Myposts.length === 0) {
         getPosts(true);
       }
-
-    }, [username, getProfile, profile,user,getPosts, getUserPosts]);
-
+    }, [username, getProfile, profile, user, getPosts, getUserPosts]);
     const handleFollow = async() => {
       await toggleFollow(profile._id);
       setFollowed(prevIsFollowed => !prevIsFollowed);

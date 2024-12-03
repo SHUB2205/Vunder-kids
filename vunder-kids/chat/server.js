@@ -46,7 +46,7 @@ app.use("/api/messages", messageRoutes);
 
 app.use(router);
 router.post('/api/send-notification', async (req, res) => {
-  console.log("Received notification request:", req.body);
+  // console.log("Received notification request:", req.body);
   const { senderId, recipientId } = req.body;
   try {
     await notificationService(senderId, recipientId);

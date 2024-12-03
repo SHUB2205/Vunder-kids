@@ -1,21 +1,30 @@
-// notificationService.js
 const Notification = require('../../models/Notifiication');
-const sendNotification= require('./fireBaseSendNotification');
+const User = require("../../models/User");
+const sendNotification = require('./fireBaseSendNotification');
+
 // Simulate a service worker that runs in the background
 // users should be the id not the complete user
-const notificationService = (users, type, message) => {
+const notificationService = (users, type, message, creatorId , creatorImage ) => {
   // Use setImmediate to ensure non-blocking behavior
   setImmediate(async () => {
-    try {
+    try { 
+      if(type === "team-making"){
+        console.log("Team Making notification");
+      }
+      
+      // Prepare notifications for the users
       const notifications = users.map(user => ({
         user: user,
         type: type,
         message: message,
-      }));
+        creatorUser: creatorId,          // Creator's ID
+        creatorUserImage: creatorImage,  // Creator's image
+         }));
 
       await Notification.insertMany(notifications); // Batch insert notifications
-      console.log('Notifications sent successfully');
+      console.log('Notifications sent successfully' , notifications);
 
+      // Get users who have valid notification tokens
       const usersWithTokens = await User.find({ 
         _id: { $in: users },
         notificationToken: { $exists: true, $ne: null } // Ensure tokens exist and are not null
@@ -25,6 +34,7 @@ const notificationService = (users, type, message) => {
       if (fcmTokens && fcmTokens.length > 0) {
         fcmTokens.forEach(async (fcmToken) => {
           try {
+            // Send Firebase Cloud Messaging notification
             await sendNotification(fcmToken, "New Notification", message);
           } catch (error) {
             console.error("Error sending FCM notification to token", fcmToken, error);
@@ -40,4 +50,4 @@ const notificationService = (users, type, message) => {
   });
 };
 
-module.exports =  notificationService ;
+module.exports = notificationService;

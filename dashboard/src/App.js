@@ -16,74 +16,76 @@ import SearchState from "./createContext/Search/SearchState";
 import WaitingScreen from "./components/Auth/Register/WaitingScreen/WaitingScreen";
 import ProtectedRoute from "./ProtectedRoute"; // Import ProtectedRoute
 import ProfileState from "./createContext/Profile/ProfileState";
-
+import NotificationState from "./createContext/Notification/NotificationState";
 function App() {
   return (
-    <RegisterStates>
-      <IsAuthStates>
-        <PostState>
-          <ReelState>
-            <SearchState>
-              <MatchState>
-                <ProfileState>
-                <Router>
-                  <Routes>
-                    {/* Public Routes (accessible without token) */}
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/login" element={<Login />} />
+    <Router>
+      <RegisterStates>
+        <IsAuthStates>
+          <PostState>
+            <ReelState>
+              <SearchState>
+                <MatchState>
+                  <NotificationState>
+                    <ProfileState>
+                      <Routes>
+                        {/* Public Routes (accessible without token) */}
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/login" element={<Login />} />
 
-                    {/* Protected Routes (accessible only with token) */}
-                    <Route
-                      path="/register/about"
-                      element={
-                        <ProtectedRoute>
-                          <About />
-                        </ProtectedRoute>
-                      }
-                      />
-                    <Route
-                      path="/register/passion"
-                      element={
-                        <ProtectedRoute>
-                          <Passion />
-                        </ProtectedRoute>
-                      }
-                      />
-                    <Route
-                      path="/register/uploadPicture"
-                      element={
-                        <ProtectedRoute>
-                          <UploadPicture />
-                        </ProtectedRoute>
-                      }
-                      />
-                    <Route
-                      path="/register/waiting"
-                      element={
-                        <ProtectedRoute>
-                          <WaitingScreen />
-                        </ProtectedRoute>
-                      }
-                      />
+                        {/* Protected Routes (accessible only with token) */}
+                        <Route
+                          path="/register/about"
+                          element={
+                            <ProtectedRoute>
+                              <About />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/register/passion"
+                          element={
+                            <ProtectedRoute>
+                              <Passion />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/register/uploadPicture"
+                          element={
+                            <ProtectedRoute>
+                              <UploadPicture />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/register/waiting"
+                          element={
+                            <ProtectedRoute>
+                              <WaitingScreen />
+                            </ProtectedRoute>
+                          }
+                        />
 
-                    {/* Default route, also protected */}
-                    <Route
-                      path="*"
-                      element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      }
-                      />
-                  </Routes>
-                </Router>
-                </ProfileState>
-              </MatchState>
-            </SearchState>
-          </ReelState>
-        </PostState>
-      </IsAuthStates>
-    </RegisterStates>
+                        {/* Default route, also protected */}
+                        <Route
+                          path="*"
+                          element={
+                            <ProtectedRoute>
+                              <Dashboard />
+                            </ProtectedRoute>
+                          }
+                        />
+                      </Routes>
+                    </ProfileState>
+                  </NotificationState>
+                </MatchState>
+              </SearchState>
+            </ReelState>
+          </PostState>
+        </IsAuthStates>
+      </RegisterStates>
+    </Router>
   );
 }
 
