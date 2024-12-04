@@ -6,6 +6,7 @@ const CalendarEvent = require("../models/calendarEvent");
 const notificationService = require("../services/notification/notificationService.js");
 const User = require("../models/User.js");
 const { updateScore } = require("./progressController.js");
+const Progress = require("../models/Progress.js");
 
 exports.createMatch = async (req, res) => {
   try {
@@ -433,7 +434,6 @@ exports.getUpcomingMatches = async (req, res) => {
       date: { $gte: today }, // Ensure matches are for today or later
       $or: [{ players: userId }, { "teams.team": { $in: user.teamIds } }],
     };
-
     // Query for friends matches
     const friendIds = user.following.map((friend) => friend._id);
 
@@ -547,5 +547,187 @@ exports.updateAgreement = async (req, res) => {
       message: "An error occurred while updating the agreement.",
       error: error.message,
     });
+  }
+};
+
+//To Do:
+//more than onces posible
+//only admin should have permission
+exports.updateMatch2 = async (req, res, next) => {
+  const { matchId, score1, score2 } = req.body;
+
+  try {
+    // Find the match and populate necessary references
+    const match = await Match.findById(matchId)
+      .populate('teams.team') // Populate team if it's a team match
+      .populate('players') // Populate players if it's an individual match
+      .populate('sport'); // Populate the sport details
+
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    // Ensure sport exists
+    if (!match.sport) {
+      return res.status(400).json({ message: 'Sport not specified for the match' });
+    }
+
+    // Handle Team Match
+    if (match.isTeamMatch) {
+      // Ensure we have two teams
+      if (match.teams.length !== 2) {
+        return res.status(400).json({ message: 'Match must have exactly two teams' });
+      }
+    
+      const [team1, team2] = match.teams;
+      team1.score = score1;
+      team2.score = score2;
+    
+      let winnerTeam, loserTeam;
+      if (score1 > score2) {
+        winnerTeam = team1.team;
+        loserTeam = team2.team;
+        match.winner = { type: 'Team', ref: team1.team._id };
+      } else if (score2 > score1) {
+        winnerTeam = team2.team;
+        loserTeam = team1.team;
+        match.winner = { type: 'Team', ref: team2.team._id };
+      } else {
+        return res.status(400).json({ message: 'Draw not supported. A clear winner is required.' });
+      }
+    
+      // Update team players progress
+      const updateTeamPlayersProgress = async (team, isWinner) => {
+        for (const playerId of team.participants) {
+          // Find the user
+          const user = await User.findById(playerId);
+          
+          if (user && user.progress) {
+            // Find the progress document
+            const userProgress = await Progress.findById(user.progress);
+            
+            if (userProgress) {
+              // Update overall progress
+              userProgress.overallScore += isWinner ? 10 : 5;
+              userProgress.totalMatches += 1;
+              if (isWinner) userProgress.matchesWon += 1;
+    
+              // Find or create sport-specific score entry
+              let sportScoreEntry = userProgress.sportScores.find(
+                ss => ss.sport.toString() === match.sport._id.toString()
+              );
+    
+              if (!sportScoreEntry) {
+                sportScoreEntry = {
+                  sport: match.sport._id,
+                  score: isWinner ? 10 : 5,
+                  totalMatches: 1,
+                  wonMatches: isWinner ? 1 : 0
+                };
+                userProgress.sportScores.push(sportScoreEntry);
+              }
+    
+              // Update sport-specific progress
+              sportScoreEntry.totalMatches += 1;
+              if (isWinner) {
+                sportScoreEntry.wonMatches += 1;
+                sportScoreEntry.score += 10;
+              } else {
+                sportScoreEntry.score += 5;
+              }
+    
+              await userProgress.save();
+            }
+          }
+        }
+      };
+    
+      // Update progresses for both teams
+      await updateTeamPlayersProgress(winnerTeam, true);
+      await updateTeamPlayersProgress(loserTeam, false);
+    }
+    // Handle Individual Player Match
+    else {
+      // Ensure we have exactly 2 players
+      if (match.players.length !== 2) {
+        return res.status(400).json({ message: 'Individual match must have exactly two players' });
+      }
+
+      const [player1, player2] = match.players;
+
+      let winner, loser;
+      if (score1 > score2) {
+        winner = player1;
+        loser = player2;
+        match.winner = { type: 'User', ref: player1._id };
+      } else if (score2 > score1) {
+        winner = player2;
+        loser = player1;
+        match.winner = { type: 'User', ref: player2._id };
+      } else {
+        return res.status(400).json({ message: 'Draw not supported. A clear winner is required.' });
+      }
+
+      // Update winner's progress
+      const updatePlayerProgress = async (player, isWinner) => {
+        const playerProgress = await Progress.findById(player.progress);
+        
+        if (playerProgress) {
+          // Overall progress
+          playerProgress.overallScore += isWinner ? 10 : 5;
+          playerProgress.totalMatches += 1;
+          if (isWinner) playerProgress.matchesWon += 1;
+
+          // Find or create sport-specific score entry
+          let sportScoreEntry = playerProgress.sportScores.find(
+            ss => ss.sport.toString() === match.sport._id.toString()
+          );
+
+          if (!sportScoreEntry) {
+            sportScoreEntry = {
+              sport: match.sport._id,
+              score: isWinner ? 10 : 5,
+              totalMatches: 1,
+              wonMatches: isWinner ? 1 : 0
+            };
+            playerProgress.sportScores.push(sportScoreEntry);
+          }
+
+          // Update sport-specific progress
+          sportScoreEntry.totalMatches += 1;
+          if (isWinner) {
+            sportScoreEntry.wonMatches += 1;
+            sportScoreEntry.score += 10;
+          } else {
+            sportScoreEntry.score += 5;
+          }
+
+          await playerProgress.save();
+        }
+      };
+
+      // Update progresses for both players
+      await updatePlayerProgress(winner, true);
+      await updatePlayerProgress(loser, false);
+    }
+
+    // Update match status and save
+    match.status = 'completed';
+    await match.save();
+
+    res.status(200).json({
+      message: 'Match updated successfully',
+      match: {
+        _id: match._id,
+        isTeamMatch: match.isTeamMatch,
+        winner: match.winner,
+        status: match.status,
+        scores: [score1, score2]
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating match:', error);
+    next(error);
   }
 };

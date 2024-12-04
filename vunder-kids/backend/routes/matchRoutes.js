@@ -18,6 +18,8 @@ router.get('/:id', isAuth, matchController.getMatchById);
 // Update a match
 router.put('/:id', isAuth, matchController.updateMatch);
 
+router.post('/set-score',isAuth,matchController.updateMatch2);
+
 // Route for a team to agree to a match
 router.post('/agreement', isAuth ,matchController.updateAgreement);
 

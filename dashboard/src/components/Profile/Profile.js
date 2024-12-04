@@ -297,7 +297,7 @@
           ))}
         </div>
         <div className="p-4">
-          {activeTab === "Overview" && <ProfileStats />}
+          {activeTab === "Overview" && <ProfileStats progress={currentUser?.progress}/>}
           {activeTab === "Photos" && <ProfilePhotos />}
           {activeTab === "Post" && <ProfilePosts />}
           {activeTab === "Reels" && <ProfileReels />}

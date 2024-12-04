@@ -11,6 +11,7 @@ const Notification = require("../models/Notifiication");
 //  For the Unique Name
 const { v4: uuidv4 } = require("uuid");
 const { bufferToStream,cloudinary } = require("../config/cloudinary");
+const Progress = require("../models/Progress");
 // Middleware to generate unique username
 const generateUniqueUserName = (displayName) => {
   const shortUuid = uuidv4().split("-")[0];
@@ -45,9 +46,20 @@ const registerUser = async (req, res, next) => {
       const error = "User already exists change the e-mail";
       res.status(400).json({ error });
     }
+
+    const progress = await Progress.create({
+      overallScore: 0,
+      totalMatches: 0,
+      matchesWon: 0,
+      sportScores: [], 
+      userAchievements: []
+    });
+
+
     const user = await User.create({
       email,
       password,
+      progress: progress._id
     });
 
     if (user) {
@@ -303,7 +315,11 @@ const userInfo = async (req, res) => {
           ...doc.toObject(),
           followers: doc.followers?.length
         } : null
-      })      
+      })
+      .populate({
+        path:'progress',
+        populate:{path : 'sportScores.sport',select: 'name _id'}
+      })
       .select('-password -matchIds -teamIds');
     } else if (userId) {
       user = await User.findById(userId, "-password");
@@ -330,6 +346,10 @@ const getByUsername = async (req, res) => {
     const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio').populate({
       path: 'followers',
       select:'name avatar'
+    })
+    .populate({
+      path:'progress',
+      populate:{path : 'sportScores.sport',select: 'name _id'}
     });
     if (!user) {
       return res.status(404).json({ message: "User not found" });

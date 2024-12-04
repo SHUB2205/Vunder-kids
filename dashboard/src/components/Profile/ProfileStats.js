@@ -1,32 +1,62 @@
 import { useState } from "react";
 import "./ProfileStats.css";
 
-function ProfileStats() {
-    const sports = ["Tennis", "Football", "Badminton"];
-    const [activeSport, setActiveSport] = useState("Tennis");
+function ProfileStats({ progress }) {
+    // Get sport names from sportScores
+    const sports = progress?.sportScores 
+        ? progress.sportScores.map(sportScore => sportScore.sport.name)
+        : [];
 
-    const fetchedStat = {
-        "Matches played": 150,
-        "Matches won": 110,
-        "Matches lost": 150,
-        "Sets played": 110,
-        "Sets won": 150,
-        "Win/lose ratio": "4:1"
+    const [activeSport, setActiveSport] = useState(sports[0] || "All");
+
+    // Function to get sport-specific or overall stats
+    const getStats = () => {
+        if (!progress) return {};
+
+        // Overall stats if "All" is selected
+        if (activeSport === "All") {
+            return {
+                "Matches played": progress.totalMatches,
+                "Matches won": progress.matchesWon,
+                "Matches lost": progress.totalMatches - progress.matchesWon,
+                "Score": progress.overallScore,
+                "Avg. Score per Match": (progress.overallScore / (progress.totalMatches || 1)).toFixed(2),
+                "Win/lose ratio": (progress.matchesWon / (progress.totalMatches || 1)).toFixed(2)
+            };
+        }
+
+        // Sport-specific stats
+        const sportStats = progress.sportScores.find(ss => ss.sport.name === activeSport);
+        if (!sportStats) return {};
+
+        return {
+            "Matches played": sportStats.totalMatches,
+            "Matches won": sportStats.wonMatches,
+            "Matches lost": sportStats.totalMatches - sportStats.wonMatches,
+            "Score": sportStats.score,
+            "Avg. Score per Match": (sportStats.score / (sportStats.totalMatches || 1)).toFixed(2),
+            "Win/lose ratio": (sportStats.wonMatches / (sportStats.totalMatches || 1)).toFixed(2)
+        };
     };
+
+    const fetchedStat = getStats();
 
     const EmojiStat = {
         "Matches played": "🥎",
         "Matches won": "🏆",
         "Matches lost": "🙆‍♂️",
-        "Sets played": "🤾‍♂️",
-        "Sets won": "🏆",
+        "Score": "📊",
+        "Avg. Score per Match": "🤾‍♂️",
         "Win/lose ratio": "🎯"
     };
+
+    // Include "All" in sports tabs
+    const allSports = ["All", ...sports];
 
     return (
         <div className="statContainer">
             <div className="sportsNav">
-                {sports.map((sport) => (
+                {allSports.map((sport) => (
                     <p
                         key={sport}
                         className={`sportTab ${activeSport === sport ? "sportTab_active" : ""}`}
@@ -49,5 +79,4 @@ function ProfileStats() {
         </div>
     );
 }
-
 export default ProfileStats;

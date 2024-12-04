@@ -4,7 +4,7 @@ import FrontIcon from "../../../images/FrontIcon.png";
 import BackIcon from "../../../images/BackIcon.png";
 
 const getDaysInMonth = (year, month) => {
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInMonth = new Date(year, month, 0).getDate();
   return Array.from({ length: daysInMonth }, (_, i) => i + 1);
 };
 
