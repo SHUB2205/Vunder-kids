@@ -19,11 +19,26 @@ const ProfileState = ({ children }) => {
           const response = await axios.get(`${Backend_URL}/api/getUser/${user.userName}`);
           setProfile(response.data);
         } else if (username) {
-          const response = await axios.get(`${Backend_URL}/api/getUser/${username}`);
+          const response = await axios.get(`${Backend_URL}/api/getUser/${username}`,{headers:{token}});
           setProfile(response.data);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
+      } 
+    };
+    
+  
+
+    const updateUser = async (userData) => {
+      try {
+        const response = await axios.put(`${Backend_URL}/api/edit-profile`, userData, {
+          headers: {token,'Content-Type': 'multipart/form-data'},
+        });
+        const message = response.data.message;
+        console.log(message);
+      } catch (error) {
+        console.error('Error creating post:', error);
+        throw error;
       }
     };
  
@@ -71,7 +86,8 @@ const ProfileState = ({ children }) => {
         userReels,
         getUserReels,
         toggleFollow,
-        setProfile
+        setProfile,
+        updateUser
     }}>
       {children}
     </ProfileContext.Provider>

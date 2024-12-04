@@ -117,7 +117,8 @@ const MatchState = ({ children }) => {
             createMatch,
             error,
             fullMatchData,
-            matches
+            matches,
+            fetchMatches
         }}>
             {children}
         </MatchContext.Provider>

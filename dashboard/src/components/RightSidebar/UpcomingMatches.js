@@ -33,7 +33,7 @@ function UpcomingMatches() {
   const [activeDay, setActiveDay] = useState(0);
   const [isSportsOverflow, setIsSportsOverflow] = useState(false);
   const [isDatesOverflow, setIsDatesOverflow] = useState(false);
-  const [matches, setMatches] = useState([]);
+  const [matches=[], setMatches] = useState([]);
   const [matchType, setMatchType] = useState('my');
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [days, setDays] = useState([]);
@@ -47,10 +47,12 @@ function UpcomingMatches() {
   const dateSelectorRef = useRef(null);
   const scrollAmount = 100;
 
-  const {fullMatchData} = useContext(MatchContext);
-  
+  const {fullMatchData = [],fetchMatches} = useContext(MatchContext);
+  const fetcherMatch = async () => {await fetchMatches();};
+
   // Generate Days for Date Selector
   useEffect(() => {
+    fetcherMatch();
     const generateDays = () => {
       const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const today = new Date();
@@ -82,17 +84,17 @@ function UpcomingMatches() {
     // Sport Filtering
     let sportFilteredMatches = activeIndex === 0 ? 
       allMatches : 
-      allMatches.filter(match => 
+      allMatches?.filter(match => 
         SPORTS[activeIndex].toLowerCase() === match.sport.name.toLowerCase()
       );
 
     // Date Filtering if not using calendar selected matches
-    if (calendarSelectedMatches.length === 0) {
+    if (calendarSelectedMatches?.length === 0) {
       const selectedDate = days[activeDay]?.fullDate;
-      sportFilteredMatches = sportFilteredMatches.filter(match => {
+      sportFilteredMatches = sportFilteredMatches?.filter(match => {
         const matchDate = new Date(match.date);
         return (
-          matchDate.getDate() === selectedDate.getDate() &&
+          matchDate.getDate() === selectedDate?.getDate() &&
           matchDate.getMonth() === selectedDate.getMonth() &&
           matchDate.getFullYear() === selectedDate.getFullYear()
         );
@@ -100,11 +102,11 @@ function UpcomingMatches() {
     }
 
     // Set total matches count
-    setTotalMatchesCount(sportFilteredMatches.length);
+    setTotalMatchesCount(sportFilteredMatches?.length);
 
     // Paginate matches
     const startIndex = (currentPage - 1) * MATCHES_PER_PAGE;
-    const paginatedMatches = sportFilteredMatches.slice(startIndex, startIndex + MATCHES_PER_PAGE);
+    const paginatedMatches = sportFilteredMatches?.slice(startIndex, startIndex + MATCHES_PER_PAGE);
     
     setMatches(paginatedMatches);
   }, [matchType, activeIndex, activeDay, fullMatchData, currentPage, calendarSelectedMatches]);

@@ -10,6 +10,7 @@ const Notification = require("../models/Notifiication");
 // console.log(process.env.APP_PASSWORD);
 //  For the Unique Name
 const { v4: uuidv4 } = require("uuid");
+const { bufferToStream,cloudinary } = require("../config/cloudinary");
 // Middleware to generate unique username
 const generateUniqueUserName = (displayName) => {
   const shortUuid = uuidv4().split("-")[0];
@@ -318,16 +319,32 @@ const userInfo = async (req, res) => {
   }
 };
 
-const getByUsername = async (req,res) => {
-  try{
+const getByUsername = async (req, res) => {
+  try {
     const username = req.params.username;
-    if (!username){
+    if (!username) {
       return res.status(400).json({ message: "Username not provided" });
     }
-    const user = await User.findOne({userName : username},'_id name userName avatar following followers totalMatches wonMatches');
+
+    const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio').populate({
+      path: 'followers',
+      select:'name avatar'
+    });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    let followedBy = [];
+    if (req.user) {
+      const myuser = await User.findById(req.user.id).select('following');
+      if (myuser.userName !== username) {
+        // Find common followers (intersection of both followers and myuser.following)
+        followedBy = user.followers.filter(follower =>
+          (myuser.following.includes(follower._id) && follower._id !== req.user.id)
+        ).slice(0, 3); // Limit to 3
+      }
+    }
+
     res.json({
       _id: user._id,
       name: user.name,
@@ -335,15 +352,19 @@ const getByUsername = async (req,res) => {
       avatar: user.avatar,
       totalMatches: user.totalMatches,
       wonMatches: user.wonMatches,
-      following: user.following.length, 
-      followers: user.followers.length
+      following: user.following.length,
+      followers: user.followers.length,
+      location: user.location,
+      passions:user.passions,
+      bio:user.bio,
+      followedBy,
     });
-    }
-  catch (err){
+  } catch (err) {
     console.error(err);
     res.status(500).json({ message: "An error occurred" });
   }
-}
+};
+
 
 //  To get the User Id Form the Token in the localStorage //
 
@@ -570,6 +591,79 @@ const notificationToken=async(req,res)=>{
   }
 }
 
+const editUser = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const userId = req.user.id;
+    const { 
+      name, 
+      userName, 
+      location,
+      bio
+    } = req.body;
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      const error = new Error('User not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Update user fields if provided
+    if (name) user.name = name;
+    if (userName) {
+      // Check if username is already taken
+      const existingUser = await User.findOne({ userName });
+      if (existingUser && existingUser._id.toString() !== userId) {
+        const error = new Error('Username is already taken.');
+        error.statusCode = 400;
+        throw error;
+      }
+      user.userName = userName;
+    }
+    if (bio) user.bio = bio;
+    if (location) user.location = location;
+
+    // Handle profile picture upload (similar to saveProfilePicture logic)
+    if (req.file) {
+      const stream = bufferToStream(req.file.buffer);
+      const uploadPromise = new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'profile_pictures',
+            resource_type: 'image',
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        
+        stream.pipe(uploadStream);
+      });
+
+      const uploadMediaRes = await uploadPromise;
+      user.avatar = uploadMediaRes.secure_url;
+    }
+
+    // Save updated user
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      message: 'User profile updated successfully!'
+    });
+  } catch (err) {
+    console.log(err);
+    next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -587,5 +681,6 @@ module.exports = {
   saveProfilePicture,
   getAllUsers,
   getByUsername,
-  notificationToken
+  notificationToken,
+  editUser
 };

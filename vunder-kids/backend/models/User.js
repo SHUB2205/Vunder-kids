@@ -148,6 +148,10 @@ const UserSchema = new mongoose.Schema({
   notificationToken:{
     type:String,
     default: null
+  },
+  bio : {
+    type:String,
+    default:'Passionate football enthusiast | Dedicated athlete | Striving for excellence on and off the pitch.'
   }
 });
 
