@@ -109,6 +109,35 @@ const MatchState = ({ children }) => {
         fetchScheduledMatches();
     }, [token]);
 
+    const updateAggrement=async(action,matchId)=>{
+        try {
+            console.log(action);
+            const response = await axios.post(
+              `${Backend_URL}/api/matches/agreement`,
+              {
+                matchId, // Pass the match ID dynamically
+                userResponse: action,  // "accept" or "reject"
+              },
+              {
+                headers: {
+                  token, // Add token for authentication
+                },
+              }
+            );
+        
+            if (response.status === 200) {
+              // Handle success
+              console.log("Action successful:", response.data);
+              // Optionally update the UI or show a notification
+              alert(`Match ${action}ed successfully.`);
+            }
+          } catch (error) {
+            // Handle error
+            console.error(`Error performing ${action} action:`, error);
+            alert("An error occurred. Please try again.");
+          }
+    }
+
     return (
         <MatchContext.Provider value={{
             sports,
@@ -117,7 +146,8 @@ const MatchState = ({ children }) => {
             createMatch,
             error,
             fullMatchData,
-            matches
+            matches,
+            updateAggrement
         }}>
             {children}
         </MatchContext.Provider>
