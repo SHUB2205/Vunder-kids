@@ -13,19 +13,22 @@ const NotificationState = ({ children }) => {
   const [error, setError] = useState(null);
   const location = useLocation();
   const { token, user } = useContext(isAuth);
-  
+
   useEffect(() => {
     if (location.pathname === "/notification/all") {
       const fetchNotifications = async () => {
         setLoading(true);
         setError(null); // Clear any previous error
         try {
-          const { data } = await axios.get(`${Backend_URL}/api/notifications/all`, {
-            headers: {
-              token,
-            },
-          });
-          console.log(data.notifications);
+          const { data } = await axios.get(
+            `${Backend_URL}/api/notifications/all`,
+            {
+              headers: {
+                token,
+              },
+            }
+          );
+          // console.log(data.notifications);
           setAllNotifications(data.notifications);
         } catch (err) {
           console.error("Error fetching notifications:", err);
@@ -43,13 +46,26 @@ const NotificationState = ({ children }) => {
         setLoading(true);
         setError(null); // Clear any previous error
         try {
-          const { data } = await axios.get(`${Backend_URL}/api/notifications/matches`, {
-            headers: {
-              token,
-            },
+          const { data } = await axios.get(
+            `${Backend_URL}/api/notifications/matches`,
+            {
+              headers: {
+                token,
+              },
+            }
+          );
+
+          const filteredMatches = data.matches.filter((match) => {
+            // Exclude matches created by the user only if the status is "in-progress"
+            if (match.creator === user._id && match.status === "in-progress") {
+              return false; // Don't include this match
+            }
+          
+            // Include all other matches
+            return true; 
           });
-          console.log(data.matches);
-          setAllMatches(data.matches);
+          // console.log(filteredMatches);
+          setAllMatches(filteredMatches);
         } catch (err) {
           console.error("Error fetching matches:", err);
           setError("An error occurred, please reload your page");
@@ -69,7 +85,7 @@ const NotificationState = ({ children }) => {
         allMatches,
         loading,
         error,
-        user
+        user,
       }}
     >
       {children}

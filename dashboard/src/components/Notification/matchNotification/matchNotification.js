@@ -3,41 +3,115 @@ import axios from "axios";
 import MatchNotificationItem from "./matchNotificationItem";
 import { NotificationContext } from "../../../createContext/Notification/NotificationContext";
 import styles from "./matchNotification.module.css"; // Assuming the styles are here
+import isAuth from "../../../createContext/is-Auth/IsAuthContext";
 
 const Backend_URL = "http://localhost:5000";
 
 const MatchNotification = () => {
+  const { token } = useContext(isAuth);
   const { allMatches, loading, error, user } = useContext(NotificationContext);
   const [sports, setSports] = useState([]);
   const [loadingSports, setLoadingSports] = useState(true);
   const [isUserLoading, setIsUserLoading] = useState(true);
+  const [creators, setCreators] = useState({});
+  const [adminsArr, setAdminsArr] = useState({}); // State to store admin data
+  const [loadingCreators, setLoadingCreators] = useState(false); // Loading state for creators
+  const [loadingAdmins, setLoadingAdmins] = useState(false); // Loading state for admins
 
-  // Simulate fetching user data if it isn't loaded yet
   useEffect(() => {
     if (user) {
       setIsUserLoading(false); // Stop the loading state when the user is available
     }
   }, [user]);
 
-  // Fetch sports from the backend when the component mounts
+  // Fetch sports from the backend
   const fetchSports = async () => {
     try {
       setLoadingSports(true);
       const response = await axios.get(`${Backend_URL}/api/sport/`);
       setSports(response.data); // Assuming response is an array of sports
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setSports([]);
     } finally {
       setLoadingSports(false);
     }
   };
 
+  // Fetch creator data
+  const fetchCreatorData = async (creatorId) => {
+    try {
+      const response = await axios.get(`${Backend_URL}/api/users/${creatorId}`, {
+        headers: { token },
+      });
+      return response.data;
+    } catch (err) {
+      console.error("Error fetching creator data:", err);
+      return null;
+    }
+  };
+
+  // Fetch admin data
+  const fetchAdminData = async (adminId) => {
+    try {
+      const response = await axios.get(`${Backend_URL}/api/users/${adminId}`, {
+        headers: { token },
+      });
+      return response.data;
+    } catch (err) {
+      console.error("Error fetching admin data:", err);
+      return null;
+    }
+  };
+
+  // Fetch all creators and admins for the matches
+  const fetchAllCreatorsAndAdmins = async () => {
+    const creatorIds = [...new Set(allMatches.map((match) => match.creator))];
+    const adminIds = [...new Set(allMatches.flatMap((match) => match.admins))];
+
+    setLoadingCreators(true);
+    setLoadingAdmins(true);
+
+    const fetchedCreators = {};
+    const fetchedAdmins = {};
+
+    // Fetch creators
+    for (const creatorId of creatorIds) {
+      if (!creators[creatorId]) {
+        const creatorData = await fetchCreatorData(creatorId);
+        if (creatorData) {
+          fetchedCreators[creatorId] = creatorData;
+        }
+      }
+    }
+
+    // Fetch admins
+    for (const adminId of adminIds) {
+      if (!adminsArr[adminId]) {
+        const adminData = await fetchAdminData(adminId);
+        if (adminData) {
+          fetchedAdmins[adminId] = adminData;
+        }
+      }
+    }
+
+    setCreators((prev) => ({ ...prev, ...fetchedCreators }));
+    setAdminsArr((prev) => ({ ...prev, ...fetchedAdmins }));
+
+    setLoadingCreators(false);
+    setLoadingAdmins(false);
+  };
+
+  useEffect(() => {
+    if (allMatches && allMatches.length > 0) {
+      fetchAllCreatorsAndAdmins();
+    }
+  }, [allMatches]);
+
   useEffect(() => {
     fetchSports();
   }, []);
 
-  // Utility function for time formatting
   const formatTime = (timestamp) => {
     const now = new Date();
     const notificationTime = new Date(timestamp);
@@ -62,19 +136,18 @@ const MatchNotification = () => {
     }
   };
 
-  if (loading || loadingSports || isUserLoading) {
+  const getSportName = (sportId) => {
+    const sport = sports.find((sport) => sport._id === sportId);
+    return sport ? sport.name : "Unknown Sport";
+  };
+
+  if (loading || loadingSports || isUserLoading || loadingCreators || loadingAdmins) {
     return <div>Loading...</div>;
   }
 
   if (error) {
     return <div>Error: {error}</div>;
   }
-
-  // Find sport name by ID
-  const getSportName = (sportId) => {
-    const sport = sports.find((sport) => sport._id === sportId);
-    return sport ? sport.name : "Unknown Sport";
-  };
 
   return (
     <div>
@@ -84,54 +157,59 @@ const MatchNotification = () => {
             _id,
             date,
             location,
-            sport, // sport ID
+            sport,
             teams,
             players,
             isTeamMatch,
-            name, // match name
+            name,
             status,
             admins,
+            createdAt,
+            creator,
+
           } = match;
-
-          let player1, player2, score1, score2, participants;
-
+          const creatorData = creators[creator]; // Get creator data from the state
+          const sportName = getSportName(sport);
+          const userRole = admins.includes(user?._id) ? "admin" : "player";
+          const adminData1 = adminsArr[admins[0]] ? adminsArr[admins[0]] : null;
+          const adminData2 = adminsArr[admins[1]] ? adminsArr[admins[1]] : null;
+          
+          let team1, team2, score1, score2, participants;       
           if (isTeamMatch) {
-            // Team match details
-            player1 = teams?.[0]?.team || "Team 1";
-            player2 = teams?.[1]?.team || "Team 2";
+            team1 = teams?.[0]?.team || "Team 1";
+            team2 = teams?.[1]?.team || "Team 2";
             score1 = teams?.[0]?.score || "N/A";
             score2 = teams?.[1]?.score || "N/A";
             participants = players || [];
           } else {
-            // 1-on-1 match details
-            player1 = players?.[0] || "Player 1";
-            player2 = players?.[1] || "Player 2";
-            score1 = "N/A"; // No scores for 1-on-1 matches
+            team1 = null;
+            team1 =null;
+            score1 = "N/A";
             score2 = "N/A";
           }
-
-          const sportName = getSportName(sport); // Get the sport name
-          const userRole = admins.includes(user?._id) ? "admin" : "player";
-
           return (
             <div key={_id}>
               <MatchNotificationItem
+                matchId={_id}
                 location={location}
                 date={new Date(date).toLocaleDateString()}
                 time={new Date(date).toLocaleTimeString()}
-                player1={player1}
-                player2={player2}
+                player1={adminData1?.name || "Admin 1"}
+                player2={adminData2?.name || "Admin 2"}
                 score1={score1}
                 score2={score2}
-                sportName={sportName} // Pass sport name
+                sportName={sportName}
                 isTeamMatch={isTeamMatch}
-                participants={isTeamMatch ? participants : null}
-                matchName={name} // Passing match name as prop
+                team1Id={team1}
+                team2Id={team2}
+                // participants={isTeamMatch ? participants : null}
+                matchName={name}
                 matchStatus={status}
                 userRole={userRole}
-                timestamp={formatTime(date)}
+                timestamp={formatTime(createdAt)}
+                creatorAvatar={creatorData?.avatar || " "}
+                creatorName={creatorData?.name || " "}
               />
-              {/* Add match divider between notifications */}
               {index < allMatches.length - 1 && (
                 <div className={styles.matchDivider} />
               )}
