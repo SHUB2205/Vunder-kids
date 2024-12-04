@@ -28,22 +28,36 @@ const MatchNotificationItem = ({
   return (
     <div className={styles.matchNotificationItem}>
       <div className={styles.matchHeader}>
-        <img src={matchNoti} alt="Avatar" className={styles.avatar} />
+        <img src={matchNoti} alt="Avatar" className={styles.outsideAvatar} />
 
         <div className={styles.matchDetails}>
           <div className={styles.matchTitle}>
-            <div className={styles.type}>
-              {isTeamMatch ? "Team Match" : "1-on-1 Match"}
+            <img src={matchNoti} alt="Avatar" className={styles.avatar} />
+            <div className={styles.matchName}>
+              <strong>
+                {matchName.charAt(0).toUpperCase() + matchName.slice(1)}
+              </strong>
             </div>
-            <div className={styles.location}>{location},</div>
             <div className={styles.time}>
-              {date}, {time}
+              {new Date(date).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+              })}
+              ,{" "}
+              {new Date(`${date} ${time}`).toLocaleTimeString("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
+            </div>
+            <div className={styles.location}>
+              , {location.charAt(0).toUpperCase() + location.slice(1)}
             </div>
           </div>
           <div className={styles.content}>
-            <div className={styles.matchName}>
-              <strong>Match: {matchName}</strong> {/* Display the match name */}
-            </div>
+            {/* <div className={styles.matchName}>
+              <strong>Match: {matchName}</strong> 
+            </div> */}
 
             <div className={styles.playerDetails}>
               <div className={styles.player}>

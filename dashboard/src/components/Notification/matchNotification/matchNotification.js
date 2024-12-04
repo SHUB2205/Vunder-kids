@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import MatchNotificationItem from "./matchNotificationItem";
 import { NotificationContext } from "../../../createContext/Notification/NotificationContext";
+import styles from "./matchNotification.module.css"; // Assuming the styles are here
 
 const Backend_URL = "http://localhost:5000";
 
@@ -36,6 +37,31 @@ const MatchNotification = () => {
     fetchSports();
   }, []);
 
+  // Utility function for time formatting
+  const formatTime = (timestamp) => {
+    const now = new Date();
+    const notificationTime = new Date(timestamp);
+    const differenceInMs = now - notificationTime;
+    const differenceInMinutes = Math.floor(differenceInMs / 60000);
+
+    if (differenceInMinutes < 1) {
+      return "Just now";
+    } else if (differenceInMinutes < 60) {
+      return `${differenceInMinutes} min ago`;
+    } else if (differenceInMinutes < 1440) {
+      const hours = notificationTime.getHours();
+      const minutes = notificationTime.getMinutes();
+      const period = hours >= 12 ? "pm" : "am";
+      const formattedHours = hours % 12 || 12;
+      const formattedMinutes = String(minutes).padStart(2, "0");
+      return `${formattedHours}:${formattedMinutes} ${period}`;
+    } else {
+      const day = notificationTime.getDate();
+      const month = notificationTime.toLocaleString("default", { month: "short" });
+      return `${day} ${month}`;
+    }
+  };
+
   if (loading || loadingSports || isUserLoading) {
     return <div>Loading...</div>;
   }
@@ -51,7 +77,7 @@ const MatchNotification = () => {
   };
 
   return (
-    <div>   
+    <div>
       {allMatches && allMatches.length > 0 ? (
         allMatches.map((match, index) => {
           const {
@@ -62,7 +88,6 @@ const MatchNotification = () => {
             teams,
             players,
             isTeamMatch,
-            timestamp,
             name, // match name
             status,
             admins,
@@ -86,33 +111,31 @@ const MatchNotification = () => {
           }
 
           const sportName = getSportName(sport); // Get the sport name
-        //   admins.forEach(admin => {
-        //     if(admin==user?._id){
-        //         console.log("true");
-        //     }else{
-        //         console.log("false");
-        //     }
-        //   });
-        const userRole = admins.includes(user?._id) ? "admin" : "player";
+          const userRole = admins.includes(user?._id) ? "admin" : "player";
 
           return (
-            <MatchNotificationItem
-              key={_id}
-              location={location}
-              date={new Date(date).toLocaleDateString()}
-              time={new Date(date).toLocaleTimeString()}
-              player1={player1}
-              player2={player2}
-              score1={score1}
-              score2={score2}
-              sportName={sportName} // Pass sport name
-              timestamp={timestamp}
-              isTeamMatch={isTeamMatch}
-              participants={isTeamMatch ? participants : null}
-              matchName={name} // Passing match name as prop
-              matchStatus={status}
-              userRole={userRole}
-            />
+            <div key={_id}>
+              <MatchNotificationItem
+                location={location}
+                date={new Date(date).toLocaleDateString()}
+                time={new Date(date).toLocaleTimeString()}
+                player1={player1}
+                player2={player2}
+                score1={score1}
+                score2={score2}
+                sportName={sportName} // Pass sport name
+                isTeamMatch={isTeamMatch}
+                participants={isTeamMatch ? participants : null}
+                matchName={name} // Passing match name as prop
+                matchStatus={status}
+                userRole={userRole}
+                timestamp={formatTime(date)}
+              />
+              {/* Add match divider between notifications */}
+              {index < allMatches.length - 1 && (
+                <div className={styles.matchDivider} />
+              )}
+            </div>
           );
         })
       ) : (
