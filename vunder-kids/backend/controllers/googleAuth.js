@@ -84,7 +84,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Initial Google OAuth login route
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"],prompt: "select_account" }));
 
 // Google OAuth callback route
 

@@ -29,12 +29,11 @@ exports.createTeam = async (req, res) => {
     );
 
     // Send notifications to participants
-    notificationService(
-      participants, 
-      'matchmaking', 
-      `You have been added to the team "${newTeam.name}"`,
-      newTeam._id
-    );
+    // notificationService(
+    //   // participants, 
+    //   'team-making', 
+    //   `You have been added to the team "${newTeam.name}"`
+    // );
 
     // Respond with the created team
     res.status(201).json(newTeam);

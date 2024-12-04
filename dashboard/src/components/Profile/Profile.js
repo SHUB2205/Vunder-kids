@@ -58,8 +58,10 @@
           await getProfile(username);
         }
       }
+      
       if (user && profile) {
-        if (user.following.some(followed => followed._id === profile._id)){
+        // Ensure following is an array and all objects in it have _id
+        if (Array.isArray(user.following) && user.following.some(followed => followed?._id === profile._id)) {
           setFollowed(true);
         }
       }

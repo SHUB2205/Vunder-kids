@@ -4,7 +4,7 @@ import { onMessage } from "firebase/messaging"; // Import the onMessage function
 // Define the onMessage handler
 export const setupOnMessage = () => {
   onMessage(messaging, (payload) => {
-    console.log("Foreground message received:", payload); // Log the incoming message payload
+    // console.log("Foreground message received:", payload); // Log the incoming message payload
 
     const notificationTitle = payload.notification.title;
     const notificationOptions = {

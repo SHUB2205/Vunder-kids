@@ -1,74 +1,74 @@
 .matchNotificationItem {
-    display: flex;
-    flex-direction: column;
-    flex: var(--middleContentWidth);
+  display: flex;
+  flex-direction: column;
+  flex: var(--middleContentWidth);
 }
 
 .matchHeader {
-    display: flex;
-    align-items: flex-start;
-    padding: 8px;
+  display: flex;
+  align-items: flex-start;
+  padding: 8px;
 }
 
 .avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    margin-right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 8px;
 }
 
 .matchDetails {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .matchTitle {
-    display: flex;
-    align-items: center;
-    font: var(--font-caption);
-    color: #888;
-    margin-bottom: 4px;
-
+  display: flex;
+  align-items: center;
+  font: var(--font-caption);
+  color: #888;
+  margin-bottom: 4px;
 }
 
-.type , .location{
-    padding: 0 5px; 
-    }
+.type,
+.location {
+  padding: 0 5px;
+}
 
-    .time {
-        padding: 0 5px; 
-        font: var(--font-primary);
-        color: #b78a3a;
-        font-weight: bold;
-    }
+.time {
+  padding: 0 5px;
+  font: var(--font-primary);
+  color: #b78a3a;
+  font-weight: bold;
+}
 
 .content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    /* padding:5px; */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  /* padding:5px; */
 }
 
 .playerDetails {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .player {
-    /* padding:5px; */
-    font: var(--font-primary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  /* padding:5px; */
+  font: var(--font-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .playerAvatar {
-    margin:5px;
-    width: 30px;
-    height: 20px;
-    /* border-radius: 4px; */
+  margin: 5px;
+  width: 30px;
+  height: 20px;
+  /* border-radius: 4px; */
 }
 
 /* .actions {
@@ -76,128 +76,261 @@
     gap: 8px;
 } */
 .actions {
-    /* padding:5px; */
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-left: auto;
+  /* padding:5px; */
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+  width: auto;
 }
 
-.buttons{
-    display: flex;
-    gap: 10px;
-    margin-left: auto;
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .rejectButton,
 .acceptButton {
-    display: flex;
-    align-items: center;
-    font: var(--font-primary);
-    gap: 4px;
-    padding: 4px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--button-radius);
-    cursor: pointer;
-    background-color: transparent;
+  display: flex;
+  align-items: center;
+  font: var(--font-primary);
+  gap: 4px;
+  padding: 4px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--button-radius);
+  cursor: pointer;
+  background-color: transparent;
 }
 
 .icon {
-    width: 16px;
-    height: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 .timestamp {
-    font: var(--font-caption);
-    padding: 5px;
-    margin-left: 20px;
+  font: var(--font-caption);
+  padding: 5px;
+  margin-left: 20px;
 }
 
 .sport {
-    /* font-size: 14px;
+  /* font-size: 14px;
     color: #b78a3a;
     font-weight: bold;
     margin-top: 8px; */
-    font: var(--font-primary);
-    color: #b78a3a;
-    font-weight: bold;
-    margin-top: 10px;
-    /* padding:5px; */
-
+  font: var(--font-primary);
+  color: #b78a3a;
+  font-weight: bold;
+  margin-top: 10px;
+  /* padding:5px; */
 }
 
 .divider {
-    height: 1px;
-    background-color: #e7e7e8;
-    margin: 10px auto;
-    width: 90%;
+  height: 1px;
+  background-color: #e7e7e8;
+  margin: 10px auto;
+  width: 90%;
 }
-.responsive {
-    display: none; 
+.matchTitle .avatar {
+  display: none;
 }
-.responsivehead{
-    display: none;
+.outsideAvatar {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 8px;
 }
 
 /* Hide the original sport, time, and timestamp in .matchDetails for responsive view */
 @media (max-width: 990px) {
-    .matchTitle{
-        /* border: 5px solid green; */
-        margin-top:4px;
-        padding: 0px;
-        font: var(--font-primary);
-        items-align:center;
-    }
-    
-    /* Hide the content within the original .matchDetails in responsive view */
-    .matchDetails .content,
-    .content .timestamp {
-        display: none;
-    }
-    /* Show .responsivehead only on smaller screens and hide it on larger screens */
-    .responsivehead {
-        display: flex;
-        flex-direction: column;
-        font-weight: bold;
-        font-size: 0.9em;
-    }
-    .matchDetails .sport, 
-    .matchDetails .time, 
-    .matchDetails .timestamp {
-        display: none;
-    }
-    /* Display the responsive container only on smaller screens */
-    .responsive {
-        margin-top: 5px;
-        display: flex;
-        flex-direction: row; 
-        gap: 4px;
-    }
-    .sport {
-        padding: 5px;
-        margin: 0px;
-    }
-    
-    .time {
-        padding: 5px;
-        text-align: center;
-    }
-    .timestamp{
-        margin-left: 80px;
+  .actions {
+    /* margin-left: auto; */
+    width: auto;
+    margin-right: 10px;
+    flex-direction: column;
+  }
+  .matchTitle {
+    /* border: 5px solid green; */
+    margin-top: 4px;
+    padding: 0px;
+    font: var(--font-primary);
+  }
+  .matchTitle .avatar {
+    display: block;
+  }
+  .outsideAvatar {
+    display: none;
+  }
+  /* Hide the content within the original .matchDetails in responsive view */
 
-    }
-    /* Hide .responsivehead and .responsive on larger screens */
-    @media (min-width: 991px) {
-        .responsive,
-        .responsivehead {
-            display: none;
-        }
-    }
+  /* Show .responsivehead only on smaller screens and hide it on larger screens */
+  .responsivehead {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+    font-size: 0.9em;
+  }
 
-    /* Adjust actions layout for responsive view */
-    .actions {
-        /* margin-left: auto; */
-        margin-right: 10px;
-        flex-direction: column;
-    }
+  /* Display the responsive container only on smaller screens */
+  .responsive {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+  }
+  .sport {
+    padding: 5px;
+    margin: 0px;
+  }
+
+  .time {
+    padding: 5px;
+    text-align: center;
+  }
+  .timestamp {
+    margin-left: 80px;
+  }
+  /* Hide .responsivehead and .responsive on larger screens */
+  @media (min-width: 991px) {
+  }
+}
+.matchStatus {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #888;
+}
+.matchName {
+  color: black;
+  font: var(--font-primary);
+}
+.matchDivider {
+  height: 1px;
+  background-color: #e7e7e8;
+  margin: 10px auto;
+  width: 90%;
+}
+
+@media (max-width: 404px) {
+  .actions {
+    margin-right: 0px;
+    margin-left: 0px;
+    flex-direction: row;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+.belowCard {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.image-container {
+  position: relative;
+  display: inline-block;
+  width: 200px; /* Adjust as needed */
+  height: 200px; /* Adjust as needed */
+  overflow: hidden;
+  border-radius: 8px; /* Optional for rounded corners */
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image:hover {
+  transform: scale(1.1); /* Zoom in on hover */
+}
+
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  color: white;
+  text-align: center;
+  padding: 5px 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-container:hover .overlay {
+  opacity: 1;
+}
+.creatorAvatarContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.creatorNameTooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--hover-icon-color);
+  /* color: #fff; */
+  padding: 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  z-index: 10;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  /* width:50px;
+    height: 50px; */
+}
+
+.eyeIcon {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  left: 24%;
+  top: 18px;
+  transform: translateX(-50%);
+  background-color: var(--hover-icon-color);
+  /* color: #fff; */
+  padding: 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  z-index: 10;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateX(-50%); /* Adjust for perfect centering */
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s; /* Fade in/out transition */
+}
+
+.tooltip h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.tooltip ul {
+  padding-left: 20px;
+  margin: 10px 0 0 0;
+}
+
+.tooltip ul li {
+  font-size: 12px;
+  list-style-type: disc;
+}
+
+/* Tooltip visibility on hover */
+.player:hover .tooltip,
+.playerDetails:hover .tooltip {
+  opacity: 1; /* Show tooltip */
+  visibility: visible; /* Make the tooltip visible */
+  transition: opacity 0.3s ease, visibility 0s linear 0s; /* Fade in effect */
 }

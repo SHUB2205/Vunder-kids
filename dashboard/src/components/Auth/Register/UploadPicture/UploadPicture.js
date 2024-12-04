@@ -104,6 +104,8 @@ function UploadPicture() {
   // Handle "Skip" button click
   const handleSkipClick = () => {
     navigate("/register/success"); // Skip and navigate to success page or next step
+    navigate("/");
+    window.location.reload();
   };
 
   return (

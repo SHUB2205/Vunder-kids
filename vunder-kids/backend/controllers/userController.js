@@ -147,7 +147,7 @@ const sendVerificationEmail = async (req, res, next) => {
     await transporter.sendMail({
       to: user.email,
       subject: "Verify Your Email",
-      text: `Please verify your email by clicking the following link: ${process.env.Backend_URL}/api/verify-email/${verificationToken}`,
+      text: `Please verify your email by clicking the following link: ${process.env.EMAIL_URL}/api/verify-email/${verificationToken}`,
     });
 
     res.status(200).json({ message: "Verification email sent" });
@@ -192,6 +192,7 @@ const checkVerification = async (req, res) => {
 
     res.status(200).json({ isVerified: user.isVerified });
   } catch (error) {
+    // console.log(error);
     next(error);
   }
 };
@@ -290,19 +291,19 @@ const userInfo = async (req, res) => {
       .populate({
         path: 'following',
         select: 'avatar userName name followers',
-        transform: (doc) => ({
+        transform: (doc) => doc ? {
           ...doc.toObject(),
-          followers:doc.followers.length
-        })
+          followers: doc.followers.length
+        } : null
       })
       .populate({
         path: 'followers',
         select: 'avatar userName name followers',
-        transform: (doc) => ({
+        transform: (doc) => doc ? {
           ...doc.toObject(),
-          followers:doc.followers.length
-        })
-      })
+          followers: doc.followers?.length
+        } : null
+      })      
       .select('-password -matchIds -teamIds');
     } else if (userId) {
       user = await User.findById(userId, "-password");

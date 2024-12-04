@@ -34,7 +34,7 @@ const SearchDropdown = ({
     const value = e.target.value;
     setSearchTerm(value);
     const filtered = options.filter((option) =>
-      option.name.toLowerCase().includes(value.toLowerCase())
+      option.name?.toLowerCase().includes(value.toLowerCase())
     );
     if (isCustom && filtered.length === 0) {
       setIsOpen(false);

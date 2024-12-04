@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useMediaQuery } from "react-responsive";
 import Logo from "./Logo";
 import NavigationMenu from "./NavigationMenu";
@@ -27,15 +27,25 @@ function Sidebar() {
     }
   };
 
+  useEffect(() => {
+    const sidebarElement = sidebarRef.current;
+
+    if (sidebarElement) {
+      // Attach the wheel event listener with { passive: false }
+      sidebarElement.addEventListener("wheel", handleScroll, { passive: false });
+
+      // Cleanup the listener on component unmount
+      return () => {
+        sidebarElement.removeEventListener("wheel", handleScroll);
+      };
+    }
+  }, []);
+
   // Check if the current route is `/home/comment`
   const isCommentRoute = location.pathname === "/home/comment";
 
   return (
-    <aside
-      className={styles.sidebar}
-      ref={sidebarRef}
-      onWheel={handleScroll}
-    >
+    <aside className={styles.sidebar} ref={sidebarRef}>
       <Logo />
       {/* Conditionally hide navigation menu and user stats */}
       {!(isCommentRoute && isMobileView) && (
