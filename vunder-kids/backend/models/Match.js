@@ -24,11 +24,7 @@ const MatchSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Team",
         required: true,
-      },
-      score: {
-        type: Number,
-        default: 0,
-      },
+      }
     },
   ],
   isTeamMatch: {
@@ -87,6 +83,9 @@ const MatchSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  scores: [{
+    type:Number
+  }]
 });
 
 const Match = mongoose.model("Match", MatchSchema);

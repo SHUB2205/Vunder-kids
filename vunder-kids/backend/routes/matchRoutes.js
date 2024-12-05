@@ -10,6 +10,8 @@ router.post('/create', isAuth, matchController.createMatch);
 router.get('/all/:userid', isAuth, matchController.getAllMatches);
 
 router.get('/upcoming-matches',isAuth, matchController.getUpcomingMatches);
+router.get('/completed-matches/:username',isAuth, matchController.getCompletedMatchesByUsername);
+
 
 router.get('/sch-matches',matchController.scheduledMatches);
 // Get a match by ID

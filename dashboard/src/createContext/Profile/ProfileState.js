@@ -77,6 +77,20 @@ const ProfileState = ({ children }) => {
       }
     };
 
+    const fetchCompletedMatches = async (username) => {
+      try {
+          const response = await axios.get(`${Backend_URL}/api/matches/completed-matches/${username ? username : user?.userName}`
+            ,{headers:{token}}
+          );
+          return response.data;
+      } catch (err) {
+          console.log(err);
+      }
+      finally{
+        setLoading(false);
+      }
+  };
+
   return (
     <ProfileContext.Provider value={{
         profile,
@@ -87,7 +101,8 @@ const ProfileState = ({ children }) => {
         getUserReels,
         toggleFollow,
         setProfile,
-        updateUser
+        updateUser,
+        fetchCompletedMatches
     }}>
       {children}
     </ProfileContext.Provider>

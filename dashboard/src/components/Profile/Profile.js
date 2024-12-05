@@ -301,7 +301,7 @@
           {activeTab === "Photos" && <ProfilePhotos />}
           {activeTab === "Post" && <ProfilePosts />}
           {activeTab === "Reels" && <ProfileReels />}
-          {activeTab === "Matches" && <ProfileMatches />}
+          {activeTab === "Matches" && <ProfileMatches username={username}/>}
         </div>
       </div>
     );

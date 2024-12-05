@@ -580,8 +580,6 @@ exports.updateMatch2 = async (req, res, next) => {
       }
     
       const [team1, team2] = match.teams;
-      team1.score = score1;
-      team2.score = score2;
     
       let winnerTeam, loserTeam;
       if (score1 > score2) {
@@ -713,6 +711,7 @@ exports.updateMatch2 = async (req, res, next) => {
 
     // Update match status and save
     match.status = 'completed';
+    match.scores = [score1,score2];
     await match.save();
 
     res.status(200).json({
@@ -729,5 +728,43 @@ exports.updateMatch2 = async (req, res, next) => {
   } catch (error) {
     console.error('Error updating match:', error);
     next(error);
+  }
+};
+
+exports.getCompletedMatchesByUsername = async (req, res) => {
+  try {
+    // Find user by username
+    const user = await User.findOne({ userName: req.params.username });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find matches where user is in players and status is completed
+    const matches = await Match.find({ 
+      players: user._id,
+      status: 'completed' 
+    })
+    .populate({
+      path: 'sport',
+      select: 'name'
+    })
+    .populate({
+      path: 'teams.team',
+      select: 'name'
+    })
+    .populate({
+      path: 'winner.ref',
+      select: 'name userName'
+    })
+    .populate('players' ,'name userName avatar')
+    .sort({ date: -1 }); // Sort by most recent first
+
+    res.status(200).json(matches);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching completed matches', 
+      error: error.message 
+    });
   }
 };
