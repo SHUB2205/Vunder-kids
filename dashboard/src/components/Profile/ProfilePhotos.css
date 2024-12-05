@@ -1,9 +1,10 @@
 .profilePhotosContainer {
     display: grid;
-    grid-template-columns: repeat(3, 203px);
+    grid-template-columns: repeat(3, 190px);
     gap: 20px;
     justify-content: center;
     margin-top: 20px;
+    flex: var(--middleContentWidth);
 }   
 
 .profilePhotosContainer img {

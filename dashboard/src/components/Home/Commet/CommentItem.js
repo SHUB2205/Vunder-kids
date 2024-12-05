@@ -9,7 +9,7 @@ const CommentItem = ({ user, content, createdAt }) => {
         <div className={styles.username}>{user.userName}</div>
         <div className={styles.commentText}>{content}</div>
         <div className={styles.commentMeta}>
-          <div >{createdAt}</div>
+          <div >{(new Date(createdAt)?.toLocaleString())}</div>
         </div>
       </div>
     </div>
