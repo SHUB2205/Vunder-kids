@@ -16,14 +16,20 @@ import { requestPermission } from "./notification/requestPermission";
 import { setupOnMessage } from "./notification/onMessage";
 import AllNotifications from "./components/Notification/AllNotifications";
 import MatchNotifications from "./components/Notification/matchNotification/matchNotification";
+import OpenAiBtn from "./components/OpenAi/OpenAiBtn";
 const Dashboard = () => {
   const location = useLocation();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Routes where LeftSidebar is hidden
   const noSidebarRoutes = ["/register", "/login"];
 
   const [permission, setPermission] = useState(false);
   const [token, setToken] = useState(undefined);
+
+  const handleChatClick = () => {
+    setIsChatOpen(!isChatOpen); // Toggle chat window visibility
+  };
 
   // Notification
   useEffect(() => {
@@ -37,6 +43,7 @@ const Dashboard = () => {
     setupOnMessage();
     // eslint-disable-next-line
   }, []);
+
 
   return (
     <ChatState>
@@ -130,6 +137,7 @@ const Dashboard = () => {
               }
             />
           </Routes>
+          <OpenAiBtn onClick={handleChatClick} isChatOpen={isChatOpen} />
         </div>
       </div>
     </ChatState>
