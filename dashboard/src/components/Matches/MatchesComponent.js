@@ -2,15 +2,23 @@ import React, { useState, useEffect, useContext } from 'react';
 import styles from './MatchesComponent.module.css';
 import MatchCardPost from './MatchCardPost';
 import { MatchContext } from '../../createContext/Match/MatchContext';
+import CommentSection from '../Home/Commet/Comment';
 
 const MatchesComponent = () => {
   const sportTypes = ['All', 'Football', 'Tennis','Cricket','Basketball', 'Soccer'];
+  const [matchData,setMatcheData] = useState(null);
+  const [isCommentOpen,setIsCommentOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     matchType: '1 on 1',
     sportType: 'All',
   });
   const [locationSearch, setLocationSearch] = useState(''); // Track location input
   const {matches} = useContext(MatchContext);
+  const [savedScrollPosition, setSavedScrollPosition] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo(0, savedScrollPosition);
+  }, [isCommentOpen]);
 
   const filterMatches = (matches) => {
     return matches.filter(match => {
@@ -34,9 +42,21 @@ const MatchesComponent = () => {
     }));
   };
 
+  const openComment = (match_info) => {
+    setSavedScrollPosition(window.scrollY);     
+    setMatcheData(match_info);
+    setIsCommentOpen(true);
+  };
+
+  const closeComment = () => {     
+    setIsCommentOpen(false);     
+  };
+
   const filteredMatches = filterMatches(matches);
 
   return (
+    <>
+  {isCommentOpen ? <CommentSection onClose={closeComment} matchData={matchData} />  : 
     <section className={styles.matchesSection}>
       <div className={styles.matchesContainer}>
         <h2 className={styles.matchesTitle}>Matches</h2>
@@ -93,12 +113,14 @@ const MatchesComponent = () => {
               <MatchCardPost 
                 key={match._id} 
                 matchData={match}
+                openComment={openComment}
               />
             ))
           )}
         </div>
       </div>
-    </section>
+    </section>}
+    </>
   );
 };
 

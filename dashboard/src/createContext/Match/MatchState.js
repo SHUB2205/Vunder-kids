@@ -138,6 +138,43 @@ const MatchState = ({ children }) => {
           }
     }
 
+    const toggleLike = async (matchId) => {
+      try {
+        const response = await axios.put(`${Backend_URL}/api/matches/like/${matchId}`, {}, {
+          headers: { token }
+        });
+        return response.data;
+      } catch (error) {
+        console.error('Error toggling like:', error);
+        throw error;
+      }
+    };
+  
+    const createMatchComment = async (matchId, newComment) => {
+      try {
+        const response = await axios.post(`${Backend_URL}/api/matches/comments/${matchId}`,
+          { content: newComment }, {
+          headers: { token }
+        });
+        return response.data;
+      } catch (error) {
+        console.error('Error creating comment:', error);
+        throw error;
+      }
+    };
+
+    const vote = async (matchId,option) => {
+      try {
+        const response = await axios.put(`${Backend_URL}/api/matches/vote/${matchId}/option${option}`, {}, {
+          headers: { token }
+        });
+        return response.data;
+      } catch (error) {
+        console.error('Error toggling like:', error);
+        throw error;
+      }
+    };
+
     return (
         <MatchContext.Provider value={{
             sports,
@@ -148,7 +185,10 @@ const MatchState = ({ children }) => {
             fullMatchData,
             matches,
             fetchMatches,
-            updateAggrement
+            updateAggrement,
+            toggleLike,
+            createMatchComment,
+            vote
         }}>
             {children}
         </MatchContext.Provider>

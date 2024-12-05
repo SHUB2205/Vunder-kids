@@ -60,6 +60,7 @@
     width: 147px;
     max-width: 100%;
     align-items: center;
+    gap: 5px;
   }
   
   .likeIcons {
