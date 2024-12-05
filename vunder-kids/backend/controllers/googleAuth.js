@@ -35,8 +35,8 @@ router.use(passport.initialize());
 router.use(passport.session());
 
 //  be carefull here
-const clientid = "ID"
-const clientsecret = "ID"
+const clientid = "228335856717-514r6qhk7fagdqufj3893c65qatmmmlh.apps.googleusercontent.com"
+const clientsecret = "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"
 
 passport.use(new OAuth2Strategy({
         clientID: clientid,

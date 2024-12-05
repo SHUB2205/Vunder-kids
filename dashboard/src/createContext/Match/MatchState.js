@@ -147,6 +147,7 @@ const MatchState = ({ children }) => {
             error,
             fullMatchData,
             matches,
+            fetchMatches,
             updateAggrement
         }}>
             {children}

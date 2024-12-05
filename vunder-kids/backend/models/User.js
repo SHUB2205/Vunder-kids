@@ -51,15 +51,6 @@ const UserSchema = new mongoose.Schema({
 
   matchIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Match" }],
   teamIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
-
-  totalMatches: {
-    type: Number,
-    default: 0,
-  },
-  wonMatches: {
-    type: Number,
-    default: 0,
-  },
   progress: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Progress",
@@ -148,6 +139,10 @@ const UserSchema = new mongoose.Schema({
   notificationToken:{
     type:String,
     default: null
+  },
+  bio : {
+    type:String,
+    default:'Passionate football enthusiast | Dedicated athlete | Striving for excellence on and off the pitch.'
   }
 });
 

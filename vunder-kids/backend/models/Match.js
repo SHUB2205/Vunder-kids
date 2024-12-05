@@ -24,11 +24,7 @@ const MatchSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Team",
         required: true,
-      },
-      score: {
-        type: Number,
-        default: 0,
-      },
+      }
     },
   ],
   isTeamMatch: {
@@ -87,6 +83,33 @@ const MatchSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  scores: [{
+    type:Number
+  }],
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ],
+  comments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Comment'
+    }
+  ],
+  predictions: {
+    option1: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: []
+    }],
+    option2: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: []
+    }]
+  }
 });
 
 const Match = mongoose.model("Match", MatchSchema);

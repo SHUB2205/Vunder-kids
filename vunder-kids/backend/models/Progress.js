@@ -5,10 +5,25 @@ const ProgressSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  // Divide the score among the sports
+  totalMatches:{
+    type:Number,
+    default:0
+  },
+  matchesWon:{
+    type:Number,
+    default:0
+  },
   sportScores: [
     {
       score: {
+        type: Number,
+        default: 0,
+      },
+      totalMatches:{
+        type: Number,
+        default: 0,
+      },
+      wonMatches:{
         type: Number,
         default: 0,
       },

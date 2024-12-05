@@ -6,6 +6,8 @@ const CalendarEvent = require("../models/calendarEvent");
 const notificationService = require("../services/notification/notificationService.js");
 const User = require("../models/User.js");
 const { updateScore } = require("./progressController.js");
+const Progress = require("../models/Progress.js");
+const Comment = require("../models/comment");
 
 exports.createMatch = async (req, res) => {
   try {
@@ -402,6 +404,13 @@ exports.scheduledMatches = async (req, res) => {
       .populate("sport", "_id name") // If sport is a reference
       .populate("teams.team") // Populate team details
       .populate("players", "_id avatar userName name") // Populate player details
+      .populate({
+        path:"comments",
+        populate: {
+          path : "user",
+          select: "userName name avatar"
+        }
+      })
       .sort({ date: 1 }); // Sort by earliest date first
 
     res.json(scheduledMatches);
@@ -433,7 +442,6 @@ exports.getUpcomingMatches = async (req, res) => {
       date: { $gte: today }, // Ensure matches are for today or later
       $or: [{ players: userId }, { "teams.team": { $in: user.teamIds } }],
     };
-
     // Query for friends matches
     const friendIds = user.following.map((friend) => friend._id);
 
@@ -546,6 +554,354 @@ exports.updateAgreement = async (req, res) => {
     return res.status(500).json({
       message: "An error occurred while updating the agreement.",
       error: error.message,
+    });
+  }
+};
+
+//To Do:
+//more than onces posible
+//only admin should have permission
+exports.updateMatch2 = async (req, res, next) => {
+  const { matchId, score1, score2 } = req.body;
+
+  try {
+    // Find the match and populate necessary references
+    const match = await Match.findById(matchId)
+      .populate('teams.team') // Populate team if it's a team match
+      .populate('players') // Populate players if it's an individual match
+      .populate('sport'); // Populate the sport details
+
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    // Ensure sport exists
+    if (!match.sport) {
+      return res.status(400).json({ message: 'Sport not specified for the match' });
+    }
+
+    // Handle Team Match
+    if (match.isTeamMatch) {
+      // Ensure we have two teams
+      if (match.teams.length !== 2) {
+        return res.status(400).json({ message: 'Match must have exactly two teams' });
+      }
+    
+      const [team1, team2] = match.teams;
+    
+      let winnerTeam, loserTeam;
+      if (score1 > score2) {
+        winnerTeam = team1.team;
+        loserTeam = team2.team;
+        match.winner = { type: 'Team', ref: team1.team._id };
+      } else if (score2 > score1) {
+        winnerTeam = team2.team;
+        loserTeam = team1.team;
+        match.winner = { type: 'Team', ref: team2.team._id };
+      } else {
+        return res.status(400).json({ message: 'Draw not supported. A clear winner is required.' });
+      }
+    
+      // Update team players progress
+      const updateTeamPlayersProgress = async (team, isWinner) => {
+        for (const playerId of team.participants) {
+          // Find the user
+          const user = await User.findById(playerId);
+          
+          if (user && user.progress) {
+            // Find the progress document
+            const userProgress = await Progress.findById(user.progress);
+            
+            if (userProgress) {
+              // Update overall progress
+              userProgress.overallScore += isWinner ? 10 : 5;
+              userProgress.totalMatches += 1;
+              if (isWinner) userProgress.matchesWon += 1;
+    
+              // Find or create sport-specific score entry
+              let sportScoreEntry = userProgress.sportScores.find(
+                ss => ss.sport.toString() === match.sport._id.toString()
+              );
+    
+              if (!sportScoreEntry) {
+                sportScoreEntry = {
+                  sport: match.sport._id,
+                  score: isWinner ? 10 : 5,
+                  totalMatches: 1,
+                  wonMatches: isWinner ? 1 : 0
+                };
+                userProgress.sportScores.push(sportScoreEntry);
+              }
+    
+              // Update sport-specific progress
+              sportScoreEntry.totalMatches += 1;
+              if (isWinner) {
+                sportScoreEntry.wonMatches += 1;
+                sportScoreEntry.score += 10;
+              } else {
+                sportScoreEntry.score += 5;
+              }
+    
+              await userProgress.save();
+            }
+          }
+        }
+      };
+    
+      // Update progresses for both teams
+      await updateTeamPlayersProgress(winnerTeam, true);
+      await updateTeamPlayersProgress(loserTeam, false);
+    }
+    // Handle Individual Player Match
+    else {
+      // Ensure we have exactly 2 players
+      if (match.players.length !== 2) {
+        return res.status(400).json({ message: 'Individual match must have exactly two players' });
+      }
+
+      const [player1, player2] = match.players;
+
+      let winner, loser;
+      if (score1 > score2) {
+        winner = player1;
+        loser = player2;
+        match.winner = { type: 'User', ref: player1._id };
+      } else if (score2 > score1) {
+        winner = player2;
+        loser = player1;
+        match.winner = { type: 'User', ref: player2._id };
+      } else {
+        return res.status(400).json({ message: 'Draw not supported. A clear winner is required.' });
+      }
+
+      // Update winner's progress
+      const updatePlayerProgress = async (player, isWinner) => {
+        const playerProgress = await Progress.findById(player.progress);
+        
+        if (playerProgress) {
+          // Overall progress
+          playerProgress.overallScore += isWinner ? 10 : 5;
+          playerProgress.totalMatches += 1;
+          if (isWinner) playerProgress.matchesWon += 1;
+
+          // Find or create sport-specific score entry
+          let sportScoreEntry = playerProgress.sportScores.find(
+            ss => ss.sport.toString() === match.sport._id.toString()
+          );
+
+          if (!sportScoreEntry) {
+            sportScoreEntry = {
+              sport: match.sport._id,
+              score: isWinner ? 10 : 5,
+              totalMatches: 1,
+              wonMatches: isWinner ? 1 : 0
+            };
+            playerProgress.sportScores.push(sportScoreEntry);
+          }
+
+          // Update sport-specific progress
+          sportScoreEntry.totalMatches += 1;
+          if (isWinner) {
+            sportScoreEntry.wonMatches += 1;
+            sportScoreEntry.score += 10;
+          } else {
+            sportScoreEntry.score += 5;
+          }
+
+          await playerProgress.save();
+        }
+      };
+
+      // Update progresses for both players
+      await updatePlayerProgress(winner, true);
+      await updatePlayerProgress(loser, false);
+    }
+
+    // Update match status and save
+    match.status = 'completed';
+    match.scores = [score1,score2];
+    await match.save();
+
+    res.status(200).json({
+      message: 'Match updated successfully',
+      match: {
+        _id: match._id,
+        isTeamMatch: match.isTeamMatch,
+        winner: match.winner,
+        status: match.status,
+        scores: [score1, score2]
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating match:', error);
+    next(error);
+  }
+};
+
+exports.getCompletedMatchesByUsername = async (req, res) => {
+  try {
+    // Find user by username
+    const user = await User.findOne({ userName: req.params.username });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find matches where user is in players and status is completed
+    const matches = await Match.find({ 
+      players: user._id,
+      status: 'completed' 
+    })
+    .populate({
+      path: 'sport',
+      select: 'name'
+    })
+    .populate({
+      path: 'teams.team',
+      select: 'name'
+    })
+    .populate({
+      path: 'winner.ref',
+      select: 'name userName'
+    })
+    .populate('players' ,'name userName avatar')
+    .sort({ date: -1 }); // Sort by most recent first
+
+    res.status(200).json(matches);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching completed matches', 
+      error: error.message 
+    });
+  }
+};
+
+exports.toggleLikeMatch = async (req, res) => {
+  try {
+    const matchId = req.params.matchId;
+    const userId = req.user.id;
+
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    const isLiked = match.likes.includes(userId);
+    const updateOp = isLiked ? '$pull' : '$push';
+
+    const updatedMatch = await Match.findByIdAndUpdate(
+      matchId,
+      { [updateOp]: { likes: userId } },
+      { new: true }
+    ).populate({
+      path: 'likes',
+      select: '_id userName avatar'
+    }).populate({
+      path: 'comments',
+      populate: {
+        path: 'user',
+        select: '_id userName avatar'
+      }
+    });
+
+    res.status(200).json({
+      message: isLiked ? 'Match unliked' : 'Match liked',
+      match: updatedMatch
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error toggling like",
+      error: err.message
+    });
+  }
+};
+
+exports.commentOnMatch = async (req, res, next) => {
+  const { matchId } = req.params;
+  const { content } = req.body;
+
+  try {
+    const match = await Match.findById(matchId);
+    if (!match) {
+      const error = new Error('Match not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const comment = new Comment({
+      content,
+      user: req.user.id
+    });
+
+    match.comments.push(comment);
+
+    await Promise.all([comment.save(), match.save()]);
+
+    const populatedComment = await Comment.findById(comment._id).populate({
+      path: 'user',
+      select: '_id userName avatar'
+    });
+
+    res.status(201).json({ 
+      message: 'Comment added!', 
+      comment: populatedComment 
+    });
+
+  } catch (err) {
+    next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
+};
+
+exports.votePrediction = async (req, res) => {
+  try {
+    const { matchId, optionNumber } = req.params;
+    const userId = req.user.id;
+
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    // If optionNumber is 0, it means unselect
+    if (optionNumber === '0') {
+      // Remove user from both options
+      match.predictions.option1 = match.predictions.option1.filter(
+        id => id.toString() !== userId
+      );
+      match.predictions.option2 = match.predictions.option2.filter(
+        id => id.toString() !== userId
+      );
+    } else {
+      // Validate option number
+      if (!['option1', 'option2'].includes(optionNumber)) {
+        return res.status(400).json({ message: "Invalid prediction option" });
+      }
+
+      // Determine the other option
+      const otherOption = optionNumber === 'option1' ? 'option2' : 'option1';
+
+      // Remove user from other option if exists
+      match.predictions[otherOption] = match.predictions[otherOption].filter(
+        id => id.toString() !== userId
+      );
+
+      // Add user to selected option if not already present
+      if (!match.predictions[optionNumber].some(id => id.toString() === userId)) {
+        match.predictions[optionNumber].push(userId);
+      }
+    }
+
+    await match.save();
+
+    res.status(200).json({message: 'Prediction recorded'});
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      message: "Error recording prediction",
+      error: err.message
     });
   }
 };
