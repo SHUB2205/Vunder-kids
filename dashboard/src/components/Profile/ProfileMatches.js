@@ -16,6 +16,8 @@ function ProfileMatches({username}) {
         fecther();
     }, []);
 
+    if (matches?.length == 0) return <>You have 0 completed matches.</>
+
     return (
         <div className='Matchlist'>
             {matches?.map((match, index) => (

@@ -16,7 +16,7 @@ const ProfileState = ({ children }) => {
     const getProfile = async (username) => {
       try {
         if (!username ||( user && username === user.userName)) {
-          const response = await axios.get(`${Backend_URL}/api/getUser/${user.userName}`);
+          const response = await axios.get(`${Backend_URL}/api/getUser/${user.userName}`,{headers:{token}});
           setProfile(response.data);
         } else if (username) {
           const response = await axios.get(`${Backend_URL}/api/getUser/${username}`,{headers:{token}});

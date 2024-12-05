@@ -34,7 +34,7 @@ function Post({ _id ,creator, createdAt, content, mediaURL, likes,openComment })
           <img src={creator ? creator.avatar : ''} alt={`${creator ? creator.userName : ' '}'s avatar`} className={styles.authorAvatar} />
           <div className={styles.authorInfo}>
             <h3 className={styles.authorName}>{creator ? creator.userName : ''}</h3>
-            <time className={styles.postTime}>{createdAt}</time>
+            <time className={styles.postTime}>{(new Date(createdAt)?.toLocaleString())}</time>
           </div>
           <button aria-label="Post options" className={styles.postOptions}>
             <img src="http://b.io/ext_22-" alt="" />

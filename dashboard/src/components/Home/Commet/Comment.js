@@ -4,26 +4,40 @@ import CommentItem from './CommentItem';
 import { PostContext } from '../../../createContext/Post/PostContext';
 import IsAuth from '../../../createContext/is-Auth/IsAuthContext';
 import { SendHorizontal } from 'lucide-react';
+import { MatchContext } from '../../../createContext/Match/MatchContext';
 
-const CommentSection = ({onClose ,postid}) => {
+const CommentSection = ({onClose ,postid,matchData}) => {
   const {getPostById,createComment} = useContext(PostContext);
   const [comments , setComments] = useState([]);
   const [newComment, setNewComment] = useState(""); 
   const {user} = useContext(IsAuth);
+  const {createMatchComment} = useContext(MatchContext);
 
   useEffect(() => {
-    getPostById(postid).then( res => {
-      setComments(res.comments);
-    });
-  },[postid]);
+    if (postid){
+      getPostById(postid).then( res => {
+        setComments(res.comments);
+      });  
+    }
+    else{
+      setComments(matchData?.comments);
+    }
+  },[postid,matchData]);
 
   const handleCommentChange = (e) => {
     setNewComment(e.target.value);  
   };
+
   const handleSend = async() => {
     setNewComment(newComment.trim());
     if (!newComment.trim()) return;
-    const res = await createComment(postid,newComment);
+    let res;
+    if (postid){
+      res = await createComment(postid,newComment);
+    }
+    else{
+      res = await createMatchComment(matchData?._id,newComment);
+    }
     setComments(prevComments => [{...res.comment,user:{avatar:user.avatar,userName:user.userName,_id:user._id}}, ...prevComments]);
     setNewComment("");
   };
@@ -44,10 +58,10 @@ const CommentSection = ({onClose ,postid}) => {
       <div className={styles.commentInputContainerBox}>
         <form className={styles.commentInputContainer}>
           <div className={styles.commentInputWrapper}>
-            <img loading="lazy" src={user.avatar} alt="" className={styles.userAvatar} />
+            <img loading="lazy" src={user?.avatar} alt="" className={styles.userAvatar} />
           </div>
           <div className={styles.inputHeader}>
-            <input type="text" id="commentInput" style={{ font: "var(--font-secondary)", width: "100%", border: "none", outline: "none" }} placeholder="Add a comment" className="visually-hidden" aria-label="Add a comment" onChange={handleCommentChange}  value={newComment}/>
+            <input type="text" id="commentInput" style={{ font: "var(--font-secondary)", width: "100%", border: "none", outline: "none" }} placeholder="Add a comment" aria-label="Add a comment" onChange={handleCommentChange}  value={newComment}/>
           </div>
           <SendHorizontal color='gray' style={{cursor:'pointer'}} onClick={handleSend}/>
         </form>

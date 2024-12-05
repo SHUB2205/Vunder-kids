@@ -64,6 +64,25 @@
   border-color: #4299e1;
 }
 
+.disabledCheckbox {
+  border-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.selectedCheckbox {
+  background-color: #4299e1;
+  border-color: #4299e1;
+}
+
+.selectedDisableCheckbox {
+  background-color: #d7dadc;
+  border-color: #cccccc;
+  cursor: not-allowed;
+}
+
+
+
 .progressBarContainer {
   width: 120px;
   height: 6px;
