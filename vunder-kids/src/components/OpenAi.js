@@ -12,10 +12,18 @@ const OpenAi = () => {
         setError('');
         
         try {
-            const res = await axios.post('http://localhost:5000/api/ai/askOpenAi', {
-                question: question,
-            });
-
+            const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3M2Q0NDY4ZWY1NmExMzAxNDRiNTQ3MyIsImlzVmVyaWZpZWQiOnRydWUsImlhdCI6MTczMzQxNDcxMCwiZXhwIjoxNzM2MDA2NzEwfQ.8gVcOLsKw1TerLr_BbizIplPO5-pl2afSnHKDqSD-ZU"; // Replace this with the actual token (e.g., from localStorage, state, or props)
+        
+            const res = await axios.post(
+                'http://localhost:5000/api/ai/askOpenAi',
+                { question: question },
+                {
+                    headers: {
+                      token, // Include the token in the Authorization header
+                    },
+                }
+            );
+        
             setResponse(res.data); // Assuming your backend returns the answer directly
             setQuestion(''); // Clear the input field
         } catch (err) {
@@ -24,6 +32,7 @@ const OpenAi = () => {
         } finally {
             setLoading(false);
         }
+        
     };
 
     return (

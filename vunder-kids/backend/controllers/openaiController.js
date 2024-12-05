@@ -1,16 +1,13 @@
 const OpenAI = require('openai');
 
-
-
 const openai = new OpenAI({
-        apiKey: "key"
+        apiKey: "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"
  });
 
 
-
-const fetchData=require('../services/openai/fetchData.js')
-// const siteLink=require('../services/openai/siteLinks.js')
-const askOpenai=async(req,res)=>{
+ // const siteLink=require('../services/openai/siteLinks.js')
+ const askOpenai=async(req,res)=>{
+    const fetchData=require('../services/openai/fetchData.js');
     try {
         const { question } = req.body; // Assuming userId, siteLink, and the user's question are sent from the client
         const userId= req.user.id;
