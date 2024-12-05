@@ -7,6 +7,7 @@ const notificationService = require("../services/notification/notificationServic
 const User = require("../models/User.js");
 const { updateScore } = require("./progressController.js");
 const Progress = require("../models/Progress.js");
+const Comment = require("../models/comment");
 
 exports.createMatch = async (req, res) => {
   try {
@@ -403,6 +404,13 @@ exports.scheduledMatches = async (req, res) => {
       .populate("sport", "_id name") // If sport is a reference
       .populate("teams.team") // Populate team details
       .populate("players", "_id avatar userName name") // Populate player details
+      .populate({
+        path:"comments",
+        populate: {
+          path : "user",
+          select: "userName name avatar"
+        }
+      })
       .sort({ date: 1 }); // Sort by earliest date first
 
     res.json(scheduledMatches);
@@ -765,6 +773,135 @@ exports.getCompletedMatchesByUsername = async (req, res) => {
     res.status(500).json({ 
       message: 'Error fetching completed matches', 
       error: error.message 
+    });
+  }
+};
+
+exports.toggleLikeMatch = async (req, res) => {
+  try {
+    const matchId = req.params.matchId;
+    const userId = req.user.id;
+
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    const isLiked = match.likes.includes(userId);
+    const updateOp = isLiked ? '$pull' : '$push';
+
+    const updatedMatch = await Match.findByIdAndUpdate(
+      matchId,
+      { [updateOp]: { likes: userId } },
+      { new: true }
+    ).populate({
+      path: 'likes',
+      select: '_id userName avatar'
+    }).populate({
+      path: 'comments',
+      populate: {
+        path: 'user',
+        select: '_id userName avatar'
+      }
+    });
+
+    res.status(200).json({
+      message: isLiked ? 'Match unliked' : 'Match liked',
+      match: updatedMatch
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error toggling like",
+      error: err.message
+    });
+  }
+};
+
+exports.commentOnMatch = async (req, res, next) => {
+  const { matchId } = req.params;
+  const { content } = req.body;
+
+  try {
+    const match = await Match.findById(matchId);
+    if (!match) {
+      const error = new Error('Match not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const comment = new Comment({
+      content,
+      user: req.user.id
+    });
+
+    match.comments.push(comment);
+
+    await Promise.all([comment.save(), match.save()]);
+
+    const populatedComment = await Comment.findById(comment._id).populate({
+      path: 'user',
+      select: '_id userName avatar'
+    });
+
+    res.status(201).json({ 
+      message: 'Comment added!', 
+      comment: populatedComment 
+    });
+
+  } catch (err) {
+    next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
+};
+
+exports.votePrediction = async (req, res) => {
+  try {
+    const { matchId, optionNumber } = req.params;
+    const userId = req.user.id;
+
+    const match = await Match.findById(matchId);
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    // If optionNumber is 0, it means unselect
+    if (optionNumber === '0') {
+      // Remove user from both options
+      match.predictions.option1 = match.predictions.option1.filter(
+        id => id.toString() !== userId
+      );
+      match.predictions.option2 = match.predictions.option2.filter(
+        id => id.toString() !== userId
+      );
+    } else {
+      // Validate option number
+      if (!['option1', 'option2'].includes(optionNumber)) {
+        return res.status(400).json({ message: "Invalid prediction option" });
+      }
+
+      // Determine the other option
+      const otherOption = optionNumber === 'option1' ? 'option2' : 'option1';
+
+      // Remove user from other option if exists
+      match.predictions[otherOption] = match.predictions[otherOption].filter(
+        id => id.toString() !== userId
+      );
+
+      // Add user to selected option if not already present
+      if (!match.predictions[optionNumber].some(id => id.toString() === userId)) {
+        match.predictions[optionNumber].push(userId);
+      }
+    }
+
+    await match.save();
+
+    res.status(200).json({message: 'Prediction recorded'});
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      message: "Error recording prediction",
+      error: err.message
     });
   }
 };

@@ -24,6 +24,9 @@ router.post('/set-score',isAuth,matchController.updateMatch2);
 
 // Route for a team to agree to a match
 router.post('/agreement', isAuth ,matchController.updateAgreement);
+router.put('/like/:matchId', isAuth, matchController.toggleLikeMatch);
+router.post('/comments/:matchId', isAuth, matchController.commentOnMatch);
+router.put('/vote/:matchId/:optionNumber', isAuth, matchController.votePrediction);
 
 
 module.exports = router;

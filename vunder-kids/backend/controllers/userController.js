@@ -378,6 +378,7 @@ const getByUsername = async (req, res) => {
       location: user.location,
       passions:user.passions,
       bio:user.bio,
+      progress:user.progress,
       followedBy,
     });
   } catch (err) {

@@ -85,7 +85,31 @@ const MatchSchema = new mongoose.Schema({
   },
   scores: [{
     type:Number
-  }]
+  }],
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ],
+  comments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Comment'
+    }
+  ],
+  predictions: {
+    option1: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: []
+    }],
+    option2: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: []
+    }]
+  }
 });
 
 const Match = mongoose.model("Match", MatchSchema);
