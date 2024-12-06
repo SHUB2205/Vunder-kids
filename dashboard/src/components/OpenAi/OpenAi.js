@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback,useContext } from "react";
 import "./OpenAi.css";
 import { ReactComponent as SendIcon } from "../images/send.svg";
-
+import isAuth from "../../createContext/is-Auth/IsAuthContext";
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 const ChatBot = ({ onClick }) => {
+  const {token} = useContext(isAuth);  
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const chatContainerRef = useRef(null);
+  const sessionId = "userSession"; // Static session ID or dynamic based on your needs
 
   // Automatically scroll to the bottom when messages change
   useEffect(() => {
@@ -26,17 +29,46 @@ const ChatBot = ({ onClick }) => {
     setMessages((prev) => [...prev, message]);
   }, []);
 
+  // Fetch conversation history from sessionStorage
+  const fetchConversationHistory = () => {
+    const conversationHistory = JSON.parse(sessionStorage.getItem("conversationHistory")) || [];
+    return conversationHistory;
+  };
+
+  // Save conversation history to sessionStorage
+  const saveConversationHistory = (conversationHistory) => {
+    sessionStorage.setItem("conversationHistory", JSON.stringify(conversationHistory));
+  };
+
   // Handle sending the user message and bot response
   const handleSendMessage = useCallback(() => {
     if (inputMessage.trim()) {
+      const conversationHistory = fetchConversationHistory();
       addMessage(inputMessage, "user"); // Add user message
+      conversationHistory.push({ role: "user", content: inputMessage });
 
-      // Simulate a bot response
-      setTimeout(() => {
-        addMessage(`You said: ${inputMessage}`, "bot");
-      }, 500);
+      // Send the message to the backend
+      fetch(`${Backend_URL}/api/ai/askOpenai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          token
+        },
+        body: JSON.stringify({ question: inputMessage, sessionId }),
+      })
+        .then((response) => response.json())
+        .then(({ reply }) => {
+          addMessage(reply, "bot"); // Add bot's response
+          conversationHistory.push({ role: "assistant", content: reply });
 
-      setInputMessage(""); // Clear input
+          // Save updated history to sessionStorage
+          saveConversationHistory(conversationHistory);
+        })
+        .catch((error) => {
+          console.error("Error during the API request:", error);
+        });
+
+      setInputMessage(""); // Clear input field
     }
   }, [inputMessage, addMessage]);
 
@@ -46,9 +78,7 @@ const ChatBot = ({ onClick }) => {
       messages.map(({ id, content, sender, timestamp }) => (
         <div
           key={id}
-          className={`message-chat-message ${
-            sender === "user" ? "message-chat-self" : "message-chat-other"
-          }`}
+          className={`message-chat-message ${sender === "user" ? "message-chat-self" : "message-chat-other"}`}
         >
           <p className="message-chat-text">{content}</p>
           <span className="message-chat-time">
