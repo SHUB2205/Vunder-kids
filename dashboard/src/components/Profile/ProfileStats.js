@@ -11,12 +11,19 @@ function ProfileStats({ progress }) {
 
     // Function to get sport-specific or overall stats
     const getStats = () => {
-        if (!progress) return {};
+        if (!progress)  return {
+            "Matches played": 0 ,
+            "Matches won": 0,
+            "Matches lost": 0,
+            "Score": 0,
+            "Avg. Score per Match": 0.00,
+            "Win/lose ratio": 0.00
+        };
 
         // Overall stats if "All" is selected
         if (activeSport === "All") {
             return {
-                "Matches played": progress.totalMatches,
+                "Matches played": progress.totalMatches ,
                 "Matches won": progress.matchesWon,
                 "Matches lost": progress.totalMatches - progress.matchesWon,
                 "Score": progress.overallScore,

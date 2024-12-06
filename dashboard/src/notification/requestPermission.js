@@ -1,6 +1,6 @@
 import { messaging } from "./fireBase";
 import { getToken } from "firebase/messaging";
-const Backend_URL = "http://localhost:5000";
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 export const requestPermission = async (userId) => {
   const permission = await Notification.requestPermission();

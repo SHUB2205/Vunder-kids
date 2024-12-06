@@ -226,7 +226,7 @@ const requestResetPassword = async (req, res) => {
       to: req.body.email,
       subject: "Password Reset Request",
       html: `
-        <p>Click this <a href="http://localhost:5000/api/reset-password/${token}">link</a> to reset your password.</p>
+        <p>Click this <a href="${BACKEND_URL}/api/reset-password/${token}">link</a> to reset your password.</p>
       `,
     });
 
@@ -239,7 +239,7 @@ const requestResetPassword = async (req, res) => {
       .status(200)
       .json({
         message: "Password reset email sent successfully",
-        link: `http://localhost:5000/api/reset-password/${token}`,
+        link: `${BACKEND_URL}/api/reset-password/${token}`,
       });
   } catch (error) {
     console.error("Error sending password reset email:", error);

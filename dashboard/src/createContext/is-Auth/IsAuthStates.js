@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import IsAuth from "./IsAuthContext";
 import axios from "axios";
 
-const Backend_URL = 'http://localhost:5000';
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function IsAuthStates(props) {
     const [token, setToken] = useState(sessionStorage.getItem('token'));

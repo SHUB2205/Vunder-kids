@@ -4,7 +4,7 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import isAuth from "../is-Auth/IsAuthContext";
 
-const Backend_URL = "http://localhost:5000";
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 const NotificationState = ({ children }) => {
   const [allNotifications, setAllNotifications] = useState([]);

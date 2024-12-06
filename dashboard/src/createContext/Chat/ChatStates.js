@@ -10,8 +10,8 @@ import axios from "axios";
 import IsAuth from "../is-Auth/IsAuthContext";
 import io from "socket.io-client";
 export default function ChatState(props) {
-  const Chat_Url = "http://localhost:4000";
-  const Backend_URL = "http://localhost:5000";
+  const Chat_Url = process.env.REACT_APP_CHAT_URL;
+  const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
   const { token, fetchUserInfo, user } = useContext(IsAuth); // Get fetchUserInfo and user from context
   const [userInfo, setUserInfo] = useState(null); // State to store user info

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import RegisterContext from "./RegisterContext";
 
-const Backend_URL = "http://localhost:5000"; // Replace with actual backend URL
+const Backend_URL = process.env.REACT_APP_BACKEND_URL; // Replace with actual backend URL
 
 export default function RegisterStates({ children }) {
   const [loading, setLoading] = useState(false);
