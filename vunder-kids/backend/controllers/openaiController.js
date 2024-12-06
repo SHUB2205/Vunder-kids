@@ -1,64 +1,72 @@
 const OpenAI = require('openai');
+const Redis = require('ioredis');
+const fetchData = require('../services/openai/fetchData.js');
 
+// Initialize OpenAI and Redis
 const openai = new OpenAI({
-    apiKey: "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"
+  apiKey: process.env.OPENAI_API_KEY, // Securely load API key from environment variables
 });
 
-// In-memory storage for conversation history
-const conversationHistory = {};
+const redis = new Redis();
 
+// Function to interact with OpenAI API
 const askOpenai = async (req, res) => {
-    const fetchData = require('../services/openai/fetchData.js');
-    try {
-        const { question } = req.body;
-        const userId = req.user.id;
+  try {
+    const { question } = req.body;
+    const userId = req.user.id; // Assuming user ID is passed via req.user
 
-        // Fetch user data from MongoDB
-        const userData = await fetchData(userId);
-
-        if (!userData) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Initialize or fetch conversation history
-        if (!conversationHistory[userId]) {
-            conversationHistory[userId] = [];
-        }
-
-        // Add the user's current question to the conversation history
-        conversationHistory[userId].push({ role: 'user', content: question });
-
-        // Construct a personalized system prompt using user data
-        const systemMessage = `
-            You are a helpful assistant. The user is ${userData.name || "an anonymous user"}, 
-             Using the following data: ${JSON.stringify(userData)}. 
-            Assist the user based on their profile.
-        `;
-
-        // Construct the OpenAI messages array
-        const messages = [
-            { role: 'system', content: systemMessage }, // Personalized system message
-            ...conversationHistory[userId]
-        ];
-
-        // Call OpenAI API
-        const response = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo', // Replace with your desired model
-            messages: messages,
-        });
-
-        // Extract and append the AI's response to the conversation history
-        const botResponse = response.choices[0].message.content;
-        conversationHistory[userId].push({ role: 'assistant', content: botResponse });
-        // console.log(botResponse);
-        // Return the response to the user
-        res.json({ reply: botResponse });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
+    // Fetch user data from MongoDB (for user personalization)
+    const userData = await fetchData(userId);
+    if (!userData) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    // Construct a personalized system prompt
+    const systemMessage = `
+      You are a helpful assistant. The user is ${userData.name || "an anonymous user"}, 
+      Using the following data: ${JSON.stringify(userData)}. 
+      Assist the user based on their profile.
+    `;
+
+    // Fetch conversation history from Redis
+    let conversationHistory = await redis.get(userId);
+    if (conversationHistory) {
+      conversationHistory = JSON.parse(conversationHistory);
+    } else {
+      conversationHistory = []; // Initialize an empty history if not found
+    }
+
+    // Add the user's current question to the conversation history
+    conversationHistory.push({ role: 'user', content: question });
+
+    // Construct the OpenAI messages array with system and conversation history
+    const messages = [
+      { role: 'system', content: systemMessage },
+      ...conversationHistory,
+    ];
+
+    // Call OpenAI API for a response
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo', // You can change this to another model if necessary
+      messages: messages,
+    });
+
+    const botResponse = response.choices[0].message.content;
+    // console.log(userId);
+    // Append the AI's response to the conversation history
+    conversationHistory.push({ role: 'assistant', content: botResponse });
+
+    // Save updated conversation history in Redis with a TTL (e.g., 1 hour)
+    await redis.set(userId, JSON.stringify(conversationHistory), 'EX', 3600);
+
+    // Return the AI's response to the frontend
+    res.json({ reply: botResponse });
+  } catch (error) {
+    console.error('Error interacting with OpenAI:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
 module.exports = {
-    askOpenai,
+  askOpenai,
 };
