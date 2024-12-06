@@ -28,6 +28,7 @@ const Dashboard = () => {
   const [token, setToken] = useState(undefined);
 
   const handleChatClick = () => {
+    console.log("Clicked");
     setIsChatOpen(!isChatOpen); // Toggle chat window visibility
   };
 
