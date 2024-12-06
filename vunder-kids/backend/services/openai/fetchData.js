@@ -1,97 +1,98 @@
-const User = require('../../models/User'); 
+const User = require('../../models/User');
 
 const getUserDataById = async (userId) => {
     try {
+        // Find user by ID with all necessary population
         const userData = await User.findById(userId)
             .populate({
                 path: 'matchIds',
                 populate: [
                     {
-                        path: 'sport',            // Populate sport data
-                        select: 'name description', // Include only name and description from Sport
+                        path: 'sport',
+                        select: 'name description',
                     },
                     {
-                        path: 'teams.team',       // Populate team data inside matches
-                        select: 'name participants', // Include team name and participants
+                        path: 'teams.team',
+                        select: 'name participants',
                         populate: {
-                            path: 'participants',  // Populate participants inside teams
+                            path: 'participants',
                             select: 'userName name',
                         },
                     },
                     {
-                        path: 'location',         // Populate match location
-                        select: 'address',        // Include location address
+                        path: 'location',
+                        select: 'address',
                     },
                 ],
             })
             .populate({
                 path: 'teamIds',
-                select: 'name participants admins',    // Include 'admins' along with 'participants' and 'name'
+                select: 'name participants admins',
                 populate: [
                     {
-                        path: 'participants',          // Populate participants field
-                        select: '_id userName name',   // Select both _id and name fields
+                        path: 'participants',
+                        select: '_id userName name',
                     },
                     {
-                        path: 'admins',                // Populate admins field
-                        select: '_id userName name',   // Select both _id and name fields for admins as well
-                    }
-                ]
+                        path: 'admins',
+                        select: '_id userName name',
+                    },
+                ],
             })
             .populate({
                 path: 'progress',
                 populate: [
                     {
                         path: 'sportScores.sport',
-                        select: 'name description', // Populate sports inside progress
+                        select: 'name description',
                     },
                     {
-                        path: 'userAchievements',    // Populate achievements inside progress
+                        path: 'userAchievements',
                         select: 'title description',
                     },
                 ],
             })
             .populate({
-                path: 'followers',              // Populate followers if they exist
+                path: 'followers',
                 select: 'userName name',
             })
             .populate({
-                path: 'following',              // Populate following users if they exist
+                path: 'following',
                 select: 'userName name',
             })
             .populate({
-                path: 'likes',                  // Populate liked entities (e.g., posts, etc.)
-                select: 'title content',        // Select fields to include in likes
-            }).select('-password');
+                path: 'likes',
+                select: 'title content',
+            })
+            .select('-password'); // Exclude password for security reasons
 
         if (!userData) {
             throw new Error('User not found');
         }
 
-        // Convert the userData to a plain object to work with it easily
-        const userObject = userData.toObject();
-        // console.log(JSON.stringify(userObject,null,2))
+        // Structure and return the response
         return {
-            userName: userObject.userName,
-            name: userObject.name,
-            school: userObject.school,
-            userClass: userObject.userClass,
-            email: userObject.email,
-            wonMatches: userObject.wonMatches,
-            totalMatches: userObject.totalMatches,
-            teams: userObject.teamIds,            // Fully populated team data
-            matches: userObject.matchIds,         // Fully populated match data
-            progress: userObject.progress ? {
-                overallScore: userObject.progress.overallScore,
-                sportScores: userObject.progress.sportScores || [],  // Handle undefined sportScores
-                userAchievements: userObject.progress.userAchievements || [], // Handle undefined userAchievements
-            } : {},  // Handle missing progress field
-            followers: userObject.followers || [],      // Fully populated followers data
-            following: userObject.following || [],      // Fully populated following data
-            likes: userObject.likes || [],              // Fully populated likes data
+            userName: userData.userName,
+            name: userData.name,
+            school: userData.school || null,
+            userClass: userData.userClass || null,
+            email: userData.email,
+            wonMatches: userData.wonMatches || 0,
+            totalMatches: userData.totalMatches || 0,
+            teams: userData.teamIds || [],
+            matches: userData.matchIds || [],
+            progress: userData.progress ? {
+                overallScore: userData.progress.overallScore || 0,
+                sportScores: userData.progress.sportScores || [],
+                userAchievements: userData.progress.userAchievements || [],
+            } : {},
+            followers: userData.followers || [],
+            following: userData.following || [],
+            likes: userData.likes || [],
         };
     } catch (error) {
-        throw new Error(error.message);
+        // Catch and rethrow errors with a clear message
+        throw new Error(`Error fetching user data: ${error.message}`);
     }
 };
 
