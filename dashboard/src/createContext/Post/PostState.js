@@ -5,7 +5,7 @@ import { PostContext, CommentContext } from './PostContext';
 import axios from 'axios';
 import IsAuth from '../is-Auth/IsAuthContext';
 
-const Backend_URL = 'http://localhost:5000';
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 const PostState = ({ children }) => {
   const [posts, setPosts] = useState([]);

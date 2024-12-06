@@ -9,9 +9,11 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 function Register() {
   const navigate = useNavigate();
   const { registerUser, loading, error } = useContext(RegisterContext);
+  
 
   const [formData, setFormData] = useState({
     email: "",
@@ -93,11 +95,11 @@ function Register() {
 
   const loginWithGoogle = () => {
     // Open the Google OAuth URL in a new window
-    const oauthWindow = window.open("http://localhost:5000/api/auth/google", "_blank", "width=600,height=600");
+    const oauthWindow = window.open(`${Backend_URL}/api/auth/google`, "_blank", "width=600,height=600");
   
     // Listen for a message from the OAuth window (postMessage)
     window.addEventListener("message", (event) => {
-      if (event.origin !== "http://localhost:5000") {
+      if (event.origin !== Backend_URL) {
         // Ensure the message is coming from the correct domain
         return;
       }

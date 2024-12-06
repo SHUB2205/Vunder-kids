@@ -16,7 +16,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
 
   // Backend URL
-  const Backend_URL = "http://localhost:5000";
+  const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
   // Handle login form submission
   const handleLogin = async (e) => {
@@ -80,11 +80,11 @@ export default function Login() {
   const loginWithGoogle = () => {
     // Open the Google OAuth URL in a new window
     console.log("Here");
-    const oauthWindow = window.open("http://localhost:5000/api/auth/google", "_blank", "width=600,height=600");
+    const oauthWindow = window.open(`${Backend_URL}/api/auth/google`, "_blank", "width=600,height=600");
 
     // Listen for a message from the OAuth window (postMessage)
     window.addEventListener("message", (event) => {
-        if (event.origin !== "http://localhost:5000") {
+        if (event.origin !== Backend_URL) {
             // Ensure the message is coming from the correct domain
             return;
         }

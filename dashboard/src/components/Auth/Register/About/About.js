@@ -7,7 +7,7 @@ import { toast, ToastContainer } from "react-toastify"; // Import toast
 import "react-toastify/dist/ReactToastify.css"; // Import Toast container CSS
 import RegisterContext from "../../../../createContext/Register/RegisterContext";
 import { useNavigate } from "react-router-dom";
-const Backend_URL = "http://localhost:5000";
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 function About() {
   const navigate = useNavigate();

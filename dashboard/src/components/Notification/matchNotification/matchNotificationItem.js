@@ -12,7 +12,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import EyeIcon from "../../images/eye.png";
-const Backend_URL = "http://localhost:5000";
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 const MatchNotificationItem = ({
   matchId,
   location,

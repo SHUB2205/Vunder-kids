@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useContext } from 'react';
 import IsAuth from '../is-Auth/IsAuthContext';
 
-const Backend_URL = 'http://localhost:5000';
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 const SearchState = ({ children }) => {
   const [searchResults, setSearchResults] = useState({ users: [], posts: [] });

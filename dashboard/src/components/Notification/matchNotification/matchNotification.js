@@ -5,7 +5,7 @@ import { NotificationContext } from "../../../createContext/Notification/Notific
 import styles from "./matchNotification.module.css"; // Assuming the styles are here
 import isAuth from "../../../createContext/is-Auth/IsAuthContext";
 
-const Backend_URL = "http://localhost:5000";
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 const MatchNotification = () => {
   const { token } = useContext(isAuth);

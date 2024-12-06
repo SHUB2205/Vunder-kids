@@ -8,7 +8,7 @@ import BackIcon from "../../../images/BackIcon.png"; // Your back icon
 import { toast, ToastContainer } from "react-toastify"; // For toast notifications
 
 function UploadPicture() {
-  const Backend_URL = "http://localhost:5000";
+  const Backend_URL = process.env.REACT_APP_BACKEND_URL;
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(UploadImage);
   const [loading, setLoading] = useState(false); // To manage loading state during upload

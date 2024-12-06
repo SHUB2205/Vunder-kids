@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { MatchContext } from './MatchContext';
 import axios from 'axios';
 import IsAuth from '../is-Auth/IsAuthContext';
-const Backend_URL = 'http://localhost:5000';
+const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 const MatchState = ({ children }) => {
     const [sports, setSports] = useState([]);
@@ -74,7 +74,7 @@ const MatchState = ({ children }) => {
 
     const fetchMatches = async () => {
     try {
-        const response = await axios.get('http://localhost:5000/api/matches/upcoming-matches', {
+        const response = await axios.get(`${Backend_URL}/api/matches/upcoming-matches`, {
         headers: { token }
         });
         
@@ -90,7 +90,7 @@ const MatchState = ({ children }) => {
 
     const fetchScheduledMatches = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/matches/sch-matches');
+            const response = await axios.get(`${Backend_URL}/api/matches/sch-matches`);
             setMatches(response.data);
             setLoading(false);
         } catch (err) {
