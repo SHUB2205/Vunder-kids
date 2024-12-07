@@ -24,7 +24,7 @@ const ChatbotButton = ({ onClick, isChatOpen }) => {
     // Constrain Y position
     const constrainedY = Math.max(
       0, 
-      Math.min(y, (windowHeight <= 990 ? windowHeight - buttonSize-50 : windowHeight - buttonSize))
+      Math.min(y, (windowWidth <= 990 ? windowHeight - buttonSize-50 : windowHeight - buttonSize))
     );
 
     return { x: constrainedX, y: constrainedY };
