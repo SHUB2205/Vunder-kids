@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback,useContext } from "reac
 import "./OpenAi.css";
 import { ReactComponent as SendIcon } from "../images/send.svg";
 import isAuth from "../../createContext/is-Auth/IsAuthContext";
+import ChatbotWelcome from "./ChatbotWelcome";
 const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 const ChatBot = ({ onClick }) => {
   const {token} = useContext(isAuth);  
@@ -91,7 +92,7 @@ const ChatBot = ({ onClick }) => {
         </div>
       ))
     ) : (
-      <div className="no-messages">No messages yet.</div>
+      <div className="no-messages"><ChatbotWelcome/></div>
     );
 
   return (
