@@ -57,7 +57,7 @@ const NotificationState = ({ children }) => {
 
           const filteredMatches = data.matches.filter((match) => {
             // Exclude matches created by the user only if the status is "in-progress"
-            if (match.creator === user._id && match.status === "in-progress") {
+            if ((match.scoreRequestBy === user._id && match.status === "score-requested") || (match.creator === user._id && match.status === "in-progress")) {
               return false; // Don't include this match
             }
           

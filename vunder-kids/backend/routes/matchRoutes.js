@@ -20,13 +20,15 @@ router.get('/:id', isAuth, matchController.getMatchById);
 // Update a match
 router.put('/:id', isAuth, matchController.updateMatch);
 
-router.post('/set-score',isAuth,matchController.updateMatch2);
+router.post('/set-score/:action',isAuth,matchController.updateMatch2);
 
 // Route for a team to agree to a match
 router.post('/agreement', isAuth ,matchController.updateAgreement);
 router.put('/like/:matchId', isAuth, matchController.toggleLikeMatch);
 router.post('/comments/:matchId', isAuth, matchController.commentOnMatch);
 router.put('/vote/:matchId/:optionNumber', isAuth, matchController.votePrediction);
+router.post("/score-request", isAuth, matchController.scoreRequest);
+
 
 
 module.exports = router;

@@ -71,6 +71,33 @@ const MatchState = ({ children }) => {
             setLoading(false);
         }
       };
+      const setScore = async(data) => {
+        try {
+            setLoading(true);
+            const res = await axios.post(`${Backend_URL}/api/matches/score-request`,data,{headers:{token}});
+            console.log(res.data);
+        }
+        catch (err) {
+            console.log(err);
+        }
+        finally{
+            setLoading(false);
+        }
+      };
+
+      const setScoreAgree = async(action,matchId) => {
+        try {
+          setLoading(true);
+          const res = await axios.post(`${Backend_URL}/api/matches/set-score/${action}`,{matchId:matchId},{headers:{token}});
+          console.log(res.data);
+        }
+        catch (err) {
+            console.log(err);
+        }
+        finally{
+            setLoading(false);
+        }
+      }
 
     const fetchMatches = async () => {
     try {
@@ -188,7 +215,9 @@ const MatchState = ({ children }) => {
             updateAggrement,
             toggleLike,
             createMatchComment,
-            vote
+            vote,
+            setScore,
+            setScoreAgree
         }}>
             {children}
         </MatchContext.Provider>

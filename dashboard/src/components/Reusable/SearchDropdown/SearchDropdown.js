@@ -1,5 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import { MatchContext } from "../../../createContext/Match/MatchContext";
+import IsAuth from "../../../createContext/is-Auth/IsAuthContext";
+import TeamIcon1 from "../../images/TeamIcon1.png";
+import TeamIcon2 from "../../images/TeamIcon2.png";
+import MatchCard from "../../RightSidebar/MatchCard";
 
 const SearchDropdown = ({
   type,
@@ -18,13 +22,25 @@ const SearchDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const {sports , players} = useContext(MatchContext);
+  const {matches} = useContext(MatchContext);
+  const {user} = useContext(IsAuth);
 
   useEffect(() => {
+    console.log(matches)
     if (type === "sports"){
       setOptions(sports);
     }
     else if (type === "players" || type === "player"){
       setOptions(players);
+    }
+    else if (type === "matches"){
+      const today = new Date();
+      const relevantMatches = matches.filter(match => 
+        match.admins.includes(user._id) &&
+        match.status === "scheduled" &&
+        new Date(match.date) < today
+      );
+      setOptions(relevantMatches);
     }
   },[type])
 
@@ -128,6 +144,21 @@ const SearchDropdown = ({
           )}
         </div>
       )}
+      {type === 'matches' && selectedOptions.length > 0 && 
+        <div className="ml-5 mt-3  items-center -mb-5"><MatchCard
+        type={selectedOptions[0].isTeamMatch ? "Team" : "1 on 1"}
+        location={selectedOptions[0].location}
+        team1={{ 
+          name: selectedOptions[0].isTeamMatch ? selectedOptions[0].teams[0].team.name : selectedOptions[0].players[0].userName, 
+          logo: selectedOptions[0].isTeamMatch ? TeamIcon1 : selectedOptions[0].players[0].avatar 
+        }}
+        team2={{ 
+          name: selectedOptions[0].isTeamMatch ? selectedOptions[0].teams[1].team.name : selectedOptions[0].players[1].userName, 
+          logo: selectedOptions[0].isTeamMatch ? TeamIcon2 : selectedOptions[0].players[1].avatar 
+        }}
+        date={new Date(selectedOptions[0].date).toLocaleString()}
+      />
+      </div>}
     </div>
   );
 };
