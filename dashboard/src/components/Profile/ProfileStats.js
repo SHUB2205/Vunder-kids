@@ -7,7 +7,7 @@ function ProfileStats({ progress }) {
         ? progress.sportScores.map(sportScore => sportScore.sport.name)
         : [];
 
-    const [activeSport, setActiveSport] = useState(sports[0] || "All");
+    const [activeSport, setActiveSport] = useState("All");
 
     // Function to get sport-specific or overall stats
     const getStats = () => {

@@ -1,0 +1,48 @@
+.submitButtonWrapper {
+    z-index: 0;
+    display: flex;
+    margin-top: 20px;
+    align-items: center;
+    gap: 40px 250px;
+    white-space: nowrap;
+    justify-content: start;
+  }
+  
+  .submitButton {
+    align-self: stretch;
+    border-radius: 30px;
+    background-color: var(--button-color-Post-Follow);
+    gap: 10px;
+    margin: auto 0;
+    padding: 10px 20px;
+    border: none;
+    color: #f7f0f0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font: var(--font-secondary);
+  }
+  
+  .submitButton:hover {
+    background-color: #555;
+  }
+  
+  .submitButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .modalContentWidth {
+    width: 40%;
+  }
+  
+  @media (max-width: 991px) {
+    .modalContentWidth {
+      width: 70%;
+    }
+  }
+  
+  @media (max-width: 770px) {
+    .modalContentWidth {
+      width: 100%;
+    }
+  }

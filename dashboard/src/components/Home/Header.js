@@ -5,6 +5,7 @@ import addScore from "../images/addScore.png";
 import ChallengeModal from "./Modals/ChallengeModal/ChallengeModal";
 import IsAuth from "../../createContext/is-Auth/IsAuthContext";
 import { PostContext } from "../../createContext/Post/PostContext";
+import ScoreModal from "./Modals/ScoreModal/ScoreModal";
 
 
 function Header() {
@@ -55,12 +56,14 @@ function Header() {
     setShowDateTimeModal(!showDateTimeModal);
   };
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setShowDateTimeModal(false);
   };
+  const handleOpenScoreModal = () => setIsScoreModalOpen(true);
+  const handleCloseScoreModal = () => setIsScoreModalOpen(false);
 
   return (
     <>
@@ -133,10 +136,18 @@ function Header() {
                 handleShowDateModal={handleShowDateTimeModal}
                 showDateTimeModal={showDateTimeModal}
               />
-              <button type="button" className={styles.actionButton}>
+               <button 
+                type="button" 
+                className={styles.actionButton}
+                onClick={handleOpenScoreModal}
+              >
                 <img src={addScore} alt="" className={styles.actionIcon} />
                 <span>Add Score</span>
               </button>
+              <ScoreModal
+                isOpen={isScoreModalOpen}
+                onClose={handleCloseScoreModal}
+              />
             </div>
             <button type="submit" className={styles.postButton} disabled={!postContent.trim() && !mediaFile}>
               Post

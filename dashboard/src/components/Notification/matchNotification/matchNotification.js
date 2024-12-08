@@ -166,6 +166,7 @@ const MatchNotification = () => {
             admins,
             createdAt,
             creator,
+            scores
 
           } = match;
           const creatorData = creators[creator]; // Get creator data from the state
@@ -178,14 +179,14 @@ const MatchNotification = () => {
           if (isTeamMatch) {
             team1 = teams?.[0]?.team || "Team 1";
             team2 = teams?.[1]?.team || "Team 2";
-            score1 = teams?.[0]?.score || "N/A";
-            score2 = teams?.[1]?.score || "N/A";
+            score1 = scores[0] || "N/A";
+            score2 = scores[1] || "N/A";
             participants = players || [];
           } else {
             team1 = null;
             team1 =null;
-            score1 = "N/A";
-            score2 = "N/A";
+            score1 = scores[0] || "N/A";
+            score2 = scores[1] || "N/A";
           }
           return (
             <div key={_id}>

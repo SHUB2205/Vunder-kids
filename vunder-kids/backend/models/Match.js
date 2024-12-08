@@ -57,7 +57,7 @@ const MatchSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["in-progress", "scheduled", "completed", "cancelled"],
+    enum: ["in-progress", "scheduled", "completed", "cancelled","score-requested"],
     default: "in-progress",
   },
   agreementTime: {
@@ -109,6 +109,10 @@ const MatchSchema = new mongoose.Schema({
       ref: 'User',
       default: []
     }]
+  },
+  scoreRequestBy:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   }
 });
 

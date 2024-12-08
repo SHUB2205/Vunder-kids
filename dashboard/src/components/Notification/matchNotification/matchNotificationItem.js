@@ -40,7 +40,7 @@ const MatchNotificationItem = ({
   const [team2Participants, setTeam2Participants] = useState([]);
   const [showPlayers, setShowPlayers] = useState(false);
   const { token } = useContext(IsAuth);
-  const { updateAggrement, error, loading } = useContext(MatchContext);
+  const { updateAggrement,setScoreAgree, error, loading } = useContext(MatchContext);
   const fetchParticipants = async (teamId, setParticipants) => {
     try {
       console.log(isTeamMatch);
@@ -85,9 +85,12 @@ const MatchNotificationItem = ({
   const handleAgreementAction = async (action) => {
     if (finalAction) return; // Prevent further action if already accepted/rejected
 
-    setCurrentAction(action); // Indicate loading for the action
+    setCurrentAction(action,matchStatus); // Indicate loading for the action
     try {
-      await updateAggrement(action, matchId);
+      if (matchStatus === "in-progress")
+        await updateAggrement(action, matchId);
+      else if (matchStatus === "score-requested")
+        await setScoreAgree(action,matchId);
       setFinalAction(action); // Save the final action
     } catch (err) {
       console.error(`Error performing ${action}:`, err);
@@ -172,7 +175,7 @@ const MatchNotificationItem = ({
                       }}
                     />
                   )}
-                  {matchStatus === "completed" && <div>Score: {score1}</div>}
+                  {(matchStatus === "completed" || matchStatus === "score-requested") && <div>Score: {score1}</div>}
                   {showPlayers && showTeam1Participants && isTeamMatch && (
                     <div className={styles.tooltip}>
                       <h4>Team 1 Participants:</h4>
@@ -216,7 +219,7 @@ const MatchNotificationItem = ({
                       }}
                     />
                   )}
-                  {matchStatus === "completed" && <div>Score: {score2}</div>}
+                  {(matchStatus === "completed" || matchStatus === "score-requested") && <div>Score: {score2}</div>}
                   {showPlayers && showTeam2Participants && isTeamMatch && (
                     <div className={styles.tooltip}>
                       <h4>Team 2 Participants:</h4>
@@ -238,8 +241,8 @@ const MatchNotificationItem = ({
                 <div className={styles.actions}>
                   {matchStatus === "cancelled" ? (
                     <span>Cancelled</span> // Show "Cancelled" if match is cancelled
-                  ) : matchStatus === "scheduled" ? (
-                    <span>Scheduled</span> // Show "Scheduled" if match is accepted
+                  ) : (matchStatus === "scheduled" || matchStatus === "completed")? (
+                    <span>{matchStatus}</span> // Show "Scheduled" if match is accepted
                   ) : (
                     <>
                       <button

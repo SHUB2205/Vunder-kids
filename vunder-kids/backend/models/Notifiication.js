@@ -26,7 +26,8 @@ const NotificationSchema = new mongoose.Schema({
       'user',
       "all",
       "match",
-      "message"
+      "message",
+      "score-request"
     ], // Enum to restrict notification types
     required: true
   },

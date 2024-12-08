@@ -561,8 +561,52 @@ exports.updateAgreement = async (req, res) => {
 //To Do:
 //more than onces posible
 //only admin should have permission
-exports.updateMatch2 = async (req, res, next) => {
+//time > date
+
+exports.scoreRequest = async (req, res, next) => {
   const { matchId, score1, score2 } = req.body;
+  try {
+    const match = await Match.findById(matchId);
+    const user = await User.findById(req.user.id);
+    if (!user || !match) {
+      return res.status(404).json({ message: "Not Found such match" });
+    }
+
+    if (!match.admins.includes(req.user.id)) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    if (match.status !== "scheduled") {
+      return res.status(400).json({ message: "Match is not scheduled" });
+    }
+
+    match.scores = [score1, score2];
+    match.status = "score-requested";
+    match.scoreRequestBy = user._id;
+    await match.save();
+    const sendToadmin = match.admins.filter(_m => 
+      _m.toString() !== user._id.toString()
+    );
+    notificationService(
+      sendToadmin,
+      "score-request",
+      `User ${user.userName} has requested to agree score for match ${match.name}.`,
+      user._id,
+      user.avatar
+    );
+
+
+    return res.status(200).json({ message: "Match updated successfully", match });
+  } catch (err) {
+    console.error("Error updating match:", err);
+    next(err); 
+  }
+};
+
+
+exports.updateMatch2 = async (req, res, next) => {
+  const { matchId} = req.body;
+  const {action} = req.params;
 
   try {
     // Find the match and populate necessary references
@@ -575,6 +619,18 @@ exports.updateMatch2 = async (req, res, next) => {
       return res.status(404).json({ message: 'Match not found' });
     }
 
+    if (!match.admins.includes(req.user.id) || match.status !== "score-requested") {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    if (action === "reject"){
+      match.status = "scheduled";
+      await match.save();
+      return res.status(200).json({message:"rejected proposed score."});
+    }
+
+    const score1 = match.scores[0];
+    const score2 = match.scores[1];
     // Ensure sport exists
     if (!match.sport) {
       return res.status(400).json({ message: 'Sport not specified for the match' });
@@ -719,7 +775,6 @@ exports.updateMatch2 = async (req, res, next) => {
 
     // Update match status and save
     match.status = 'completed';
-    match.scores = [score1,score2];
     await match.save();
 
     res.status(200).json({
@@ -905,3 +960,4 @@ exports.votePrediction = async (req, res) => {
     });
   }
 };
+
