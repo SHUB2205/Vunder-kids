@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 
 // ProtectedRoute component to protect certain routes
 const ProtectedRoute = ({ children }) => {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
   if (!token) {
     // If no token, redirect to login page

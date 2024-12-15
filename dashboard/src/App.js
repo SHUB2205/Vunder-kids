@@ -17,6 +17,7 @@ import WaitingScreen from "./components/Auth/Register/WaitingScreen/WaitingScree
 import ProtectedRoute from "./ProtectedRoute"; // Import ProtectedRoute
 import ProfileState from "./createContext/Profile/ProfileState";
 import NotificationState from "./createContext/Notification/NotificationState";
+
 function App() {
   return (
     <Router>

@@ -5,7 +5,7 @@ import axios from "axios";
 const Backend_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function IsAuthStates(props) {
-    const [token, setToken] = useState(sessionStorage.getItem('token'));
+    const [token, setToken] = useState(localStorage.getItem('token'));
     const [user, setUser] = useState(null);
 
     // Memoize fetchUserInfo
@@ -28,6 +28,7 @@ export default function IsAuthStates(props) {
         const storedToken = sessionStorage.getItem('token');
         if (storedToken) {
             setToken(storedToken);
+            localStorage.setItem("token",storedToken)
         }
         if (token) {
             fetchUserInfo();

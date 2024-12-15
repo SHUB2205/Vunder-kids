@@ -3,7 +3,7 @@ import botImage from "../images/bot.png"; // Ensure this path is correct
 
 const ChatbotWelcome = () => {
   return (
-    <div className="chatbot-start-conversation flex flex-col items-center justify-center space-y-2 p-4 text-center h-[250px] overflow-hidden z-10">
+    <div className="chatbot-start-conversation flex flex-col items-center justify-center space-y-2 p-2 text-center h-[300px] overflow-hidden z-100">
       <div className="text-lg font-semibold text-gray-600">
         How can I help you today?
       </div>
