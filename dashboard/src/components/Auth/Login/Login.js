@@ -42,6 +42,7 @@ export default function Login() {
       // Send a POST request to the backend login endpoint
       const response = await axios.post(`${Backend_URL}/api/login`, loginData);
       console.log(response);
+      toast.error(response);
 
       if (response.data.success) {
         // Store the token in session storage
@@ -67,9 +68,9 @@ export default function Login() {
         toast.error(response.data.message || "Invalid email or password.");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      // console.error("Login error:", error);
       // Show error toast in case of network issues or other errors
-      toast.error("An error occurred while trying to log in. Please try again.");
+      toast.error("An error occurred while trying to log in. Please try again."+ error);
     }
   };
 

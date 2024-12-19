@@ -1,18 +1,21 @@
 import { messaging } from "./fireBase"; // Import the messaging instance from your Firebase configuration
 import { onMessage } from "firebase/messaging"; // Import the onMessage function from Firebase SDK
 
-// Define the onMessage handler
 export const setupOnMessage = () => {
-  onMessage(messaging, (payload) => {
-    // console.log("Foreground message received:", payload); // Log the incoming message payload
+  if (!messaging) {
+    console.warn("Firebase Messaging is not initialized or unsupported in this environment.");
+    return;
+  }
 
-    const notificationTitle = payload.notification.title;
+  onMessage(messaging, (payload) => {
+    console.log("Foreground message received:", payload);
+
+    const notificationTitle = payload.notification?.title || "Notification";
     const notificationOptions = {
-      body: payload.notification.body,
-      icon: payload.notification.image,
+      body: payload.notification?.body || "No message body",
+      icon: payload.notification?.image || "/default-icon.png",
     };
 
-    // Check if Notification permission is granted and show the notification
     if (Notification.permission === "granted") {
       new Notification(notificationTitle, notificationOptions);
     }
