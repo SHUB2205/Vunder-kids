@@ -4,18 +4,21 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-  "start": "node server.js",
-  "server-start": "node vunder-kids/backend/server.js",
-  "chat-start": "node vunder-kids/chat/server.js",
-  "dashboard-start": "npm start --prefix dashboard",
-  "dashboard-build": "npm run build --prefix dashboard",
-  "install-backend": "npm install --prefix vunder-kids/backend",
-  "install-chat": "npm install --prefix vunder-kids/chat",
-  "install-dashboard": "npm install --prefix dashboard",
-  "install-all": "npm run install-backend && npm run install-chat && npm run install-dashboard",
-  "build-all": "npm run install-all && npm run dashboard-build",
-  "start-all": "npm run server-start & npm run chat-start & npm run dashboard-start"
-},
+    "start": "node server.js",
+    "server-start": "node vunder-kids/backend/server.js",
+    "chat-start": "node vunder-kids/chat/server.js",
+    "dashboard-start": "npm start --prefix dashboard",
+    "dashboard-build": "npm run build --prefix dashboard",
+    "install-backend": "npm install --prefix vunder-kids/backend",
+    "install-chat": "npm install --prefix vunder-kids/chat",
+    "install-dashboard": "npm install --prefix dashboard",
+    "install-all": "npm run install-backend && npm run install-chat && npm run install-dashboard",
+    "build-all": "npm run install-all && npm run dashboard-build",
+    "start-all": "npm run server-start & npm run chat-start & npm run dashboard-start"
+  },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }

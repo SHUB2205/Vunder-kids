@@ -26,4 +26,4 @@ startService('server.js', 'vunder-kids/chat', 'Chat');
 const express = require('express');
 const app = express();
 app.use(express.static(path.join(__dirname, 'dashboard/build')));
-app.listen(process.env.PORT || 2000);
+app.listen(2000);
