@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: your-project
+    env: node
+    buildCommand: npm run build-all
+    startCommand: npm run start-all
+    envVars:
+      - key: NODE_ENV
+        value: production

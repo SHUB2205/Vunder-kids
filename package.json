@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-  "start": "node vunder-kids/backend/server.js",
+  "start": "node server.js",
   "server-start": "node vunder-kids/backend/server.js",
   "chat-start": "node vunder-kids/chat/server.js",
   "dashboard-start": "npm start --prefix dashboard",
