@@ -85,7 +85,6 @@ const registerUser = async (req, res, next) => {
 // Login The User //
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
-  console.log(req.body);
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -120,7 +119,6 @@ const loginUser = async (req, res, next) => {
         message:"We have sent a verification email to your email address. Please verify your email to login.",
         });
     }
-    console.log(user);
     return res.json({
       success: true,
       _id: user._id,

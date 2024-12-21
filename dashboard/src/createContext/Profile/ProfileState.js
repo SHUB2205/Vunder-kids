@@ -35,7 +35,6 @@ const ProfileState = ({ children }) => {
           headers: {token,'Content-Type': 'multipart/form-data'},
         });
         const message = response.data.message;
-        console.log(message);
       } catch (error) {
         console.error('Error creating post:', error);
         throw error;
@@ -69,9 +68,7 @@ const ProfileState = ({ children }) => {
 
     const toggleFollow = async (userId) => {
       try {
-        console.log(userId,token)
         const response = await axios.put(`${Backend_URL}/api/post/toggle-follow`, { followId : userId },{headers:{token}});
-        console.log('Successfully toggled follow:', response.data);
       } catch (error) {
         console.error('Error toggling follow:', error);
       }

@@ -1,4 +1,0 @@
-1. Create a Context For The Error Handling
-2. Creating the user Context
-  2.1 Fetching the user Info 
-      2.1.1 Create Group Modal

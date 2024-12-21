@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const { type } = require("@testing-library/user-event/dist/type");
 const Schema = mongoose.Schema;
 
 const UserSchema = new mongoose.Schema({

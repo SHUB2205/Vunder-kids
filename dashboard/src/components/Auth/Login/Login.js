@@ -61,7 +61,7 @@ export default function Login() {
             navigate("/register/about");
           }
         }
-        navigate("/");
+        navigate("/home");
         window.location.reload();
       } else {
         // Show error toast if login failed
