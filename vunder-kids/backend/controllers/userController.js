@@ -582,7 +582,7 @@ const getAllUsers = async (req, res, next) => {
     const renamedUsers = users.map(user => ({
       _id: user._id,
       name: user.userName, // Rename 'userName' to 'name'
-      followers:user.followers,
+      followers:user.followers.length,
       realName:user.name
     }));
     res.json(renamedUsers);
