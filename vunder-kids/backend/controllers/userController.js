@@ -578,10 +578,12 @@ const saveProfilePicture = async (req, res) => {
 
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find({}, '_id userName');
+    const users = await User.find({}, '_id userName followers name');
     const renamedUsers = users.map(user => ({
       _id: user._id,
       name: user.userName, // Rename 'userName' to 'name'
+      followers:user.followers,
+      realName:user.name
     }));
     res.json(renamedUsers);
   } catch (error) {
