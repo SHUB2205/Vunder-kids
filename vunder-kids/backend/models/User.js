@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const UserSchema = new mongoose.Schema({
   avatar: {
     type:String,
-    default:'https://c7.alamy.com/comp/R045X8/baseball-man-avatar-people-icon-R045X8.jpg'
+    default:'https://res.cloudinary.com/dlolz3flx/image/upload/v1734952795/jgwiq6esp4mipcltneeo.jpg'
   },
   userName: {
     type: String,
