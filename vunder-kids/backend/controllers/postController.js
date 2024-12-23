@@ -3,6 +3,8 @@ const Comment = require('../models/comment');
 const User = require('../models/User');
 const Match = require('../models/Match');
 const {cloudinary,bufferToStream} = require('../config/cloudinary');
+const notificationService = require('../services/notification/notificationService');
+
 
 const { validationResult } = require('express-validator');
 const Notification = require('../models/Notifiication');
@@ -270,11 +272,13 @@ exports.toggleFollow = async (req, res, next) => {
 
     // Create a notification if the user is now following
     if (!isFollowing) {
-      await Notification.create({
-        user: followId,
-        type: 'follow',
-        message: `${user.name} started following you.`,
-      });
+      notificationService(
+        [followId],
+        "follow",
+        `${user.name} started following you.`,
+        user._id,
+        user.avatar // Pass creator image as initiator
+      );
     }
 
     res.status(200).json({ message: 'Follow status updated!' });
