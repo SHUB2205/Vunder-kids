@@ -54,6 +54,9 @@ mongoose
   });
 
 // Routes
+app.get("/", (req, res) => {
+  res.send("Chat Server is Alive!");
+});
 app.use("/api/messages", messageRoutes);
 
 app.use(router);
