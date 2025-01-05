@@ -85,14 +85,8 @@ exports.createReel = async(req, res) => {
     description: description.trim()
   });
 
-  reel.save((err, data) => {
-    if (err) {
-      return res.status(500).send({
-        message: err.message || 'Some error occurred while creating the reel.'
-      });
-    }
-    res.send(data);
-  });
+  const savedReel = await reel.save();
+  res.send(savedReel);
 };
 
 
