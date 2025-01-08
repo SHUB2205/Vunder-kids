@@ -438,7 +438,7 @@ exports.getUpcomingMatches = async (req, res) => {
     today.setHours(0, 0, 0, 0); // Set the time to the start of the day
     // Query for my matches
     const myMatchesQuery = {
-      status: { $in: ["scheduled", "in-progress"] },
+      status: { $in: ["scheduled"] },
       date: { $gte: today }, // Ensure matches are for today or later
       $or: [{ players: userId }, { "teams.team": { $in: user.teamIds } }],
     };
