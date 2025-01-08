@@ -4,6 +4,7 @@ const session = require("express-session");
 const passport = require("passport");
 const OAuth2Strategy = require("passport-google-oauth2").Strategy;
 const User = require("../models/User"); // Adjust path as needed
+const Progress = require("../models/Progress");
 require('dotenv').config();
 
 const frontend_url = process.env.FRONTEND_URL;
@@ -51,6 +52,15 @@ passport.use(new OAuth2Strategy({
         try {
             let user = await User.findOne({ googleId: profile.id });
             // console.log(user);
+
+            const progress = await Progress.create({
+                overallScore: 0,
+                totalMatches: 0,
+                matchesWon: 0,
+                sportScores: [], 
+                userAchievements: []
+            });
+
             if (!user) {
                 const userName = generateUniqueUserName(profile.displayName);
                 user = new User({
@@ -58,6 +68,7 @@ passport.use(new OAuth2Strategy({
                     name: profile.displayName,
                     email: profile.emails[0].value,
                     isGoogleUser:true,
+                    progress: progress._id,
                     isVerified:true
                     // image: profile.photos[0].value
                 });
