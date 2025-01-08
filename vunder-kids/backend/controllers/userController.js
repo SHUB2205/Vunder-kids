@@ -207,88 +207,80 @@ const checkVerification = async (req, res) => {
     next(error);
   }
 };
+
 const requestResetPassword = async (req, res) => {
-  const { id } = req.user;
+  const { email } = req.body;
 
   try {
-    const user = await User.findById(id);
+    const user = await User.findOne({ email });
     if (!user) {
+      console.log("Not found");
       return res.status(404).json({ message: "User not found" });
     }
 
     // Generate a verification token
     const token = crypto.randomBytes(32).toString("hex");
-    // console.log(token);
+
     // Send email
+    const resetLink = `${process.env.FRONTEND_URL}/reEnter-password/${token}`;
     await transporter.sendMail({
-      // to check
-      to: req.body.email,
+      to: email,
       subject: "Password Reset Request",
       html: `
-        <p>Click this <a href="${BACKEND_URL}/api/reset-password/${token}">link</a> to reset your password.</p>
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>This link is valid for 1 hour.</p>
       `,
     });
 
-    // Token valid fo 1 hour
+    // Save the token and expiration time to the user record
     user.verifyToken = token;
-    user.tokenExpiration = Date.now() + 3600000;
+    user.tokenExpiration = Date.now() + 3600000; // Token valid for 1 hour
     await user.save();
 
-    return res
-      .status(200)
-      .json({
-        message: "Password reset email sent successfully",
-        link: `${BACKEND_URL}/api/reset-password/${token}`,
-      });
+    return res.status(200).json({
+      message: "Password reset email sent successfully",
+      link: resetLink, // Send the link in the response for debugging purposes (optional)
+    });
   } catch (error) {
-    console.error("Error sending password reset email:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error sending reset email:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+
 const resetPassword = async (req, res) => {
-  // Extract token from URL
-  const { token } = req.params;
-  // console.log(token);
-  const { newPassword } = req.body;
+  const { token } = req.params; // Extract token from URL
+  const { newPassword } = req.body; // Get new password from the request body
 
   if (!newPassword) {
     return res.status(400).json({ message: "New password is required" });
   }
 
   try {
-    // This is set by the isAuth middleware
-    const { id } = req.user;
-    const user = await User.findById(id);
+    // Find the user with the token
+    const user = await User.findOne({ verifyToken: token });
 
-    if (!user) {
+    if (!user || user.tokenExpiration < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    // Find user associated with the token
-    const tokenExpiration = user.tokenExpiration;
-    const verifyToken = user.verifyToken;
-    if (!verifyToken || tokenExpiration < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-
-    // Update password
     // Hash the new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    // const salt = await bcrypt.genSalt(10);
+    user.password = newPassword;
+
+    // Clear the token and expiration
+    user.verifyToken = null;
+    user.tokenExpiration = null;
+
     await user.save();
 
-    // Remove the token from database
-    // error in this line
-    //  user.verifyToken;
-    // await user.save();
     return res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
     console.error("Error resetting password:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 //  fetching the inforamtion of the user by his id
 
 const userInfo = async (req, res) => {
