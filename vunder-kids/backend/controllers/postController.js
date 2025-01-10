@@ -14,7 +14,7 @@ exports.getPost = async (req, res, next) => {
   const { postId } = req.params;
   try {
     const post = await Post.findById(postId)
-      .populate('creator', '_id userName email')
+      .populate('creator', '_id userName email avatar')
       .populate({
         path: 'comments',
         options: { sort: { createdAt: -1 } },
