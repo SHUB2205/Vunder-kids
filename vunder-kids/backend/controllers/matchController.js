@@ -564,12 +564,119 @@ exports.updateAgreement = async (req, res) => {
 //time > date
 
 exports.scoreRequest = async (req, res, next) => {
-  const { matchId, score1, score2 } = req.body;
   try {
-    const match = await Match.findById(matchId);
+    const { 
+      matchType,
+      sport,
+      venue,
+      date,
+      scores,
+      team1,
+      team2,
+      opponent
+    } = req.body;
+    console.log("Print",req.body);
     const user = await User.findById(req.user.id);
-    if (!user || !match) {
-      return res.status(404).json({ message: "Not Found such match" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!req.body.matchId) {
+      // Create team(s) if team match
+      let matchName, teams, players, matchAdmins;
+      
+      if (matchType === "team") {
+        // Create team 1
+        const team1Doc = new Team({
+          name: team1.name,
+          participants: team1.participants,
+          admins: [team1.participants[0]] // First participant as admin
+        });
+        await team1Doc.save();
+
+        // Create team 2
+        const team2Doc = new Team({
+          name: team2.name,
+          participants: team2.participants,
+          admins: [team2.participants[0]] // First participant as admin
+        });
+        await team2Doc.save();
+
+        // Update users' teamIds
+        await User.updateMany(
+          { _id: { $in: [...team1.participants, ...team2.participants] }},
+          { $addToSet: { teamIds: { $each: [team1Doc._id, team2Doc._id] }}}
+        );
+
+        matchName = `${team1.name} vs ${team2.name}`;
+        teams = [
+          { team: team1Doc._id },
+          { team: team2Doc._id }
+        ];
+        players = [...team1.participants, ...team2.participants];
+        // Set match admins as team admins
+        matchAdmins = [team1Doc.admins[0], team2Doc.admins[0]];
+
+      } else {
+        // 1-on-1 match
+        const opponentUser = await User.findById(opponent);
+        if (!opponentUser) {
+          return res.status(404).json({ message: "Opponent not found" });
+        }
+        matchName = `${user.userName} vs ${opponentUser.userName}`;
+        teams = [];
+        players = [user._id, opponent];
+        matchAdmins = [user._id, opponent]; // Both players are admins in 1-on-1
+      }
+
+      // Create new match
+      const newMatch = new Match({
+        name: matchName,
+        date: new Date(date),
+        location: venue,
+        sport,
+        teams,
+        isTeamMatch: matchType === "team",
+        players,
+        scores,
+        status: "score-requested",
+        scoreRequestBy: user._id,
+        admins: matchAdmins, // Use the defined admins
+        creator: user._id,
+        agreementTime: 24 // 24 hours for agreement
+      });
+
+      await newMatch.save();
+
+      // Update users' matchIds
+      await User.updateMany(
+        { _id: { $in: players }},
+        { $addToSet: { matchIds: newMatch._id }}
+      );
+
+      // Send notifications only to admins except the requester
+      const notifyAdmins = matchAdmins.filter(adminId => 
+        adminId.toString() !== user._id.toString()
+      );
+      
+      notificationService(
+        notifyAdmins,
+        "score-request",
+        `${user.userName} has requested to confirm scores for match ${matchName}`,
+        user._id,
+        user.avatar
+      );
+
+      return res.status(201).json({ 
+        message: "Match created and score request sent successfully", 
+        match: newMatch 
+      });
+    }
+
+    // Handle scheduled match (existing code)
+    const match = await Match.findById(req.body.matchId);
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
     }
 
     if (!match.admins.includes(req.user.id)) {
@@ -580,40 +687,89 @@ exports.scoreRequest = async (req, res, next) => {
       return res.status(400).json({ message: "Match is not scheduled" });
     }
 
-    match.scores = [score1, score2];
+    match.scores = scores;
     match.status = "score-requested";
     match.scoreRequestBy = user._id;
     await match.save();
-    const sendToadmin = match.admins.filter(_m => 
+
+    const sendToAdmin = match.admins.filter(_m => 
       _m.toString() !== user._id.toString()
     );
     notificationService(
-      sendToadmin,
+      sendToAdmin,
       "score-request",
-      `User ${user.userName} has requested to agree score for match ${match.name}.`,
+      `${user.userName} has requested to agree score for match ${match.name}`,
       user._id,
       user.avatar
     );
 
+    return res.status(200).json({ 
+      message: "Match updated successfully", 
+      match 
+    });
 
-    return res.status(200).json({ message: "Match updated successfully", match });
   } catch (err) {
-    console.error("Error updating match:", err);
-    next(err); 
+    console.error("Error handling score request:", err);
+    next(err);
   }
 };
 
 
+const determineWinner = (sport, scores) => {
+  switch (sport) {
+    case 'Tennis':
+    case 'Volleyball':
+    case 'Badminton':
+    case 'Table Tennis': {
+      let team1Sets = 0;
+      let team2Sets = 0;
+      const totalSets = Object.keys(scores).length / 2;
+      
+      for (let i = 1; i <= totalSets; i++) {
+        const set1Score = parseInt(scores[`set${i}Team1`]);
+        const set2Score = parseInt(scores[`set${i}Team2`]);
+        if (set1Score > set2Score) {
+          team1Sets++;
+        } else if (set2Score > set1Score) {
+          team2Sets++;
+        }
+      }
+      
+      if (team1Sets === team2Sets) return null;
+      return team1Sets > team2Sets ? 0 : 1;
+    }
+
+    case 'Cricket': {
+      const team1Runs = parseInt(scores.runs1);
+      const team2Runs = parseInt(scores.runs2);
+      if (team1Runs === team2Runs) return null;
+      return team1Runs > team2Runs ? 0 : 1;
+    }
+
+    case 'Football':
+    case 'Basketball':
+    case 'Hockey':
+    case 'Rugby': {
+      const team1Score = parseInt(scores.team1);
+      const team2Score = parseInt(scores.team2);
+      if (team1Score === team2Score) return null;
+      return team1Score > team2Score ? 0 : 1;
+    }
+
+    default:
+      throw new Error(`Unsupported sport: ${sport}`);
+  }
+};
+
 exports.updateMatch2 = async (req, res, next) => {
-  const { matchId} = req.body;
-  const {action} = req.params;
+  const { matchId } = req.body;
+  const { action } = req.params;
 
   try {
-    // Find the match and populate necessary references
     const match = await Match.findById(matchId)
-      .populate('teams.team') // Populate team if it's a team match
-      .populate('players') // Populate players if it's an individual match
-      .populate('sport'); // Populate the sport details
+      .populate('teams.team')
+      .populate('players')
+      .populate('sport');
 
     if (!match) {
       return res.status(404).json({ message: 'Match not found' });
@@ -623,62 +779,49 @@ exports.updateMatch2 = async (req, res, next) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    if (action === "reject"){
+    if (action === "reject") {
       match.status = "scheduled";
       await match.save();
-      return res.status(200).json({message:"rejected proposed score."});
+      return res.status(200).json({ message: "rejected proposed score." });
     }
 
-    const score1 = match.scores[0];
-    const score2 = match.scores[1];
-    // Ensure sport exists
     if (!match.sport) {
       return res.status(400).json({ message: 'Sport not specified for the match' });
     }
 
+    const winnerIndex = determineWinner(match.sport.name, match.scores);
+    if (winnerIndex === null) {
+      return res.status(400).json({ message: 'Draw not supported. A clear winner is required.' });
+    }
+
     // Handle Team Match
     if (match.isTeamMatch) {
-      // Ensure we have two teams
       if (match.teams.length !== 2) {
         return res.status(400).json({ message: 'Match must have exactly two teams' });
       }
-    
+
       const [team1, team2] = match.teams;
-    
-      let winnerTeam, loserTeam;
-      if (score1 > score2) {
-        winnerTeam = team1.team;
-        loserTeam = team2.team;
-        match.winner = { type: 'Team', ref: team1.team._id };
-      } else if (score2 > score1) {
-        winnerTeam = team2.team;
-        loserTeam = team1.team;
-        match.winner = { type: 'Team', ref: team2.team._id };
-      } else {
-        return res.status(400).json({ message: 'Draw not supported. A clear winner is required.' });
-      }
-    
+      const winnerTeam = match.teams[winnerIndex].team;
+      const loserTeam = match.teams[1 - winnerIndex].team;
+      match.winner = { type: 'Team', ref: winnerTeam._id };
+
       // Update team players progress
       const updateTeamPlayersProgress = async (team, isWinner) => {
         for (const playerId of team.participants) {
-          // Find the user
           const user = await User.findById(playerId);
           
           if (user && user.progress) {
-            // Find the progress document
             const userProgress = await Progress.findById(user.progress);
             
             if (userProgress) {
-              // Update overall progress
               userProgress.overallScore += isWinner ? 10 : 5;
               userProgress.totalMatches += 1;
               if (isWinner) userProgress.matchesWon += 1;
-    
-              // Find or create sport-specific score entry
+
               let sportScoreEntry = userProgress.sportScores.find(
                 ss => ss.sport.toString() === match.sport._id.toString()
               );
-    
+
               if (!sportScoreEntry) {
                 sportScoreEntry = {
                   sport: match.sport._id,
@@ -687,60 +830,44 @@ exports.updateMatch2 = async (req, res, next) => {
                   wonMatches: isWinner ? 1 : 0
                 };
                 userProgress.sportScores.push(sportScoreEntry);
-              }
-    
-              // Update sport-specific progress
-              sportScoreEntry.totalMatches += 1;
-              if (isWinner) {
-                sportScoreEntry.wonMatches += 1;
-                sportScoreEntry.score += 10;
               } else {
-                sportScoreEntry.score += 5;
+                sportScoreEntry.totalMatches += 1;
+                if (isWinner) {
+                  sportScoreEntry.wonMatches += 1;
+                  sportScoreEntry.score += 10;
+                } else {
+                  sportScoreEntry.score += 5;
+                }
               }
-    
+
               await userProgress.save();
             }
           }
         }
       };
-    
-      // Update progresses for both teams
+
       await updateTeamPlayersProgress(winnerTeam, true);
       await updateTeamPlayersProgress(loserTeam, false);
     }
     // Handle Individual Player Match
     else {
-      // Ensure we have exactly 2 players
       if (match.players.length !== 2) {
         return res.status(400).json({ message: 'Individual match must have exactly two players' });
       }
 
       const [player1, player2] = match.players;
+      const winner = match.players[winnerIndex];
+      const loser = match.players[1 - winnerIndex];
+      match.winner = { type: 'User', ref: winner._id };
 
-      let winner, loser;
-      if (score1 > score2) {
-        winner = player1;
-        loser = player2;
-        match.winner = { type: 'User', ref: player1._id };
-      } else if (score2 > score1) {
-        winner = player2;
-        loser = player1;
-        match.winner = { type: 'User', ref: player2._id };
-      } else {
-        return res.status(400).json({ message: 'Draw not supported. A clear winner is required.' });
-      }
-
-      // Update winner's progress
       const updatePlayerProgress = async (player, isWinner) => {
         const playerProgress = await Progress.findById(player.progress);
         
         if (playerProgress) {
-          // Overall progress
           playerProgress.overallScore += isWinner ? 10 : 5;
           playerProgress.totalMatches += 1;
           if (isWinner) playerProgress.matchesWon += 1;
 
-          // Find or create sport-specific score entry
           let sportScoreEntry = playerProgress.sportScores.find(
             ss => ss.sport.toString() === match.sport._id.toString()
           );
@@ -753,27 +880,24 @@ exports.updateMatch2 = async (req, res, next) => {
               wonMatches: isWinner ? 1 : 0
             };
             playerProgress.sportScores.push(sportScoreEntry);
-          }
-
-          // Update sport-specific progress
-          sportScoreEntry.totalMatches += 1;
-          if (isWinner) {
-            sportScoreEntry.wonMatches += 1;
-            sportScoreEntry.score += 10;
           } else {
-            sportScoreEntry.score += 5;
+            sportScoreEntry.totalMatches += 1;
+            if (isWinner) {
+              sportScoreEntry.wonMatches += 1;
+              sportScoreEntry.score += 10;
+            } else {
+              sportScoreEntry.score += 5;
+            }
           }
 
           await playerProgress.save();
         }
       };
 
-      // Update progresses for both players
       await updatePlayerProgress(winner, true);
       await updatePlayerProgress(loser, false);
     }
 
-    // Update match status and save
     match.status = 'completed';
     await match.save();
 
@@ -784,7 +908,7 @@ exports.updateMatch2 = async (req, res, next) => {
         isTeamMatch: match.isTeamMatch,
         winner: match.winner,
         status: match.status,
-        scores: [score1, score2]
+        scores: match.scores
       }
     });
 

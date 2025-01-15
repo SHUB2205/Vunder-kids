@@ -13,10 +13,9 @@ const MatchSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  sport: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Sport",
-    required: true,
+  scores: {
+    type: mongoose.Schema.Types.Mixed, // Allow any JSON data
+    default: {},
   },
   teams: [
     {
