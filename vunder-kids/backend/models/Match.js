@@ -13,9 +13,10 @@ const MatchSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  scores: {
-    type: mongoose.Schema.Types.Mixed, // Allow any JSON data
-    default: {},
+  sport: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Sport",
+    required: true,
   },
   teams: [
     {
@@ -82,9 +83,10 @@ const MatchSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  scores: [{
-    type:Number
-  }],
+  scores: {
+    type: mongoose.Schema.Types.Mixed, // Allow any JSON data
+    default: {},
+  },
   likes: [
     {
       type: mongoose.Schema.Types.ObjectId,
