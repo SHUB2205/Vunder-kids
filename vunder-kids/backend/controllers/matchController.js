@@ -172,8 +172,8 @@ exports.createMatch = async (req, res) => {
               players.filter((player) => player.toString() !== creatorUserId),
               "match-cancelled",
               `The match scheduled on ${currentMatch.date} has been cancelled due to no response.`,
-              null,
-              null
+              creatorUserId,
+              creatorUserImage
             );
           }
         }
