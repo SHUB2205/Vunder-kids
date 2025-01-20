@@ -23,6 +23,8 @@ router.put('/like-post/:postId', isAuth, [
     param('postId').isMongoId().withMessage('Invalid post ID')
 ], postController.toggleLike);
 
+router.put('/edit/:postId',isAuth,postController.editPost);
+
 router.post('/comment/:postId', isAuth, [
     param('postId').isMongoId().withMessage('Invalid post ID'),
     body('content').trim().notEmpty().withMessage('Comment content is required')

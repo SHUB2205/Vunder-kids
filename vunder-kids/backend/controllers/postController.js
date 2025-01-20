@@ -352,3 +352,38 @@ exports.postMatchResult = async (req, res, next) => {
     next(err.statusCode ? err : { ...err, statusCode: 500 });
   }
 };
+
+
+// Add this to your postController.js
+
+exports.editPost = async (req, res, next) => {
+  const { postId } = req.params;
+  const { content } = req.body;
+
+  try {
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      const error = new Error('Post not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Check if the user is the creator of the post
+    if (post.creator.toString() !== req.user.id.toString()) {
+      const error = new Error('Not authorized to edit this post.');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    post.content = content;
+    const updatedPost = await post.save();
+
+    res.status(200).json({
+      message: 'Post updated successfully',
+      post: updatedPost
+    });
+  } catch (err) {
+    next(err.statusCode ? err : { ...err, statusCode: 500 });
+  }
+};
