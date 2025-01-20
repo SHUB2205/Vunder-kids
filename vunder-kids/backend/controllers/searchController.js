@@ -38,11 +38,35 @@ const search = async (req, res, next) => {
     const users = await User.aggregate([
       {
         $match: {
-          _id: { $ne: new ObjectId(userId) },
+          _id: { $ne: new ObjectId(userId) }, // Exclude the current user
           $or: [
             { userName: { $regex: query, $options: 'i' } },
-            { name: { $regex: query, $options: 'i' } }
+            { name: { $regex: query, $options: 'i' } },
+            { 'passions.name': { $regex: query, $options: 'i' } } // Match on passions
           ]
+        }
+      },
+      {
+        $addFields: {
+          matchType: {
+            $cond: [
+              { $regexMatch: { input: '$userName', regex: new RegExp(query, 'i') } },
+              'userName',
+              {
+                $cond: [
+                  { $regexMatch: { input: '$name', regex: new RegExp(query, 'i') } },
+                  'name',
+                  'passion'
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        $sort: {
+          matchType: { $eq: ['userName', 'userName'] } ? -1 : 0, // Prioritize userName, then name, then passion
+          name: 1 // Secondary alphabetical sorting
         }
       },
       {
@@ -50,10 +74,11 @@ const search = async (req, res, next) => {
           userName: 1,
           name: 1,
           avatar: 1,
-          followers: { $size: "$followers" }
+          followers: { $size: "$followers" },
+          matchType: 1 // Include match type for debugging or UI usage
         }
       }
-    ]);      
+    ]);
 
     // Search for posts
     const posts = await Post.find({
