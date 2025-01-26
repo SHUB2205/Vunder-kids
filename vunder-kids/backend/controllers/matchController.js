@@ -400,29 +400,35 @@ exports.updateAgreement2 = async (req, res) => {
 
 exports.scheduledMatches = async (req, res) => {
   try {
-    const scheduledMatches = await Match.find({ status: "scheduled" })
+    // Calculate the start of yesterday
+    const now = new Date();
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1); // Start of yesterday
+
+    const scheduledMatches = await Match.find({
+      status: "scheduled",
+      date: { $gte: yesterday }, // Matches with date >= yesterday
+    })
       .populate("sport", "_id name") // If sport is a reference
       .populate("teams.team") // Populate team details
       .populate("players", "_id avatar userName name") // Populate player details
       .populate({
-        path:"comments",
+        path: "comments",
         populate: {
-          path : "user",
-          select: "userName name avatar"
-        }
+          path: "user",
+          select: "userName name avatar",
+        },
       })
       .sort({ date: 1 }); // Sort by earliest date first
 
     res.json(scheduledMatches);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Error fetching scheduled matches",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error fetching scheduled matches",
+      error: error.message,
+    });
   }
 };
+
 
 exports.getUpcomingMatches = async (req, res) => {
   try {
