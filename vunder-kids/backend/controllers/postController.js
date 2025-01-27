@@ -275,7 +275,7 @@ exports.toggleFollow = async (req, res, next) => {
       notificationService(
         [followId],
         "follow",
-        `${user.name} started following you.`,
+        `${user.name} is a follower now.`,
         user._id,
         user.avatar // Pass creator image as initiator
       );

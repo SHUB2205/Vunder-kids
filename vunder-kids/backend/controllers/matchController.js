@@ -8,6 +8,7 @@ const User = require("../models/User.js");
 const { updateScore } = require("./progressController.js");
 const Progress = require("../models/Progress.js");
 const Comment = require("../models/comment");
+const Sport = require("../models/Sport.js");
 
 exports.createMatch = async (req, res) => {
   try {
@@ -119,10 +120,15 @@ exports.createMatch = async (req, res) => {
       const otherPlayers = players.filter(
         (player) => player.toString() !== creatorUserId
       );
+      const sportName = await Sport.findById(matchdata.sport);
+
       notificationService(
         otherPlayers,
         "matchmaking",
-        `You have been chosen for a new individual match : ${matchdata.name} . Please check the match details.`,
+        `${creatorUser.userName} has invited you for ${sportName.name} match ${matchdata.name} on ${new Date(matchdata.date).toLocaleDateString('en-US', {
+          month: 'short', // Abbreviated month
+          day: 'numeric'  // Day of the month
+        })}. Please check the match details.`,
         creatorUserId, // Pass the creator as the person who initiated the match
         creatorUserImage // Pass the creator's image
       );
