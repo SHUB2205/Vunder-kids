@@ -406,15 +406,9 @@ exports.updateAgreement2 = async (req, res) => {
 
 exports.scheduledMatches = async (req, res) => {
   try {
-    // Calculate the start of yesterday
-    const now = new Date();
-    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1); // Start of yesterday
-
     const scheduledMatches = await Match.find({
-      status: "scheduled",
-      date: { $gte: yesterday }, // Matches with date >= yesterday
-    })
-      .populate("sport", "_id name") // If sport is a reference
+      status: { $nin: ["in-progress", "cancelled"] }
+    }).populate("sport", "_id name") // If sport is a reference
       .populate("teams.team") // Populate team details
       .populate("players", "_id avatar userName name") // Populate player details
       .populate({
@@ -423,8 +417,7 @@ exports.scheduledMatches = async (req, res) => {
           path: "user",
           select: "userName name avatar",
         },
-      })
-      .sort({ date: 1 }); // Sort by earliest date first
+      }).sort({ date: -1 }); // Sort by earliest date first
 
     res.json(scheduledMatches);
   } catch (error) {

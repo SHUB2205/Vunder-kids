@@ -61,8 +61,30 @@ const allMatches = async (req, res) => {
       });
     }
   };
-
+  const markNotificationsAsRead = async (req, res) => {
+    try {
+      const userId = req.user.id;
+  
+      // Update all unread notifications for the user to read
+      await Notification.updateMany(
+        { user: userId, read: false }, 
+        { $set: { read: true } }
+      );
+  
+      res.status(200).json({
+        success: true,
+        message: "All notifications marked as read"
+      });
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error while marking notifications as read"
+      });
+    }
+  };
 module.exports={
     allNotification,
-    allMatches
+    allMatches,
+    markNotificationsAsRead
 }
