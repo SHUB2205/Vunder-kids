@@ -412,6 +412,10 @@ exports.scheduledMatches = async (req, res) => {
       .populate("teams.team") // Populate team details
       .populate("players", "_id avatar userName name") // Populate player details
       .populate({
+        path: 'winner.ref',
+        select: 'name userName'
+      })
+      .populate({
         path: "comments",
         populate: {
           path: "user",
