@@ -142,7 +142,36 @@ const UserSchema = new mongoose.Schema({
   bio : {
     type:String,
     default:'Passionate football enthusiast | Dedicated athlete | Striving for excellence on and off the pitch.'
-  }
+  },
+  industry: {
+    type: String,
+    enum: [
+      "Technology",
+      "Banking and Financial Services",
+      "Consulting",
+      "Insurance",
+      "Government",
+      "Legal Services",
+      "Hospitality",
+      "Airlines and Aviation",
+      "Healthcare",
+      "Engineering",
+      "Education",
+      "Non Profit",
+      "Media",
+      "Defense",
+      "Manufacturing",
+      "Farming",
+      "Human Resources",
+      "Finance",
+      "Supply Chain",
+      "Customer Service",
+      "Marketing and Advertising",
+      "Sales",
+      "Player"
+    ],
+    default: "Player",
+  },
 });
 
 UserSchema.pre("save", async function (next) {

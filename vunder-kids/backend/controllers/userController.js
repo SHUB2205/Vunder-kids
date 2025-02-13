@@ -476,7 +476,7 @@ const aboutUser = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const { userName, name, location, age, gender } = req.body;
+    const { userName, name, location, age, gender,industry,bio } = req.body;
     // console.log(req.body);
     // Validate required fields
     if (!userName || !name || !location) {
@@ -497,6 +497,10 @@ const aboutUser = async (req, res) => {
     user.location = location || user.location;
     user.age = age || user.age;
     user.gender = gender || user.gender;
+    user.industry = industry || user.industry;
+    if(bio){
+      user.bio = bio;
+    }
 
     const updatedUser = await user.save();
 
