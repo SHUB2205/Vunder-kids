@@ -623,7 +623,8 @@ const editUser = async (req, res, next) => {
       name, 
       userName, 
       location,
-      bio
+      bio,
+      industry
     } = req.body;
 
     // Find the user by ID
@@ -649,6 +650,7 @@ const editUser = async (req, res, next) => {
     }
     if (bio) user.bio = bio;
     if (location) user.location = location;
+    if(industry) user.industry = industry;
 
     // Handle profile picture upload (similar to saveProfilePicture logic)
     if (req.file) {
