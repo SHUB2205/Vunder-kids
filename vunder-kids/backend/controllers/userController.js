@@ -153,12 +153,12 @@ const sendVerificationEmail = async (req, res, next) => {
     const verificationToken = generateToken(); // A function to generate a unique token
     user.verifyToken = verificationToken;
     user.tokenExpiration = Date.now() + 3600000; // 1 hour expiration
-
+   
     await user.save();
     await transporter.sendMail({
       to: user.email,
       subject: "Verify Your Email",
-      text: `Please verify your email by clicking the following link: ${process.env.EMAIL_URL}/api/verify-email/${verificationToken}`,
+      text:`Hey ${user.userName},\n\nWelcome to Fisiko! We're excited that Fisiko is now a part of your sports journey.\n\nClick here to confirm your email address and get started: ${process.env.EMAIL_URL}/api/verify-email/${verificationToken}\n\nHave fun playing sports!\n\nSee you soon!\n\nThe Fisiko Team`,
     });
 
     res.status(200).json({ message: "Verification email sent" });
@@ -227,12 +227,16 @@ const requestResetPassword = async (req, res) => {
       to: email,
       subject: "Password Reset Request",
       html: `
-        <p>Click the link below to reset your password:</p>
-        <a href="${resetLink}">${resetLink}</a>
-        <p>This link is valid for 1 hour.</p>
+        <p>Hey ${user.userName},</p>
+        <p>Looks like you forgot your password. No worries, it happens to the best of us because there are too many passwords to remember!!!</p>
+        <p>No panic! Password security features are in place to ensure the security of your profile information.</p>
+        <p>To reset your password, please click the link below and follow the instructions provided.</p>
+        <p><a href="${resetLink}">Click here to reset your password.</a></p>
+        <p>This link will remain active for the next 3 hours.</p>
+        <p>Please do not reply to this e-mail.</p>
+        <p>Your Fisiko Team!</p>
       `,
-    });
-
+    });    
     // Save the token and expiration time to the user record
     user.verifyToken = token;
     user.tokenExpiration = Date.now() + 3600000; // Token valid for 1 hour

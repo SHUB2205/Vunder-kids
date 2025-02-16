@@ -823,7 +823,7 @@ exports.updateMatch2 = async (req, res, next) => {
             const userProgress = await Progress.findById(user.progress);
             
             if (userProgress) {
-              userProgress.overallScore += isWinner ? 10 : 5;
+              userProgress.overallScore += isWinner ? 5 : 0;
               userProgress.totalMatches += 1;
               if (isWinner) userProgress.matchesWon += 1;
 
@@ -834,7 +834,7 @@ exports.updateMatch2 = async (req, res, next) => {
               if (!sportScoreEntry) {
                 sportScoreEntry = {
                   sport: match.sport._id,
-                  score: isWinner ? 10 : 5,
+                  score: isWinner ? 5 : 0,
                   totalMatches: 1,
                   wonMatches: isWinner ? 1 : 0
                 };
@@ -843,9 +843,9 @@ exports.updateMatch2 = async (req, res, next) => {
                 sportScoreEntry.totalMatches += 1;
                 if (isWinner) {
                   sportScoreEntry.wonMatches += 1;
-                  sportScoreEntry.score += 10;
-                } else {
                   sportScoreEntry.score += 5;
+                } else {
+                  sportScoreEntry.score += 0;
                 }
               }
 
@@ -873,7 +873,7 @@ exports.updateMatch2 = async (req, res, next) => {
         const playerProgress = await Progress.findById(player.progress);
         
         if (playerProgress) {
-          playerProgress.overallScore += isWinner ? 10 : 5;
+          playerProgress.overallScore += isWinner ? 5 : 0;
           playerProgress.totalMatches += 1;
           if (isWinner) playerProgress.matchesWon += 1;
 
@@ -884,7 +884,7 @@ exports.updateMatch2 = async (req, res, next) => {
           if (!sportScoreEntry) {
             sportScoreEntry = {
               sport: match.sport._id,
-              score: isWinner ? 10 : 5,
+              score: isWinner ? 5 : 0,
               totalMatches: 1,
               wonMatches: isWinner ? 1 : 0
             };
@@ -893,9 +893,9 @@ exports.updateMatch2 = async (req, res, next) => {
             sportScoreEntry.totalMatches += 1;
             if (isWinner) {
               sportScoreEntry.wonMatches += 1;
-              sportScoreEntry.score += 10;
-            } else {
               sportScoreEntry.score += 5;
+            } else {
+              sportScoreEntry.score += 0;
             }
           }
 
