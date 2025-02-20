@@ -374,6 +374,7 @@ const getByUsername = async (req, res) => {
       passions:user.passions,
       bio:user.bio,
       progress:user.progress,
+      industry:user.industry,
       followedBy,
     });
   } catch (err) {
