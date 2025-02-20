@@ -338,7 +338,7 @@ const getByUsername = async (req, res) => {
       return res.status(400).json({ message: "Username not provided" });
     }
 
-    const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio').populate({
+    const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio industry').populate({
       path: 'followers',
       select:'name avatar'
     })
