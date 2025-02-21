@@ -8,6 +8,7 @@ const notificationService = require('../services/notification/notificationServic
 
 const { validationResult } = require('express-validator');
 const Notification = require('../models/Notifiication');
+const { post } = require('../routes/matchRoutes');
 
 //Get Post from id
 exports.getPost = async (req, res, next) => {
@@ -66,7 +67,20 @@ exports.getPosts = async (req,res,next) => {
       posts = await Post.find({ 'creator': user._id }).populate('creator', '_id userName email avatar').sort({createdAt : -1});
     }
     else{
-      posts = await Post.find().populate('creator', '_id userName email avatar').sort({createdAt : -1});
+      allPosts = await Post.find().populate('creator', '_id userName email avatar isPrivate').sort({createdAt : -1});
+      const userId = req.user?.id;
+      const requestingUser = userId ? await User.findById(userId) : false;
+      posts = [];
+      if(userId && requestingUser){
+        posts = allPosts.filter((post) => {
+          return (post.creator.isPrivate === false || post.creator._id === userId || (requestingUser.following.some(f => f.equals(post.creator._id))));
+        })
+      }
+      else{
+        posts = allPosts.filter((post) => {
+          return (post.creator.isPrivate === false);
+        })
+      }
     }
     res.status(200).json({posts : posts});
   }
@@ -241,49 +255,97 @@ exports.getLikedPosts = async (req,res,next) => {
 };
 
 exports.toggleFollow = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
   const { followId } = req.body;
   try {
     if (followId.toString() === req.user.id.toString()) {
-      const error = new Error("Can't follow own account");
-      error.statusCode = 403;
-      throw error;
+      throw new Error("Can't follow own account");
     }
 
-    const followUser = await User.findById(followId);
-    const user = await User.findById(req.user.id);
+    const targetUser = await User.findById(followId);
+    const currentUser = await User.findById(req.user.id);
 
-    if (!followUser) {
-      const error = new Error('User not found.');
-      error.statusCode = 404;
-      throw error;
+    if (!targetUser) {
+      throw new Error('User not found');
     }
 
-    const isFollowing = user.following.includes(followId);
-    const updateOp = isFollowing ? '$pull' : '$push';
-    await Promise.all([
-      User.updateOne({ _id: user._id }, { [updateOp]: { 'following': followId } }),
-      User.updateOne({ _id: followUser._id }, { [updateOp]: { 'followers': user._id} })
-    ]);
+    // Check if already following
+    const isFollowing = currentUser.following?.includes(followId);
+    
+    if (isFollowing) {
+      // Unfollow logic
+      await Promise.all([
+        User.updateOne(
+          { _id: currentUser._id }, 
+          { $pull: { following: followId } }
+        ),
+        User.updateOne(
+          { _id: targetUser._id }, 
+          { $pull: { followers: currentUser._id } }
+        )
+      ]);
+      
+      return res.status(200).json({ 
+        status: 'unfollowed',
+        message: 'Successfully unfollowed' 
+      });
+    }
 
-    // Create a notification if the user is now following
-    if (!isFollowing) {
+
+    // Handle new follow/request
+    const result = await targetUser.handleFollowRequest(currentUser._id);
+    
+    // Create notification
+    if (result.status === 'followed') {
       notificationService(
         [followId],
         "follow",
-        `${user.name} is a follower now.`,
-        user._id,
-        user.avatar // Pass creator image as initiator
+        `${currentUser.name} is a follower now.`,
+        currentUser._id,
+        currentUser.avatar
+      );
+    } else if (result.status === 'requested') {
+      notificationService(
+        [followId],
+        "followRequest",
+        `${currentUser.name} requested to follow you.`,
+        currentUser._id,
+        currentUser.avatar
       );
     }
 
-    res.status(200).json({ message: 'Follow status updated!' });
+    res.status(200).json(result);
   } catch (err) {
-    next(err.statusCode ? err : { ...err, statusCode: 500 });
+    next(err);
+  }
+};
+
+exports.handleFollowRequest = async (req, res, next) => {
+  const { requesterId, action } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user.followRequests.includes(requesterId)) {
+      return res.status(400).json({ message: 'No such follow request exists' });
+    }
+    
+    if (action === 'accept') {
+      const accepted = await user.acceptFollowRequest(requesterId);
+      if (accepted) {
+        notificationService(
+          [requesterId],
+          "follow",
+          `${user.name} accepted your follow request.`,
+          user._id,
+          user.avatar
+        );
+      }
+    } else if (action === 'reject') {
+      await user.rejectFollowRequest(requesterId);
+    }
+    
+    res.status(200).json({ message: `Request ${action}ed successfully` });
+  } catch (err) {
+    next(err);
   }
 };
 

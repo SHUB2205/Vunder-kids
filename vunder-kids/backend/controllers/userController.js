@@ -315,7 +315,10 @@ const userInfo = async (req, res) => {
         path:'progress',
         populate:{path : 'sportScores.sport',select: 'name _id'}
       })
-      .select('-password -matchIds -teamIds');
+      .populate({
+        path:'followRequests',
+        select:'_id avatar userName name'
+      })
     } else if (userId) {
       user = await User.findById(userId, "-password");
     }
@@ -338,7 +341,7 @@ const getByUsername = async (req, res) => {
       return res.status(400).json({ message: "Username not provided" });
     }
 
-    const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio industry').populate({
+    const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio industry isPrivate followRequests').populate({
       path: 'followers',
       select:'name avatar'
     })
@@ -375,6 +378,8 @@ const getByUsername = async (req, res) => {
       bio:user.bio,
       progress:user.progress,
       industry:user.industry,
+      followRequests:user.followRequests,
+      isPrivate: user.isPrivate,
       followedBy,
     });
   } catch (err) {
@@ -579,13 +584,15 @@ const saveProfilePicture = async (req, res) => {
 
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find({}, '_id userName followers name avatar');
+    const users = await User.find({}, '_id userName followers name avatar isPrivate followRequests');
     const renamedUsers = users.map(user => ({
       _id: user._id,
       name: user.userName, // Rename 'userName' to 'name'
       followers:user.followers.length,
       realName:user.name,
-      avatar:user.avatar
+      avatar:user.avatar,
+      isPrivate:user.isPrivate,
+      followRequests:user.followRequests
     }));
     res.json(renamedUsers);
   } catch (error) {

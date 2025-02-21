@@ -74,6 +74,7 @@ const search = async (req, res, next) => {
           userName: 1,
           name: 1,
           avatar: 1,
+          followRequests:1,
           followers: { $size: "$followers" },
           matchType: 1 // Include match type for debugging or UI usage
         }

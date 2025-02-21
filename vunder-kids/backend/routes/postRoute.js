@@ -12,7 +12,7 @@ router.get('/post/:postId',optionalAuth, postController.getPost);
 
 router.post('/create', isAuth, upload.single('media'), postController.createPost);
 
-router.get('/posts/',postController.getPosts);
+router.get('/posts/',optionalAuth,postController.getPosts);
 
 router.get('/posts/:username',postController.getPosts);
 
@@ -37,7 +37,8 @@ router.put('/like-comment/:commentId', isAuth, [
 router.put('/toggle-follow', isAuth, [
     body('followId').isMongoId().withMessage('Invalid user ID')
   ], postController.toggleFollow);
-  
+
+router.post('/handle-follow-request',isAuth,postController.handleFollowRequest);
 
 router.post('/matches/:matchId/post-result', isAuth, postController.postMatchResult);
 

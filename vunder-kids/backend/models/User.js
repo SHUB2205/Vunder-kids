@@ -3,6 +3,14 @@ const bcrypt = require("bcryptjs");
 const Schema = mongoose.Schema;
 
 const UserSchema = new mongoose.Schema({
+  isPrivate: {
+    type: Boolean,
+    default: true  // Accounts are private by default
+  },
+  followRequests: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    default: []
+  },
   avatar: {
     type:String,
     default:'https://res.cloudinary.com/dlolz3flx/image/upload/v1734952795/jgwiq6esp4mipcltneeo.jpg'
@@ -201,6 +209,58 @@ UserSchema.methods.getProfileCompletion = function () {
   ).length;
   return (filledFields / totalFields) * 100;
 };
+
+UserSchema.methods.handleFollowRequest = async function(requesterId) {
+  const requester = await User.findById(requesterId);
+  if (!requester) {
+    throw new Error('Requester not found');
+  }
+  
+  // If account is public, directly follow
+  if (!this.isPrivate) {
+    if (!this.followers?.includes(requesterId)) {
+      this.followers.push(requesterId);
+      requester.following.push(this._id);
+      await Promise.all([this.save(), requester.save()]);
+    }
+    return { status: 'followed', message: 'Successfully followed' };
+  }
+  
+  // If account is private, handle request
+  if (!this.followRequests?.includes(requesterId)) {
+    this.followRequests?.push(requesterId);  // Add to pending requests
+    await this.save();
+    return { status: 'requested', message: 'Follow request sent' };
+  }
+  
+  return { status: 'pending', message: 'Request already pending' };
+};
+
+UserSchema.methods.acceptFollowRequest = async function(requesterId) {
+  if (requesterId) {
+    // Remove from requests and add to followers
+    this.followRequests.pull(requesterId);
+    this.followers.push(requesterId);
+    
+    const requester = await User.findById(requesterId);
+    requester.following.push(this._id);
+    
+    await Promise.all([this.save(), requester.save()]);
+    return true;
+  }
+  return false;
+};
+
+UserSchema.methods.rejectFollowRequest = async function(requesterId) {
+  const requestIndex = this.followRequests.indexOf(requesterId);
+  if (requestIndex !== -1) {
+    this.followRequests.splice(requestIndex, 1);
+    await this.save();
+    return true;
+  }
+  return false;
+};
+
 
 const User = mongoose.model("User", UserSchema);
 

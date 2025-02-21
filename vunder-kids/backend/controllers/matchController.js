@@ -406,7 +406,7 @@ exports.updateAgreement2 = async (req, res) => {
 
 exports.scheduledMatches = async (req, res) => {
   try {
-    const scheduledMatches = await Match.find({
+    let scheduledMatches = await Match.find({
       status: { $nin: ["in-progress", "cancelled"] }
     }).populate("sport", "_id name") // If sport is a reference
       .populate("teams.team") // Populate team details
@@ -422,6 +422,46 @@ exports.scheduledMatches = async (req, res) => {
           select: "userName name avatar",
         },
       }).sort({ date: -1 }); // Sort by earliest date first
+
+      const userId = req.user?.id;
+      const requestingUser = userId ? await User.findById(userId) : null;
+      if (userId && requestingUser) {
+        // If user is logged in, show matches that are either:
+        // 1. Public
+        // 2. User is a participant
+        // 3. User is following all private participants
+        scheduledMatches = scheduledMatches.filter(match => {
+          // Check if user is a participant
+          const isParticipant = match.players.some(player => 
+            player._id.toString() === userId
+          );
+  
+          if (isParticipant) return true;
+  
+          // Get all private participants (both teams and individual players)
+          const privateParticipants = [
+            ...match.teams.filter(team => team.team.isPrivate).map(team => team.team._id),
+            ...match.players.filter(player => player.isPrivate).map(player => player._id)
+          ];
+  
+          // If there are no private participants, match is visible
+          if (privateParticipants.length === 0) return true;
+  
+          // Check if user follows all private participants
+          return privateParticipants.every(participantId =>
+            requestingUser.following.some(followingId => 
+              followingId.equals(participantId)
+            )
+          );
+        });
+      } else {
+        // If user is not logged in, only show completely public matches
+        scheduledMatches = scheduledMatches.filter(match => {
+          const hasPrivateTeam = match.teams.some(team => team.team.isPrivate);
+          const hasPrivatePlayer = match.players.some(player => player.isPrivate);
+          return !hasPrivateTeam && !hasPrivatePlayer;
+        });
+      }
 
     res.json(scheduledMatches);
   } catch (error) {
