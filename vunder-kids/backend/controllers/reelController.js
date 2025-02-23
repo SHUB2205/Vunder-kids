@@ -39,12 +39,13 @@ exports.getReels = async (req, res) => {
         }),
       })
       .sort({ createdAt: -1 });
+      if(username) return res.status(200).json({ reels });
 
       const userId = req.user?.id;
       const requestingUser =userId ? await User.findById(userId) : false;
       if(userId && requestingUser){
       reels = reels.filter(reel => {
-        return (reel.userId.isPrivate === false || reel.userId._id === userId || (requestingUser.following.some(f => f.equals(reel.userId._id))));
+        return (reel.userId.isPrivate === false || reel.userId._id.toString() === userId.toString() || (requestingUser.following.some(f => f.equals(reel.userId._id))));
       });
     }
     else{

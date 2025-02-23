@@ -73,7 +73,7 @@ exports.getPosts = async (req,res,next) => {
       posts = [];
       if(userId && requestingUser){
         posts = allPosts.filter((post) => {
-          return (post.creator.isPrivate === false || post.creator._id === userId || (requestingUser.following.some(f => f.equals(post.creator._id))));
+          return (post.creator.isPrivate === false || post.creator._id.toString() === userId.toString() || (requestingUser.following.some(f => f.equals(post.creator._id))));
         })
       }
       else{

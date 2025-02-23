@@ -429,7 +429,7 @@ exports.scheduledMatches = async (req, res) => {
         // If user is logged in, show matches that are either:
         // 1. Public
         // 2. User is a participant
-        // 3. User is following all private participants
+        // 3. User is following any private participants
         scheduledMatches = scheduledMatches.filter(match => {
           // Check if user is a participant
           const isParticipant = match.players.some(player => 
@@ -447,8 +447,8 @@ exports.scheduledMatches = async (req, res) => {
           // If there are no private participants, match is visible
           if (privateParticipants.length === 0) return true;
   
-          // Check if user follows all private participants
-          return privateParticipants.every(participantId =>
+          // Check if user follows any private participants
+          return privateParticipants.some(participantId =>
             requestingUser.following.some(followingId => 
               followingId.equals(participantId)
             )

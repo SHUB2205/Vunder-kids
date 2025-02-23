@@ -636,7 +636,8 @@ const editUser = async (req, res, next) => {
       userName, 
       location,
       bio,
-      industry
+      industry,
+      isPrivate
     } = req.body;
 
     // Find the user by ID
@@ -663,6 +664,7 @@ const editUser = async (req, res, next) => {
     if (bio) user.bio = bio;
     if (location) user.location = location;
     if(industry) user.industry = industry;
+    if(isPrivate) user.isPrivate = isPrivate === 'false' ? false : true;
 
     // Handle profile picture upload (similar to saveProfilePicture logic)
     if (req.file) {
