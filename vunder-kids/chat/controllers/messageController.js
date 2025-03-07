@@ -38,7 +38,7 @@ exports.getGroupMessages = async (req, res) => {
 
     const messages = await Message.find({ group: groupId })
       .sort({ timestamp: 1 })
-      .populate("sender", "name");
+      .populate("sender", "name userName");
 
     res.json(messages);
   } catch (error) {
@@ -86,7 +86,7 @@ exports.getUserChats = async (req, res) => {
         options: { sort: { timestamp: -1 } },
         populate: {
           path: "sender recipient",
-          select: "name avatar",
+          select: "name userName avatar",
         },
       })
       .populate({
@@ -130,6 +130,7 @@ exports.getUserChats = async (req, res) => {
           lastMessage: message.content,
           timestamp: message.timestamp,
           avatar: otherUser.avatar,
+          userName:otherUser.userName,
           unseenCount,  // Add unseen message count
         });
       }
@@ -279,5 +280,25 @@ exports.notifyFollowers = async (req, res) => {
   } catch (error) {
     console.error("Error notifying followers:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.sendGroupMessage = async (req, res) => {
+  try {
+    const { groupId, content } = req.body;
+    const userId = req.user.id;
+
+    const newMessage = new Message({
+      sender: userId,
+      group: groupId,
+      content
+    });
+
+    await newMessage.save();
+
+    res.status(201).json(newMessage);
+  } catch (error) {
+    console.error("Error sending group message:", error);
+    res.status(500).json({ message: "Error sending group message" });
   }
 };

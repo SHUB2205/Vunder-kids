@@ -7,6 +7,7 @@ router.get('/private/:otherUserId', isAuth, messageController.getPrivateMessages
 router.get('/group/:groupId', isAuth, messageController.getGroupMessages);
 router.get('/chats', isAuth, messageController.getUserChats);
 router.post('/group/create', isAuth, messageController.createGroup);
+router.post('/group/send', isAuth, messageController.sendGroupMessage);
 // router.post('/send',isAuth,messageController.sendMessage);
 router.post('/notify', isAuth, messageController.notifyFollowers);
 router.post('/markMessagesAsSeen/:chatId',isAuth,messageController.markMessagesAsSeen);

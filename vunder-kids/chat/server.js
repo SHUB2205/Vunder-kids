@@ -6,6 +6,7 @@ const http = require("http");
 const Message = require("./models/Message");
 const Group = require("./models/Group");
 const messageRoutes = require("./routes/messageRoutes");
+const communitiesRoutes = require("./routes/communitiesRoutes");
 const socketAuth=require("./middleware/socketAuth");
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -58,6 +59,7 @@ app.get("/", (req, res) => {
   res.send("Chat Server is Alive!");
 });
 app.use("/api/messages", messageRoutes);
+app.use("/api/communities",communitiesRoutes);
 
 app.use(router);
 router.post('/api/send-notification', async (req, res) => {
