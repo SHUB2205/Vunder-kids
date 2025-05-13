@@ -4,6 +4,10 @@ const session = require("express-session");
 const passport = require("passport");
 const OAuth2Strategy = require("passport-google-oauth2").Strategy;
 const User = require("../models/User"); // Adjust path as needed
+const Progress = require("../models/Progress");
+require('dotenv').config();
+
+const frontend_url = process.env.FRONTEND_URL;
 
 // Jwt Token Work
 var jwt = require("jsonwebtoken");
@@ -48,6 +52,15 @@ passport.use(new OAuth2Strategy({
         try {
             let user = await User.findOne({ googleId: profile.id });
             // console.log(user);
+
+            const progress = await Progress.create({
+                overallScore: 0,
+                totalMatches: 0,
+                matchesWon: 0,
+                sportScores: [], 
+                userAchievements: []
+            });
+
             if (!user) {
                 const userName = generateUniqueUserName(profile.displayName);
                 user = new User({
@@ -55,6 +68,7 @@ passport.use(new OAuth2Strategy({
                     name: profile.displayName,
                     email: profile.emails[0].value,
                     isGoogleUser:true,
+                    progress: progress._id,
                     isVerified:true
                     // image: profile.photos[0].value
                 });
@@ -108,38 +122,28 @@ router.get("/google", passport.authenticate("google", { scope: ["profile", "emai
 //  2. my way Here i am sending the user
 // Google OAuth callback
 router.get("/google/callback", passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/register",  // Redirect on failure
+    failureRedirect: `${frontend_url}/register`,  // Redirect on failure
 }), (req, res) => {
-    // Remove password from the user object
     const { password, ...userWithoutPassword } = req.user;
-
-    // Check the user data in the '_doc' property
     const user = userWithoutPassword._doc;
-
-    // Create the JWT token
     const token = generateToken(user._id, user.isVerified);
-
-    // Check if the user has a username
     const userHasUsername = user.userName ? true : false;
 
-    // Send the response with the token and user data
     const response = {
         success: true,
         token: token,
-        user: user,  // Sending the user object without the password
+        user: user,
         message: "Authentication successful",
-        userHasUsername: userHasUsername,  // Add a flag to indicate if username exists
+        userHasUsername: userHasUsername,
     };
 
-    // Instead of redirecting, send a message to the OAuth window
     res.send(`
         <script>
-            window.opener.postMessage(${JSON.stringify(response)}, "http://localhost:3000");
+            window.opener.postMessage(${JSON.stringify(response)}, "${frontend_url}");
             window.close();
         </script>
     `);
 });
-
   
   
 

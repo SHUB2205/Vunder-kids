@@ -85,7 +85,6 @@ const registerUser = async (req, res, next) => {
 // Login The User //
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
-  console.log(req.body);
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -120,7 +119,6 @@ const loginUser = async (req, res, next) => {
         message:"We have sent a verification email to your email address. Please verify your email to login.",
         });
     }
-    console.log(user);
     return res.json({
       success: true,
       _id: user._id,
@@ -155,12 +153,12 @@ const sendVerificationEmail = async (req, res, next) => {
     const verificationToken = generateToken(); // A function to generate a unique token
     user.verifyToken = verificationToken;
     user.tokenExpiration = Date.now() + 3600000; // 1 hour expiration
-
+   
     await user.save();
     await transporter.sendMail({
       to: user.email,
       subject: "Verify Your Email",
-      text: `Please verify your email by clicking the following link: ${process.env.EMAIL_URL}/api/verify-email/${verificationToken}`,
+      text:`Hey ${user.userName},\n\nWelcome to Fisiko! We're excited that Fisiko is now a part of your sports journey.\n\nClick here to confirm your email address and get started: ${process.env.EMAIL_URL}/api/verify-email/${verificationToken}\n\nHave fun playing sports!\n\nSee you soon!\n\nThe Fisiko Team`,
     });
 
     res.status(200).json({ message: "Verification email sent" });
@@ -209,88 +207,84 @@ const checkVerification = async (req, res) => {
     next(error);
   }
 };
+
 const requestResetPassword = async (req, res) => {
-  const { id } = req.user;
+  const { email } = req.body;
 
   try {
-    const user = await User.findById(id);
+    const user = await User.findOne({ email });
     if (!user) {
+      console.log("Not found");
       return res.status(404).json({ message: "User not found" });
     }
 
     // Generate a verification token
     const token = crypto.randomBytes(32).toString("hex");
-    // console.log(token);
+
     // Send email
+    const resetLink = `${process.env.FRONTEND_URL}/reEnter-password/${token}`;
     await transporter.sendMail({
-      // to check
-      to: req.body.email,
+      to: email,
       subject: "Password Reset Request",
       html: `
-        <p>Click this <a href="${BACKEND_URL}/api/reset-password/${token}">link</a> to reset your password.</p>
+        <p>Hey ${user.userName},</p>
+        <p>Looks like you forgot your password. No worries, it happens to the best of us because there are too many passwords to remember!!!</p>
+        <p>No panic! Password security features are in place to ensure the security of your profile information.</p>
+        <p>To reset your password, please click the link below and follow the instructions provided.</p>
+        <p><a href="${resetLink}">Click here to reset your password.</a></p>
+        <p>This link will remain active for the next 3 hours.</p>
+        <p>Please do not reply to this e-mail.</p>
+        <p>Your Fisiko Team!</p>
       `,
-    });
-
-    // Token valid fo 1 hour
+    });    
+    // Save the token and expiration time to the user record
     user.verifyToken = token;
-    user.tokenExpiration = Date.now() + 3600000;
+    user.tokenExpiration = Date.now() + 3600000; // Token valid for 1 hour
     await user.save();
 
-    return res
-      .status(200)
-      .json({
-        message: "Password reset email sent successfully",
-        link: `${BACKEND_URL}/api/reset-password/${token}`,
-      });
+    return res.status(200).json({
+      message: "Password reset email sent successfully",
+      link: resetLink, // Send the link in the response for debugging purposes (optional)
+    });
   } catch (error) {
-    console.error("Error sending password reset email:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error sending reset email:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+
 const resetPassword = async (req, res) => {
-  // Extract token from URL
-  const { token } = req.params;
-  // console.log(token);
-  const { newPassword } = req.body;
+  const { token } = req.params; // Extract token from URL
+  const { newPassword } = req.body; // Get new password from the request body
 
   if (!newPassword) {
     return res.status(400).json({ message: "New password is required" });
   }
 
   try {
-    // This is set by the isAuth middleware
-    const { id } = req.user;
-    const user = await User.findById(id);
+    // Find the user with the token
+    const user = await User.findOne({ verifyToken: token });
 
-    if (!user) {
+    if (!user || user.tokenExpiration < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    // Find user associated with the token
-    const tokenExpiration = user.tokenExpiration;
-    const verifyToken = user.verifyToken;
-    if (!verifyToken || tokenExpiration < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-
-    // Update password
     // Hash the new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    // const salt = await bcrypt.genSalt(10);
+    user.password = newPassword;
+
+    // Clear the token and expiration
+    user.verifyToken = null;
+    user.tokenExpiration = null;
+
     await user.save();
 
-    // Remove the token from database
-    // error in this line
-    //  user.verifyToken;
-    // await user.save();
     return res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
     console.error("Error resetting password:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 //  fetching the inforamtion of the user by his id
 
 const userInfo = async (req, res) => {
@@ -321,7 +315,10 @@ const userInfo = async (req, res) => {
         path:'progress',
         populate:{path : 'sportScores.sport',select: 'name _id'}
       })
-      .select('-password -matchIds -teamIds');
+      .populate({
+        path:'followRequests',
+        select:'_id avatar userName name'
+      })
     } else if (userId) {
       user = await User.findById(userId, "-password");
     }
@@ -344,7 +341,7 @@ const getByUsername = async (req, res) => {
       return res.status(400).json({ message: "Username not provided" });
     }
 
-    const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio').populate({
+    const user = await User.findOne({ userName: username },'_id name userName location avatar following totalMatches wonMatches passions bio industry isPrivate followRequests').populate({
       path: 'followers',
       select:'name avatar'
     })
@@ -380,6 +377,9 @@ const getByUsername = async (req, res) => {
       passions:user.passions,
       bio:user.bio,
       progress:user.progress,
+      industry:user.industry,
+      followRequests:user.followRequests,
+      isPrivate: user.isPrivate,
       followedBy,
     });
   } catch (err) {
@@ -486,7 +486,7 @@ const aboutUser = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const { userName, name, location, age, gender } = req.body;
+    const { userName, name, location, age, gender,industry,bio } = req.body;
     // console.log(req.body);
     // Validate required fields
     if (!userName || !name || !location) {
@@ -507,6 +507,10 @@ const aboutUser = async (req, res) => {
     user.location = location || user.location;
     user.age = age || user.age;
     user.gender = gender || user.gender;
+    user.industry = industry || user.industry;
+    if(bio){
+      user.bio = bio;
+    }
 
     const updatedUser = await user.save();
 
@@ -580,10 +584,15 @@ const saveProfilePicture = async (req, res) => {
 
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find({}, '_id userName');
+    const users = await User.find({}, '_id userName followers name avatar isPrivate followRequests');
     const renamedUsers = users.map(user => ({
       _id: user._id,
       name: user.userName, // Rename 'userName' to 'name'
+      followers:user.followers.length,
+      realName:user.name,
+      avatar:user.avatar,
+      isPrivate:user.isPrivate,
+      followRequests:user.followRequests
     }));
     res.json(renamedUsers);
   } catch (error) {
@@ -626,7 +635,9 @@ const editUser = async (req, res, next) => {
       name, 
       userName, 
       location,
-      bio
+      bio,
+      industry,
+      isPrivate
     } = req.body;
 
     // Find the user by ID
@@ -652,6 +663,8 @@ const editUser = async (req, res, next) => {
     }
     if (bio) user.bio = bio;
     if (location) user.location = location;
+    if(industry) user.industry = industry;
+    if(isPrivate) user.isPrivate = isPrivate === 'false' ? false : true;
 
     // Handle profile picture upload (similar to saveProfilePicture logic)
     if (req.file) {

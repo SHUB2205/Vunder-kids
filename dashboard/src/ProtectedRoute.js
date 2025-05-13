@@ -1,8 +1,17 @@
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 // ProtectedRoute component to protect certain routes
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
+  // Correctly destructuring useState
+  const [token, setToken] = useState(localStorage.getItem("token"));
+
+  useEffect(() => {
+    const newToken = localStorage.getItem("token");
+    if (newToken) {
+      setToken(newToken);
+    }
+  }, []);
 
   if (!token) {
     // If no token, redirect to login page

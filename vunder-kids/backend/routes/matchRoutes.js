@@ -1,6 +1,6 @@
 const express = require('express');
 const matchController = require('../controllers/matchController');
-const {isAuth} = require('../middleware/is-Auth');
+const {isAuth,optionalAuth} = require('../middleware/is-Auth');
 // const  {getAllMatches} = require ('../controllers/matchController');
 const router = express.Router();
 
@@ -13,7 +13,7 @@ router.get('/upcoming-matches',isAuth, matchController.getUpcomingMatches);
 router.get('/completed-matches/:username',isAuth, matchController.getCompletedMatchesByUsername);
 
 
-router.get('/sch-matches',matchController.scheduledMatches);
+router.get('/sch-matches',optionalAuth,matchController.scheduledMatches);
 // Get a match by ID
 router.get('/:id', isAuth, matchController.getMatchById);
 

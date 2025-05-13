@@ -83,9 +83,10 @@ const MatchSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  scores: [{
-    type:Number
-  }],
+  scores: {
+    type: mongoose.Schema.Types.Mixed, // Allow any JSON data
+    default: {},
+  },
   likes: [
     {
       type: mongoose.Schema.Types.ObjectId,

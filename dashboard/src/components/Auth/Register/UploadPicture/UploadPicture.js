@@ -54,7 +54,7 @@ function UploadPicture() {
 
       // Upload image to Cloudinary
       const cloudinaryResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/dmvs9syar/image/upload`, // Correct URL
+        `https://api.cloudinary.com/v1_1/dlolz3flx/image/upload`, // Correct URL
         {
           method: "POST",
           body: formData,

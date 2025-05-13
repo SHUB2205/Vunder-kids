@@ -30,8 +30,8 @@ router.post('/send-verification-email',sendVerificationEmail);
 
 router.get('/verify-email/:token', verifyEmail);
 router.get('/check-verification',isAuth,checkVerification);
-router.post("/request-reset-password",isAuth,requestResetPassword);
-router.get("/reset-password/:token",isAuth,resetPassword);
+router.post("/request-reset-password",requestResetPassword);
+router.post("/reset-password/:token",resetPassword);
 router.get("/getUserId",isAuth,getUserId);
 // Specific User Info
 router.get("/users/:id",isAuth,userInfo);

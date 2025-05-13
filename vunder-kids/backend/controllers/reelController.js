@@ -20,10 +20,10 @@ exports.getReels = async (req, res) => {
       query = { userId: user._id };
     }
 
-    const reels = await Reel.find(query)
+    let reels = await Reel.find(query)
       .populate({
         path: 'userId',
-        select: '_id userName avatar'
+        select: '_id userName avatar isPrivate'
       })
       .populate({
         path: 'comments',
@@ -39,7 +39,20 @@ exports.getReels = async (req, res) => {
         }),
       })
       .sort({ createdAt: -1 });
+      if(username) return res.status(200).json({ reels });
 
+      const userId = req.user?.id;
+      const requestingUser =userId ? await User.findById(userId) : false;
+      if(userId && requestingUser){
+      reels = reels.filter(reel => {
+        return (reel.userId.isPrivate === false || reel.userId._id.toString() === userId.toString() || (requestingUser.following.some(f => f.equals(reel.userId._id))));
+      });
+    }
+    else{
+      reels = reels.filter(reel=>{
+        return (reel.userId.isPrivate === false);
+      });
+    }
     res.status(200).json({ reels });
   } catch (err) {
     console.log(err)
@@ -85,14 +98,8 @@ exports.createReel = async(req, res) => {
     description: description.trim()
   });
 
-  reel.save((err, data) => {
-    if (err) {
-      return res.status(500).send({
-        message: err.message || 'Some error occurred while creating the reel.'
-      });
-    }
-    res.send(data);
-  });
+  const savedReel = await reel.save();
+  res.send(savedReel);
 };
 
 

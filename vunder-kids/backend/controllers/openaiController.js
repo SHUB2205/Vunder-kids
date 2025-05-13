@@ -7,7 +7,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Securely load API key from environment variables
 });
 
-const redis = new Redis();
+const redis = new Redis("redis://default:pwn8XQYCDpDazn9Jw4S2e0GOdWAxtneS@redis-17527.c74.us-east-1-4.ec2.redns.redis-cloud.com:17527");
 
 // Function to interact with OpenAI API
 const askOpenai = async (req, res) => {
