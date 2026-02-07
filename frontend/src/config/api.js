@@ -1,19 +1,23 @@
+// Use your machine's IP address for physical device testing
+// For emulator: 10.0.2.2 (Android) or localhost (iOS)
 const API_BASE_URL = 'http://localhost:5000/api';
-const CHAT_BASE_URL = 'http://localhost:4000';
+const CHAT_BASE_URL = 'http://localhost:5000';
 
 export const API_ENDPOINTS = {
   // Auth
-  LOGIN: `${API_BASE_URL}/login`,
-  REGISTER: `${API_BASE_URL}/register`,
-  VERIFY_EMAIL: `${API_BASE_URL}/verify-email`,
+  LOGIN: `${API_BASE_URL}/auth/login`,
+  REGISTER: `${API_BASE_URL}/auth/register`,
+  VERIFY_EMAIL: `${API_BASE_URL}/auth/verify-email`,
   GOOGLE_AUTH: `${API_BASE_URL}/auth/google`,
   
   // User
   GET_USER: `${API_BASE_URL}/user`,
-  UPDATE_USER: `${API_BASE_URL}/edit/user`,
-  GET_USER_BY_USERNAME: (username) => `${API_BASE_URL}/user/${username}`,
-  FOLLOW_USER: `${API_BASE_URL}/follow`,
-  UNFOLLOW_USER: `${API_BASE_URL}/unfollow`,
+  UPDATE_USER: `${API_BASE_URL}/user`,
+  GET_USER_BY_ID: (userId) => `${API_BASE_URL}/user/${userId}`,
+  FOLLOW_USER: `${API_BASE_URL}/user/follow`,
+  UNFOLLOW_USER: `${API_BASE_URL}/user/unfollow`,
+  GET_FOLLOWERS: (userId) => `${API_BASE_URL}/user/${userId}/followers`,
+  GET_FOLLOWING: (userId) => `${API_BASE_URL}/user/${userId}/following`,
   
   // Posts
   GET_POSTS: `${API_BASE_URL}/post/posts`,
@@ -24,9 +28,9 @@ export const API_ENDPOINTS = {
   GET_USER_POSTS: (userId) => `${API_BASE_URL}/post/user/${userId}`,
   
   // Stories
-  GET_STORIES: `${API_BASE_URL}/post/stories`,
-  CREATE_STORY: `${API_BASE_URL}/post/story/create`,
-  VIEW_STORY: (storyId) => `${API_BASE_URL}/post/story/view/${storyId}`,
+  GET_STORIES: `${API_BASE_URL}/story`,
+  CREATE_STORY: `${API_BASE_URL}/story/create`,
+  VIEW_STORY: (storyId) => `${API_BASE_URL}/story/view/${storyId}`,
   
   // Reels
   GET_REELS: `${API_BASE_URL}/reels`,
@@ -35,6 +39,7 @@ export const API_ENDPOINTS = {
   
   // Matches
   GET_MATCHES: `${API_BASE_URL}/matches`,
+  GET_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}`,
   CREATE_MATCH: `${API_BASE_URL}/matches/create`,
   UPDATE_SCORE: (matchId) => `${API_BASE_URL}/matches/score/${matchId}`,
   JOIN_MATCH: (matchId) => `${API_BASE_URL}/matches/join/${matchId}`,
@@ -46,6 +51,7 @@ export const API_ENDPOINTS = {
   
   // Facilities
   GET_FACILITIES: `${API_BASE_URL}/facilities`,
+  GET_FACILITY: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}`,
   BOOK_FACILITY: `${API_BASE_URL}/facilities/book`,
   
   // Sports
@@ -54,16 +60,17 @@ export const API_ENDPOINTS = {
   // Notifications
   GET_NOTIFICATIONS: `${API_BASE_URL}/notifications`,
   MARK_READ: (notifId) => `${API_BASE_URL}/notifications/read/${notifId}`,
+  MARK_ALL_READ: `${API_BASE_URL}/notifications/read-all`,
   UPDATE_TOKEN: `${API_BASE_URL}/notifications/token`,
   
   // AI
   AI_CHAT: `${API_BASE_URL}/ai/chat`,
   AI_ADVICE: `${API_BASE_URL}/ai/advice`,
   
-  // Chat
-  CHAT_SOCKET: CHAT_BASE_URL,
-  GET_MESSAGES: `${CHAT_BASE_URL}/api/messages`,
-  GET_CONVERSATIONS: `${CHAT_BASE_URL}/api/messages/conversations`,
+  // Messages
+  GET_MESSAGES: `${API_BASE_URL}/messages`,
+  GET_CONVERSATIONS: `${API_BASE_URL}/messages/conversations`,
+  SEND_MESSAGE: `${API_BASE_URL}/messages/send`,
 };
 
 export { API_BASE_URL, CHAT_BASE_URL };
