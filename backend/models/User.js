@@ -43,7 +43,9 @@ const UserSchema = new mongoose.Schema({
   
   // Auth
   googleId: { type: String, unique: true, sparse: true },
+  appleId: { type: String, unique: true, sparse: true },
   isGoogleUser: { type: Boolean, default: false },
+  isAppleUser: { type: Boolean, default: false },
   verifyToken: { type: String },
   tokenExpiration: { type: Date },
   
