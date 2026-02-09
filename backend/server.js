@@ -133,8 +133,9 @@ app.use((error, req, res, next) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Accessible at http://10.226.163.93:${PORT}`);
 });
 
 module.exports = { app, io };

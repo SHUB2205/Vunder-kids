@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,54 @@ import {
   StyleSheet,
   Image,
   RefreshControl,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { useNotification } from '../../context/NotificationContext';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { API_ENDPOINTS } from '../../config/api';
+import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
+
+const NOTIFICATION_TABS = ['All', 'Matches', 'Requests'];
 
 const NotificationsScreen = ({ navigation }) => {
   const { notifications, fetchNotifications, markAsRead, markAllAsRead } = useNotification();
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState('All');
+  const [followingUsers, setFollowingUsers] = useState({});
+  const [loadingFollow, setLoadingFollow] = useState({});
 
   useEffect(() => {
     fetchNotifications();
   }, []);
+
+  const handleFollowUser = async (userId) => {
+    if (loadingFollow[userId]) return;
+    
+    setLoadingFollow(prev => ({ ...prev, [userId]: true }));
+    try {
+      await axios.post(API_ENDPOINTS.FOLLOW_USER, { userId });
+      setFollowingUsers(prev => ({ ...prev, [userId]: true }));
+      Alert.alert('Success', 'You are now following this user!');
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.message || 'Failed to follow user');
+    } finally {
+      setLoadingFollow(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  const getFilteredNotifications = () => {
+    switch (activeTab) {
+      case 'Matches':
+        return notifications.filter(n => n.type === 'match' || n.type === 'match_invite' || n.type === 'score_update');
+      case 'Requests':
+        return notifications.filter(n => n.type === 'follow' || n.type === 'follow_request' || n.type === 'match_request');
+      default:
+        return notifications;
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -94,38 +129,43 @@ const NotificationsScreen = ({ navigation }) => {
   };
 
   const renderNotificationItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.notificationItem, !item.read && styles.notificationItemUnread]}
-      onPress={() => handleNotificationPress(item)}
-    >
-      <View style={styles.notificationLeft}>
-        <Image source={{ uri: item.sender?.avatar }} style={styles.avatar} />
-        <View
-          style={[
-            styles.iconBadge,
-            { backgroundColor: getNotificationColor(item.type) },
-          ]}
-        >
-          <Ionicons
-            name={getNotificationIcon(item.type)}
-            size={12}
-            color={COLORS.white}
-          />
+    <View style={styles.notificationCard}>
+      <TouchableOpacity
+        style={[styles.notificationItem, !item.read && styles.notificationItemUnread]}
+        onPress={() => handleNotificationPress(item)}
+      >
+        <Image 
+          source={{ uri: item.sender?.avatar || 'https://via.placeholder.com/50' }} 
+          style={styles.avatar} 
+        />
+        <View style={styles.notificationContent}>
+          <Text style={styles.notificationText}>
+            <Text style={styles.senderName}>
+              {item.sender?.userName || item.sender?.name || 'Someone'}
+            </Text>{' '}
+            {item.message || 'sent you a notification'}
+          </Text>
         </View>
-      </View>
-      <View style={styles.notificationContent}>
-        <Text style={styles.notificationText}>
-          <Text style={styles.senderName}>
-            {item.sender?.userName || item.sender?.name}
-          </Text>{' '}
-          {item.message}
-        </Text>
         <Text style={styles.timestamp}>{formatTime(item.createdAt)}</Text>
-      </View>
-      {item.post?.mediaURL && (
-        <Image source={{ uri: item.post.mediaURL }} style={styles.postThumbnail} />
+      </TouchableOpacity>
+      
+      {/* Action buttons for follow requests */}
+      {(item.type === 'follow_request' || item.type === 'follow') && !followingUsers[item.sender?._id] && (
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={[styles.followBackBtn, loadingFollow[item.sender?._id] && styles.followBackBtnDisabled]}
+            onPress={() => handleFollowUser(item.sender?._id)}
+            disabled={loadingFollow[item.sender?._id]}
+          >
+            {loadingFollow[item.sender?._id] ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <Text style={styles.followBackText}>Follow</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       )}
-    </TouchableOpacity>
+    </View>
   );
 
   const renderSectionHeader = (title) => (
@@ -146,20 +186,37 @@ const NotificationsScreen = ({ navigation }) => {
     return notifDate.toDateString() !== today.toDateString();
   });
 
+  const renderTabs = () => (
+    <View style={styles.tabsContainer}>
+      {NOTIFICATION_TABS.map((tab) => (
+        <TouchableOpacity
+          key={tab}
+          style={[styles.tab, activeTab === tab && styles.tabActive]}
+          onPress={() => setActiveTab(tab)}
+        >
+          <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+            {tab}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        <TouchableOpacity onPress={markAllAsRead}>
-          <Text style={styles.markAllText}>Mark all read</Text>
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Notification</Text>
+        </View>
       </View>
 
+      {renderTabs()}
+
       <FlatList
-        data={notifications}
+        data={getFilteredNotifications()}
         renderItem={renderNotificationItem}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.listContent}
@@ -169,9 +226,6 @@ const NotificationsScreen = ({ navigation }) => {
             onRefresh={onRefresh}
             tintColor={COLORS.primary}
           />
-        }
-        ListHeaderComponent={
-          todayNotifications.length > 0 ? renderSectionHeader('Today') : null
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -190,7 +244,7 @@ const NotificationsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surface,
   },
   header: {
     flexDirection: 'row',
@@ -198,63 +252,71 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: SPACING.md,
   },
   headerTitle: {
     fontSize: FONTS.sizes.lg,
     fontWeight: '600',
     color: COLORS.text,
   },
-  markAllText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.primary,
-    fontWeight: '500',
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  tab: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginRight: SPACING.md,
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.text,
+  },
+  tabText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+  },
+  tabTextActive: {
+    color: COLORS.text,
+    fontWeight: '600',
   },
   listContent: {
+    paddingTop: SPACING.md,
     paddingBottom: SPACING.xxl,
   },
-  sectionHeader: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.surface,
-  },
-  sectionTitle: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+  notificationCard: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.md,
+    marginBottom: SPACING.sm,
+    borderRadius: BORDER_RADIUS.lg,
+    ...SHADOWS.small,
   },
   notificationItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    padding: SPACING.md,
   },
   notificationItemUnread: {
     backgroundColor: COLORS.primary + '08',
-  },
-  notificationLeft: {
-    position: 'relative',
+    borderRadius: BORDER_RADIUS.lg,
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
     backgroundColor: COLORS.surface,
-  },
-  iconBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.white,
   },
   notificationContent: {
     flex: 1,
@@ -269,16 +331,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   timestamp: {
-    fontSize: FONTS.sizes.xs,
+    fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
   },
-  postThumbnail: {
-    width: 44,
-    height: 44,
-    borderRadius: BORDER_RADIUS.sm,
-    backgroundColor: COLORS.surface,
-    marginLeft: SPACING.md,
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.md,
+    marginLeft: 66,
+  },
+  followBackBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  followBackBtnDisabled: {
+    opacity: 0.7,
+  },
+  followBackText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
   },
   emptyContainer: {
     alignItems: 'center',

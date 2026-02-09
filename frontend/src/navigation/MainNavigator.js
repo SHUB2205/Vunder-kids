@@ -52,6 +52,9 @@ const HomeStack = () => (
     <Stack.Screen name="Chat" component={ChatScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+    <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
+    <Stack.Screen name="SetScore" component={SetScoreScreen} />
+    <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
   </Stack.Navigator>
 );
 

@@ -2,6 +2,7 @@
   "expo": {
     "name": "Fisiko",
     "slug": "fisiko",
+    "scheme": "fisiko",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -28,7 +29,8 @@
       "expo-camera",
       "expo-image-picker",
       "expo-notifications",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-apple-authentication"
     ]
   }
 }

@@ -1,7 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 import { API_ENDPOINTS } from '../config/api';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const AuthContext = createContext();
 
@@ -59,7 +65,10 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      console.log('Attempting registration to:', API_ENDPOINTS.REGISTER);
+      console.log('User data:', userData);
       const response = await axios.post(API_ENDPOINTS.REGISTER, userData);
+      console.log('Registration response:', response.data);
       const { token: authToken, user: newUser } = response.data;
       
       await AsyncStorage.setItem('token', authToken);
@@ -72,9 +81,12 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Registration error:', error.message);
+      console.error('Error details:', error.response?.data || error);
+      console.error('Request URL:', API_ENDPOINTS.REGISTER);
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+        error: error.response?.data?.message || `Registration failed: ${error.message}` 
       };
     }
   };
@@ -124,6 +136,53 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleSignIn = async (idToken) => {
+    try {
+      const response = await axios.post(API_ENDPOINTS.GOOGLE_AUTH, { idToken });
+      const { token: authToken, user: userData } = response.data;
+      
+      await AsyncStorage.setItem('token', authToken);
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      
+      setToken(authToken);
+      setUser(userData);
+      setIsAuthenticated(true);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Google sign in failed' 
+      };
+    }
+  };
+
+  const appleSignIn = async (identityToken, appleUser) => {
+    try {
+      const response = await axios.post(API_ENDPOINTS.APPLE_AUTH, { 
+        identityToken, 
+        user: appleUser 
+      });
+      const { token: authToken, user: userData } = response.data;
+      
+      await AsyncStorage.setItem('token', authToken);
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      
+      setToken(authToken);
+      setUser(userData);
+      setIsAuthenticated(true);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Apple sign in failed' 
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -137,6 +196,8 @@ export const AuthProvider = ({ children }) => {
         updateUser,
         refreshUser,
         setUser,
+        googleSignIn,
+        appleSignIn,
       }}
     >
       {children}

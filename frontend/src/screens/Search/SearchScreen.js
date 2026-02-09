@@ -9,252 +9,292 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { useMatch } from '../../context/MatchContext';
 import { API_ENDPOINTS } from '../../config/api';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
-const CATEGORIES = [
+const SPORTS_TABS = [
   { id: 'all', label: 'All', icon: 'apps' },
-  { id: 'users', label: 'People', icon: 'people' },
-  { id: 'news', label: 'News', icon: 'newspaper' },
-  { id: 'sports', label: 'Sports', icon: 'trophy' },
+  { id: 'football', label: 'Football', icon: 'football' },
+  { id: 'tennis', label: 'Tennis', icon: 'tennisball' },
+  { id: 'cricket', label: 'Cricket', icon: 'baseball' },
+  { id: 'basketball', label: 'Basketball', icon: 'basketball' },
+  { id: 'soccer', label: 'Soccer', icon: 'football-outline' },
 ];
 
-const SearchScreen = ({ navigation }) => {
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('all');
-  const [results, setResults] = useState({ users: [], news: [], sports: [] });
+const DATE_TABS = ['Yesterday', 'Today', 'Tomorrow'];
+
+const SearchScreen = ({ navigation, route }) => {
+  const { matches, fetchMatches, loading: matchLoading } = useMatch();
+  const [activeSport, setActiveSport] = useState('all');
+  const [activeDate, setActiveDate] = useState('Today');
   const [loading, setLoading] = useState(false);
-  const [trending, setTrending] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [liveScores, setLiveScores] = useState([]);
 
   useEffect(() => {
-    fetchTrending();
+    fetchLiveScores();
+    fetchMatches();
   }, []);
 
   useEffect(() => {
-    if (query.length > 2) {
-      const debounce = setTimeout(() => {
-        performSearch();
-      }, 500);
-      return () => clearTimeout(debounce);
-    } else {
-      setResults({ users: [], news: [], sports: [] });
-    }
-  }, [query, category]);
-
-  const fetchTrending = async () => {
-    // Mock trending data
-    setTrending([
-      { id: '1', title: 'Premier League', type: 'sports' },
-      { id: '2', title: 'NBA Finals', type: 'sports' },
-      { id: '3', title: 'Tennis Grand Slam', type: 'sports' },
-      { id: '4', title: 'Local Football Tournament', type: 'news' },
-    ]);
-  };
-
-  const performSearch = async () => {
-    setLoading(true);
-    try {
-      const [usersRes, newsRes, sportsRes] = await Promise.all([
-        category === 'all' || category === 'users'
-          ? axios.get(`${API_ENDPOINTS.SEARCH_USERS}?q=${query}`)
-          : Promise.resolve({ data: { users: [] } }),
-        category === 'all' || category === 'news'
-          ? axios.get(`${API_ENDPOINTS.SEARCH_NEWS}?q=${query}`)
-          : Promise.resolve({ data: { news: [] } }),
-        category === 'all' || category === 'sports'
-          ? axios.get(`${API_ENDPOINTS.SEARCH_SPORTS}?q=${query}`)
-          : Promise.resolve({ data: { sports: [] } }),
-      ]);
-
-      setResults({
-        users: usersRes.data.users || [],
-        news: newsRes.data.news || [],
-        sports: sportsRes.data.sports || [],
+    // Convert Fisiko matches to score format
+    if (matches && matches.length > 0) {
+      const fisikoScores = matches
+        .filter(m => m.status === 'in-progress' || m.status === 'completed')
+        .map(m => ({
+          id: m._id,
+          sport: m.sport?.name?.toLowerCase() || 'other',
+          league: 'Fisiko Match',
+          team1: {
+            name: m.isTeamMatch ? m.teams?.[0]?.name : (m.players?.[0]?.name || m.creator?.name || 'Player 1'),
+            logo: m.isTeamMatch ? 'https://via.placeholder.com/40' : (m.players?.[0]?.avatar || m.creator?.avatar || 'https://via.placeholder.com/40'),
+            score: m.scores?.team1 || 0,
+          },
+          team2: {
+            name: m.isTeamMatch ? m.teams?.[1]?.name : (m.players?.[1]?.name || 'Player 2'),
+            logo: m.isTeamMatch ? 'https://via.placeholder.com/40' : (m.players?.[1]?.avatar || 'https://via.placeholder.com/40'),
+            score: m.scores?.team2 || 0,
+          },
+          status: m.status === 'in-progress' ? 'live' : 'completed',
+          time: m.status === 'in-progress' ? 'Live' : 'Final',
+          isFisiko: true,
+          matchData: m,
+        }));
+      
+      setLiveScores(prev => {
+        const externalScores = prev.filter(s => !s.isFisiko);
+        return [...fisikoScores, ...externalScores];
       });
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
+    }
+  }, [matches]);
+
+  const fetchLiveScores = async () => {
+    setLoading(true);
+    // Mock external live scores data - in production, this would call a sports API
+    setTimeout(() => {
+      const externalScores = [
+        {
+          id: 'ext-1',
+          sport: 'football',
+          league: 'Premier League',
+          team1: { name: 'Manchester United', logo: 'https://via.placeholder.com/40', score: 2 },
+          team2: { name: 'Liverpool', logo: 'https://via.placeholder.com/40', score: 1 },
+          status: 'live',
+          time: "65'",
+          isFisiko: false,
+        },
+        {
+          id: 'ext-2',
+          sport: 'tennis',
+          league: 'Wimbledon',
+          team1: { name: 'Djokovic', logo: 'https://via.placeholder.com/40', score: '6-4, 3-2' },
+          team2: { name: 'Nadal', logo: 'https://via.placeholder.com/40', score: '4-6, 2-3' },
+          status: 'live',
+          time: 'Set 2',
+          isFisiko: false,
+        },
+        {
+          id: 'ext-3',
+          sport: 'cricket',
+          league: 'IPL',
+          team1: { name: 'Mumbai Indians', logo: 'https://via.placeholder.com/40', score: '185/4' },
+          team2: { name: 'Chennai Super Kings', logo: 'https://via.placeholder.com/40', score: '142/6' },
+          status: 'live',
+          time: '18.2 overs',
+          isFisiko: false,
+        },
+        {
+          id: 'ext-4',
+          sport: 'basketball',
+          league: 'NBA',
+          team1: { name: 'Lakers', logo: 'https://via.placeholder.com/40', score: 98 },
+          team2: { name: 'Warriors', logo: 'https://via.placeholder.com/40', score: 102 },
+          status: 'completed',
+          time: 'Final',
+          isFisiko: false,
+        },
+      ];
+      
+      setLiveScores(prev => {
+        const fisikoScores = prev.filter(s => s.isFisiko);
+        return [...fisikoScores, ...externalScores];
+      });
       setLoading(false);
+    }, 500);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchLiveScores(), fetchMatches()]);
+    setRefreshing(false);
+  };
+
+  const handleScorePress = (item) => {
+    if (item.isFisiko && item.matchData) {
+      navigation.navigate('MatchDetail', { match: item.matchData });
     }
   };
 
-  const renderUserItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.userItem}
-      onPress={() => navigation.navigate('UserProfile', { userId: item._id })}
+  const getFilteredScores = () => {
+    if (activeSport === 'all') return liveScores;
+    return liveScores.filter(score => score.sport === activeSport);
+  };
+
+  const renderScoreCard = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.scoreCard}
+      onPress={() => handleScorePress(item)}
+      activeOpacity={item.isFisiko ? 0.7 : 1}
     >
-      <Image source={{ uri: item.avatar }} style={styles.userAvatar} />
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>{item.userName || item.name}</Text>
-        <Text style={styles.userBio} numberOfLines={1}>
-          {item.bio || `${item.followers?.length || 0} followers`}
-        </Text>
+      <View style={styles.scoreCardHeader}>
+        <View style={styles.leagueRow}>
+          <Text style={styles.leagueName}>{item.league}</Text>
+          {item.isFisiko && (
+            <View style={styles.fisikoBadge}>
+              <Text style={styles.fisikoBadgeText}>Fisiko</Text>
+            </View>
+          )}
+        </View>
+        {item.status === 'live' && (
+          <View style={styles.liveBadge}>
+            <View style={styles.liveIndicator} />
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
+        )}
+        {item.status === 'completed' && (
+          <Text style={styles.completedText}>Completed</Text>
+        )}
       </View>
-      <TouchableOpacity style={styles.followButton}>
-        <Text style={styles.followButtonText}>Follow</Text>
-      </TouchableOpacity>
+      
+      <View style={styles.teamsRow}>
+        {/* Team 1 */}
+        <View style={styles.teamContainer}>
+          <Image source={{ uri: item.team1.logo }} style={styles.teamLogo} />
+          <Text style={styles.teamName} numberOfLines={1}>{item.team1.name}</Text>
+        </View>
+        
+        {/* Score */}
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreText}>{item.team1.score}</Text>
+          <Text style={styles.scoreDivider}>-</Text>
+          <Text style={styles.scoreText}>{item.team2.score}</Text>
+        </View>
+        
+        {/* Team 2 */}
+        <View style={styles.teamContainer}>
+          <Image source={{ uri: item.team2.logo }} style={styles.teamLogo} />
+          <Text style={styles.teamName} numberOfLines={1}>{item.team2.name}</Text>
+        </View>
+      </View>
+      
+      <View style={styles.scoreCardFooter}>
+        <Text style={styles.matchTime}>{item.time}</Text>
+        {item.isFisiko && (
+          <TouchableOpacity style={styles.detailsBtn} onPress={() => handleScorePress(item)}>
+            <Text style={styles.detailsBtnText}>View Match</Text>
+            <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
     </TouchableOpacity>
   );
-
-  const renderNewsItem = ({ item }) => (
-    <TouchableOpacity style={styles.newsItem}>
-      <Image source={{ uri: item.image }} style={styles.newsImage} />
-      <View style={styles.newsContent}>
-        <Text style={styles.newsCategory}>{item.category}</Text>
-        <Text style={styles.newsTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-        <Text style={styles.newsSource}>{item.source}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderSportsItem = ({ item }) => (
-    <TouchableOpacity style={styles.sportsItem}>
-      <View style={styles.sportsIcon}>
-        <Ionicons name="trophy" size={24} color={COLORS.primary} />
-      </View>
-      <View style={styles.sportsInfo}>
-        <Text style={styles.sportsName}>{item.name}</Text>
-        <Text style={styles.sportsType}>{item.type || 'Sport'}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
-    </TouchableOpacity>
-  );
-
-  const renderTrendingItem = ({ item }) => (
-    <TouchableOpacity style={styles.trendingItem}>
-      <View style={styles.trendingIcon}>
-        <Ionicons
-          name={item.type === 'sports' ? 'trophy' : 'newspaper'}
-          size={20}
-          color={COLORS.primary}
-        />
-      </View>
-      <Text style={styles.trendingTitle}>{item.title}</Text>
-    </TouchableOpacity>
-  );
-
-  const hasResults =
-    results.users.length > 0 ||
-    results.news.length > 0 ||
-    results.sports.length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={COLORS.textSecondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search users, news, sports..."
-            placeholderTextColor={COLORS.textLight}
-            value={query}
-            onChangeText={setQuery}
-            autoCapitalize="none"
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={20} color={COLORS.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
+        <Text style={styles.headerTitle}>Scores</Text>
       </View>
 
+      {/* Sports Tabs */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.categoriesContainer}
-        contentContainerStyle={styles.categoriesContent}
+        style={styles.sportsTabsContainer}
+        contentContainerStyle={styles.sportsTabsContent}
       >
-        {CATEGORIES.map((cat) => (
+        {SPORTS_TABS.map((sport) => (
           <TouchableOpacity
-            key={cat.id}
+            key={sport.id}
             style={[
-              styles.categoryButton,
-              category === cat.id && styles.categoryButtonActive,
+              styles.sportTab,
+              activeSport === sport.id && styles.sportTabActive,
             ]}
-            onPress={() => setCategory(cat.id)}
+            onPress={() => setActiveSport(sport.id)}
           >
             <Ionicons
-              name={cat.icon}
+              name={sport.icon}
               size={18}
-              color={category === cat.id ? COLORS.white : COLORS.text}
+              color={activeSport === sport.id ? COLORS.white : COLORS.text}
             />
             <Text
               style={[
-                styles.categoryText,
-                category === cat.id && styles.categoryTextActive,
+                styles.sportTabText,
+                activeSport === sport.id && styles.sportTabTextActive,
               ]}
             >
-              {cat.label}
+              {sport.label}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {loading ? (
+      {/* Date Tabs */}
+      <View style={styles.dateTabsContainer}>
+        {DATE_TABS.map((date) => (
+          <TouchableOpacity
+            key={date}
+            style={[
+              styles.dateTab,
+              activeDate === date && styles.dateTabActive,
+            ]}
+            onPress={() => setActiveDate(date)}
+          >
+            <Text
+              style={[
+                styles.dateTabText,
+                activeDate === date && styles.dateTabTextActive,
+              ]}
+            >
+              {date}
+            </Text>
+          </TouchableOpacity>
+        ))}
+        <TouchableOpacity style={styles.calendarBtn}>
+          <Ionicons name="calendar" size={20} color={COLORS.text} />
+        </TouchableOpacity>
+      </View>
+
+      {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
-      ) : query.length === 0 ? (
-        <ScrollView style={styles.content}>
-          <Text style={styles.sectionTitle}>Trending</Text>
-          <FlatList
-            data={trending}
-            renderItem={renderTrendingItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-          />
-        </ScrollView>
-      ) : hasResults ? (
-        <ScrollView style={styles.content}>
-          {results.users.length > 0 && (category === 'all' || category === 'users') && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>People</Text>
-              <FlatList
-                data={results.users}
-                renderItem={renderUserItem}
-                keyExtractor={(item) => item._id}
-                scrollEnabled={false}
-              />
-            </View>
-          )}
-
-          {results.news.length > 0 && (category === 'all' || category === 'news') && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>News</Text>
-              <FlatList
-                data={results.news}
-                renderItem={renderNewsItem}
-                keyExtractor={(item) => item._id}
-                scrollEnabled={false}
-              />
-            </View>
-          )}
-
-          {results.sports.length > 0 && (category === 'all' || category === 'sports') && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Sports</Text>
-              <FlatList
-                data={results.sports}
-                renderItem={renderSportsItem}
-                keyExtractor={(item) => item._id}
-                scrollEnabled={false}
-              />
-            </View>
-          )}
-        </ScrollView>
       ) : (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="search" size={60} color={COLORS.textLight} />
-          <Text style={styles.emptyText}>No results found</Text>
-          <Text style={styles.emptySubtext}>Try a different search term</Text>
-        </View>
+        <FlatList
+          data={getFilteredScores()}
+          renderItem={renderScoreCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.scoresListContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="trophy-outline" size={60} color={COLORS.textLight} />
+              <Text style={styles.emptyText}>No scores available</Text>
+              <Text style={styles.emptySubtext}>Check back later for live scores</Text>
+            </View>
+          }
+        />
       )}
     </SafeAreaView>
   );
@@ -263,36 +303,29 @@ const SearchScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surface,
   },
   header: {
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: SPACING.sm,
-    fontSize: FONTS.sizes.md,
-    color: COLORS.text,
-  },
-  categoriesContainer: {
-    maxHeight: 50,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  categoriesContent: {
-    paddingHorizontal: SPACING.lg,
-    gap: SPACING.sm,
+  headerTitle: {
+    fontSize: FONTS.sizes.xxl,
+    fontWeight: 'bold',
+    color: COLORS.text,
   },
-  categoryButton: {
+  sportsTabsContainer: {
+    backgroundColor: COLORS.white,
+    maxHeight: 60,
+  },
+  sportsTabsContent: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+  },
+  sportTab: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
@@ -300,159 +333,179 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.full,
     backgroundColor: COLORS.surface,
     marginRight: SPACING.sm,
-    gap: SPACING.xs,
   },
-  categoryButtonActive: {
-    backgroundColor: COLORS.primary,
+  sportTabActive: {
+    backgroundColor: COLORS.text,
   },
-  categoryText: {
+  sportTabText: {
     fontSize: FONTS.sizes.sm,
     fontWeight: '500',
     color: COLORS.text,
+    marginLeft: SPACING.xs,
   },
-  categoryTextActive: {
+  sportTabTextActive: {
     color: COLORS.white,
   },
-  content: {
-    flex: 1,
-    padding: SPACING.lg,
+  dateTabsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  dateTab: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    marginRight: SPACING.sm,
+  },
+  dateTabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.text,
+  },
+  dateTabText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+  },
+  dateTabTextActive: {
+    color: COLORS.text,
+    fontWeight: '600',
+  },
+  calendarBtn: {
+    marginLeft: 'auto',
+    padding: SPACING.sm,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  section: {
-    marginBottom: SPACING.xl,
-  },
-  sectionTitle: {
-    fontSize: FONTS.sizes.lg,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
-  },
-  userItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-  },
-  userAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.surface,
-  },
-  userInfo: {
-    flex: 1,
-    marginLeft: SPACING.md,
-  },
-  userName: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  userBio: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  followButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.md,
-  },
-  followButtonText: {
-    color: COLORS.white,
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
-  },
-  newsItem: {
-    flexDirection: 'row',
-    marginBottom: SPACING.md,
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.lg,
-    overflow: 'hidden',
-  },
-  newsImage: {
-    width: 100,
-    height: 80,
-    backgroundColor: COLORS.surface,
-  },
-  newsContent: {
-    flex: 1,
+  scoresListContent: {
     padding: SPACING.md,
   },
-  newsCategory: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.primary,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  scoreCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.small,
   },
-  newsTitle: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginTop: SPACING.xs,
+  scoreCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
   },
-  newsSource: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
-  },
-  sportsItem: {
+  leagueRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
-  sportsIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sportsInfo: {
-    flex: 1,
-    marginLeft: SPACING.md,
-  },
-  sportsName: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  sportsType: {
+  leagueName: {
     fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
     color: COLORS.textSecondary,
   },
-  trendingItem: {
+  fisikoBadge: {
+    backgroundColor: COLORS.primary + '20',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.sm,
+    marginLeft: SPACING.sm,
+  },
+  fisikoBadgeText: {
+    fontSize: FONTS.sizes.xs,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.error + '15',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.sm,
   },
-  trendingIcon: {
+  liveIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.error,
+    marginRight: SPACING.xs,
+  },
+  liveText: {
+    fontSize: FONTS.sizes.xs,
+    fontWeight: '700',
+    color: COLORS.error,
+  },
+  completedText: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
+  },
+  teamsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.md,
+  },
+  teamContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  teamLogo: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: COLORS.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.md,
+    marginBottom: SPACING.xs,
   },
-  trendingTitle: {
-    fontSize: FONTS.sizes.md,
+  teamName: {
+    fontSize: FONTS.sizes.sm,
     fontWeight: '500',
     color: COLORS.text,
+    textAlign: 'center',
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+  },
+  scoreText: {
+    fontSize: FONTS.sizes.xxl,
+    fontWeight: 'bold',
+    color: COLORS.text,
+  },
+  scoreDivider: {
+    fontSize: FONTS.sizes.xl,
+    color: COLORS.textSecondary,
+    marginHorizontal: SPACING.sm,
+  },
+  scoreCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: SPACING.md,
+  },
+  matchTime: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  detailsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailsBtnText: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.primary,
+    fontWeight: '500',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: SPACING.xxxl,
   },
   emptyText: {
     fontSize: FONTS.sizes.lg,

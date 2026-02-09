@@ -1,7 +1,7 @@
 // Use your machine's IP address for physical device testing
 // For emulator: 10.0.2.2 (Android) or localhost (iOS)
-const API_BASE_URL = 'http://localhost:5000/api';
-const CHAT_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://10.226.163.93:5000/api';
+const CHAT_BASE_URL = 'http://10.226.163.93:5000';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   REGISTER: `${API_BASE_URL}/auth/register`,
   VERIFY_EMAIL: `${API_BASE_URL}/auth/verify-email`,
   GOOGLE_AUTH: `${API_BASE_URL}/auth/google`,
+  APPLE_AUTH: `${API_BASE_URL}/auth/apple`,
   
   // User
   GET_USER: `${API_BASE_URL}/user`,

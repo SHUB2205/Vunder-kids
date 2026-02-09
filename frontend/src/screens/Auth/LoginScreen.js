@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
 
@@ -21,7 +23,73 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+  const { login, googleSignIn, appleSignIn } = useAuth();
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: 'YOUR_EXPO_CLIENT_ID',
+    iosClientId: 'YOUR_IOS_CLIENT_ID',
+    androidClientId: 'YOUR_ANDROID_CLIENT_ID',
+    webClientId: 'YOUR_WEB_CLIENT_ID',
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      handleGoogleResponse(response.authentication);
+    }
+  }, [response]);
+
+  const handleGoogleResponse = async (authentication) => {
+    if (authentication?.idToken) {
+      setGoogleLoading(true);
+      const result = await googleSignIn(authentication.idToken);
+      setGoogleLoading(false);
+      
+      if (!result.success) {
+        Alert.alert('Google Sign In Failed', result.error);
+      }
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await promptAsync();
+    } catch (error) {
+      Alert.alert('Error', 'Google sign in failed. Please try again.');
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      setAppleLoading(true);
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      
+      const result = await appleSignIn(credential.identityToken, {
+        name: {
+          firstName: credential.fullName?.givenName,
+          lastName: credential.fullName?.familyName,
+        },
+        email: credential.email,
+      });
+      
+      setAppleLoading(false);
+      
+      if (!result.success) {
+        Alert.alert('Apple Sign In Failed', result.error);
+      }
+    } catch (error) {
+      setAppleLoading(false);
+      if (error.code !== 'ERR_CANCELED') {
+        Alert.alert('Error', 'Apple sign in failed. Please try again.');
+      }
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -111,10 +179,37 @@ const LoginScreen = ({ navigation }) => {
               <View style={styles.dividerLine} />
             </View>
 
-            <TouchableOpacity style={styles.googleButton}>
-              <Ionicons name="logo-google" size={20} color={COLORS.text} />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+            <TouchableOpacity 
+              style={[styles.googleButton, googleLoading && styles.socialButtonDisabled]}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading || !request}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color={COLORS.text} />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={20} color={COLORS.text} />
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </>
+              )}
             </TouchableOpacity>
+
+            {Platform.OS === 'ios' && (
+              <TouchableOpacity 
+                style={[styles.appleButton, appleLoading && styles.socialButtonDisabled]}
+                onPress={handleAppleSignIn}
+                disabled={appleLoading}
+              >
+                {appleLoading ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Ionicons name="logo-apple" size={20} color={COLORS.white} />
+                    <Text style={styles.appleButtonText}>Continue with Apple</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.footer}>
@@ -230,6 +325,24 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
     fontWeight: '500',
+  },
+  appleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    borderRadius: BORDER_RADIUS.lg,
+    paddingVertical: SPACING.lg,
+    marginTop: SPACING.md,
+  },
+  appleButtonText: {
+    marginLeft: SPACING.md,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.white,
+    fontWeight: '500',
+  },
+  socialButtonDisabled: {
+    opacity: 0.7,
   },
   footer: {
     flexDirection: 'row',

@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMatch } from '../../context/MatchContext';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 const CreateMatchScreen = ({ navigation }) => {
   const { createMatch, sports, fetchSports } = useMatch();
@@ -25,8 +25,16 @@ const CreateMatchScreen = ({ navigation }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isTeamMatch, setIsTeamMatch] = useState(false);
-  const [agreementTime, setAgreementTime] = useState('24');
   const [loading, setLoading] = useState(false);
+  
+  // 1on1 specific
+  const [opponent, setOpponent] = useState('');
+  
+  // Team match specific
+  const [teamName, setTeamName] = useState('');
+  const [teamPlayers, setTeamPlayers] = useState('');
+  const [opponentTeamName, setOpponentTeamName] = useState('');
+  const [opponentPlayers, setOpponentPlayers] = useState('');
 
   useEffect(() => {
     fetchSports();
@@ -50,24 +58,63 @@ const CreateMatchScreen = ({ navigation }) => {
   };
 
   const handleCreate = async () => {
+    // Validate common fields
     if (!name || !selectedSport || !location) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
+    // Validate team match specific fields
+    if (isTeamMatch) {
+      if (!teamName || !opponentTeamName) {
+        Alert.alert('Error', 'Please enter both team names');
+        return;
+      }
+      if (!teamPlayers || !opponentPlayers) {
+        Alert.alert('Error', 'Please enter players for both teams');
+        return;
+      }
+    } else {
+      // 1on1 match validation
+      if (!opponent) {
+        Alert.alert('Error', 'Please enter your opponent');
+        return;
+      }
+    }
+
     setLoading(true);
-    const result = await createMatch({
+    
+    const matchData = {
       name,
-      sport: selectedSport._id,
+      sport: selectedSport._id || selectedSport.name,
       location,
       date: date.toISOString(),
       isTeamMatch,
-      agreementTime: parseInt(agreementTime),
-    });
+    };
+
+    // Add team-specific or 1on1-specific data
+    if (isTeamMatch) {
+      matchData.teams = [
+        {
+          name: teamName,
+          players: teamPlayers.split(',').map(p => p.trim()).filter(p => p),
+        },
+        {
+          name: opponentTeamName,
+          players: opponentPlayers.split(',').map(p => p.trim()).filter(p => p),
+        },
+      ];
+    } else {
+      matchData.opponent = opponent;
+    }
+
+    const result = await createMatch(matchData);
     setLoading(false);
 
     if (result.success) {
-      navigation.goBack();
+      Alert.alert('Success', 'Match created successfully!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
     } else {
       Alert.alert('Error', result.error || 'Failed to create match');
     }
@@ -102,80 +149,204 @@ const CreateMatchScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={28} color={COLORS.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create Match</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="close" size={28} color={COLORS.text} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.headerTitle}>Set Match</Text>
         <View style={{ width: 28 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.label}>Match Name *</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., Sunday Football Game"
-            placeholderTextColor={COLORS.textLight}
-            value={name}
-            onChangeText={setName}
-          />
+        {/* Match Type Toggle */}
+        <View style={styles.matchTypeToggle}>
+          <TouchableOpacity
+            style={[styles.toggleBtn, !isTeamMatch && styles.toggleBtnActive]}
+            onPress={() => setIsTeamMatch(false)}
+          >
+            <Text style={[styles.toggleBtnText, !isTeamMatch && styles.toggleBtnTextActive]}>
+              1 on 1
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleBtn, isTeamMatch && styles.toggleBtnActive]}
+            onPress={() => setIsTeamMatch(true)}
+          >
+            <Text style={[styles.toggleBtnText, isTeamMatch && styles.toggleBtnTextActive]}>
+              Team Match
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        <Text style={styles.label}>Sport *</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.sportsContainer}
-        >
-          {displaySports.map((sport) => (
-            <TouchableOpacity
-              key={sport._id}
-              style={[
-                styles.sportChip,
-                selectedSport?._id === sport._id && styles.sportChipActive,
-              ]}
-              onPress={() => setSelectedSport(sport)}
-            >
-              <Text
-                style={[
-                  styles.sportChipText,
-                  selectedSport?._id === sport._id && styles.sportChipTextActive,
-                ]}
+        <View style={styles.formCard}>
+          {/* Left Column for Team Match */}
+          {isTeamMatch ? (
+            <View style={styles.formColumns}>
+              {/* Left Side - Your Team */}
+              <View style={styles.formColumn}>
+                <Text style={styles.label}>Match Name *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="trophy" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Championship Final"
+                    placeholderTextColor={COLORS.textLight}
+                    value={name}
+                    onChangeText={setName}
+                  />
+                </View>
+
+                <Text style={styles.label}>Choose sport *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="basketball" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Tennis"
+                    placeholderTextColor={COLORS.textLight}
+                    value={selectedSport?.name || ''}
+                    onChangeText={(text) => setSelectedSport({ name: text })}
+                  />
+                </View>
+
+                <Text style={styles.label}>Choose date & time *</Text>
+                <TouchableOpacity
+                  style={styles.inputContainer}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Ionicons name="calendar" size={18} color={COLORS.textSecondary} />
+                  <Text style={styles.inputText}>
+                    {date.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}, {formatTime(date)}
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={styles.label}>Choose venue *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="location" size={18} color={COLORS.error} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter a location"
+                    placeholderTextColor={COLORS.textLight}
+                    value={location}
+                    onChangeText={setLocation}
+                  />
+                </View>
+              </View>
+
+              {/* Right Side - Opponent Team */}
+              <View style={styles.formColumn}>
+                <Text style={styles.label}>Choose team name *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="flag" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Fisko FC"
+                    placeholderTextColor={COLORS.textLight}
+                    value={teamName}
+                    onChangeText={setTeamName}
+                  />
+                </View>
+
+                <Text style={styles.label}>Select Players (1st as Leader) *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="people" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="john, batista, alex"
+                    placeholderTextColor={COLORS.textLight}
+                    value={teamPlayers}
+                    onChangeText={setTeamPlayers}
+                  />
+                </View>
+
+                <Text style={styles.label}>Choose Opponent's team name *</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="flag" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Fisko FC"
+                    placeholderTextColor={COLORS.textLight}
+                    value={opponentTeamName}
+                    onChangeText={setOpponentTeamName}
+                  />
+                </View>
+
+                <Text style={styles.label}>Select Opponent (1st as Leader)*</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="people" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="john, batista, alex"
+                    placeholderTextColor={COLORS.textLight}
+                    value={opponentPlayers}
+                    onChangeText={setOpponentPlayers}
+                  />
+                </View>
+              </View>
+            </View>
+          ) : (
+            /* 1 on 1 Form */
+            <View>
+              <Text style={styles.label}>Match Name *</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="trophy" size={18} color={COLORS.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Championship Final"
+                  placeholderTextColor={COLORS.textLight}
+                  value={name}
+                  onChangeText={setName}
+                />
+              </View>
+
+              <Text style={styles.label}>Choose sport *</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="basketball" size={18} color={COLORS.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tennis"
+                  placeholderTextColor={COLORS.textLight}
+                  value={selectedSport?.name || ''}
+                  onChangeText={(text) => setSelectedSport({ name: text })}
+                />
+              </View>
+
+              <Text style={styles.label}>Choose opponent</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="person" size={18} color={COLORS.primary} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="john"
+                  placeholderTextColor={COLORS.textLight}
+                  value={opponent}
+                  onChangeText={setOpponent}
+                />
+              </View>
+
+              <Text style={styles.label}>Choose date & time *</Text>
+              <TouchableOpacity
+                style={styles.inputContainer}
+                onPress={() => setShowDatePicker(true)}
               >
-                {sport.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <Ionicons name="calendar" size={18} color={COLORS.textSecondary} />
+                <Text style={styles.inputText}>
+                  {date.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}, {formatTime(date)}
+                </Text>
+              </TouchableOpacity>
 
-        <Text style={styles.label}>Location *</Text>
-        <View style={styles.inputContainer}>
-          <Ionicons name="location-outline" size={20} color={COLORS.textSecondary} />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter match location"
-            placeholderTextColor={COLORS.textLight}
-            value={location}
-            onChangeText={setLocation}
-          />
-        </View>
-
-        <Text style={styles.label}>Date & Time *</Text>
-        <View style={styles.dateTimeRow}>
-          <TouchableOpacity
-            style={styles.dateTimeButton}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.dateTimeText}>{formatDate(date)}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.dateTimeButton}
-            onPress={() => setShowTimePicker(true)}
-          >
-            <Ionicons name="time-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.dateTimeText}>{formatTime(date)}</Text>
-          </TouchableOpacity>
+              <Text style={styles.label}>Choose venue *</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="location" size={18} color={COLORS.error} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter a location"
+                  placeholderTextColor={COLORS.textLight}
+                  value={location}
+                  onChangeText={setLocation}
+                />
+              </View>
+            </View>
+          )}
         </View>
 
         {showDatePicker && (
@@ -197,61 +368,12 @@ const CreateMatchScreen = ({ navigation }) => {
           />
         )}
 
-        <Text style={styles.label}>Match Type</Text>
-        <View style={styles.matchTypeContainer}>
-          <TouchableOpacity
-            style={[styles.matchTypeButton, !isTeamMatch && styles.matchTypeButtonActive]}
-            onPress={() => setIsTeamMatch(false)}
-          >
-            <Ionicons
-              name="person"
-              size={24}
-              color={!isTeamMatch ? COLORS.white : COLORS.text}
-            />
-            <Text
-              style={[
-                styles.matchTypeText,
-                !isTeamMatch && styles.matchTypeTextActive,
-              ]}
-            >
-              Individual
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.matchTypeButton, isTeamMatch && styles.matchTypeButtonActive]}
-            onPress={() => setIsTeamMatch(true)}
-          >
-            <Ionicons
-              name="people"
-              size={24}
-              color={isTeamMatch ? COLORS.white : COLORS.text}
-            />
-            <Text
-              style={[
-                styles.matchTypeText,
-                isTeamMatch && styles.matchTypeTextActive,
-              ]}
-            >
-              Team
-            </Text>
-          </TouchableOpacity>
+        {/* Disclaimer */}
+        <View style={styles.disclaimerContainer}>
+          <Text style={styles.disclaimerText}>
+            Fisiko is NOT liable for any wager or bets placed on the matches by anyone including players, spectators or anyone else
+          </Text>
         </View>
-
-        <Text style={styles.label}>Agreement Time (hours)</Text>
-        <View style={styles.inputContainer}>
-          <Ionicons name="timer-outline" size={20} color={COLORS.textSecondary} />
-          <TextInput
-            style={styles.input}
-            placeholder="24"
-            placeholderTextColor={COLORS.textLight}
-            value={agreementTime}
-            onChangeText={setAgreementTime}
-            keyboardType="number-pad"
-          />
-        </View>
-        <Text style={styles.helperText}>
-          Time allowed for participants to confirm their participation
-        </Text>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -263,7 +385,7 @@ const CreateMatchScreen = ({ navigation }) => {
           {loading ? (
             <ActivityIndicator color={COLORS.white} />
           ) : (
-            <Text style={styles.createButtonText}>Create Match</Text>
+            <Text style={styles.createButtonText}>Send</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -274,7 +396,7 @@ const CreateMatchScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surface,
   },
   header: {
     flexDirection: 'row',
@@ -282,8 +404,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.white,
+  },
+  headerLeft: {
+    width: 28,
   },
   headerTitle: {
     fontSize: FONTS.sizes.lg,
@@ -294,19 +418,57 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: SPACING.lg,
   },
+  matchTypeToggle: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.full,
+    padding: 4,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.small,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    alignItems: 'center',
+    borderRadius: BORDER_RADIUS.full,
+  },
+  toggleBtnActive: {
+    backgroundColor: COLORS.text,
+  },
+  toggleBtnText: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+  },
+  toggleBtnTextActive: {
+    color: COLORS.white,
+  },
+  formCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    ...SHADOWS.small,
+  },
+  formColumns: {
+    flexDirection: 'row',
+  },
+  formColumn: {
+    flex: 1,
+    paddingHorizontal: SPACING.sm,
+  },
   label: {
     fontSize: FONTS.sizes.sm,
     fontWeight: '600',
     color: COLORS.text,
     marginBottom: SPACING.sm,
-    marginTop: SPACING.lg,
+    marginTop: SPACING.md,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -317,91 +479,34 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
   },
-  sportsContainer: {
-    flexDirection: 'row',
-  },
-  sportChip: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.surface,
-    marginRight: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  sportChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  sportChipText: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '500',
-    color: COLORS.text,
-  },
-  sportChipTextActive: {
-    color: COLORS.white,
-  },
-  dateTimeRow: {
-    gap: SPACING.md,
-  },
-  dateTimeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: SPACING.sm,
-  },
-  dateTimeText: {
-    marginLeft: SPACING.md,
-    fontSize: FONTS.sizes.md,
-    color: COLORS.text,
-  },
-  matchTypeContainer: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  matchTypeButton: {
+  inputText: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: SPACING.lg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: SPACING.sm,
-  },
-  matchTypeButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  matchTypeText: {
+    marginLeft: SPACING.sm,
     fontSize: FONTS.sizes.md,
-    fontWeight: '500',
     color: COLORS.text,
   },
-  matchTypeTextActive: {
-    color: COLORS.white,
+  disclaimerContainer: {
+    backgroundColor: COLORS.error + '15',
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginTop: SPACING.lg,
   },
-  helperText: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
+  disclaimerText: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.error,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   footer: {
     padding: SPACING.lg,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    alignItems: 'center',
   },
   createButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.text,
+    borderRadius: BORDER_RADIUS.full,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xxxl,
+    minWidth: 120,
     alignItems: 'center',
   },
   createButtonDisabled: {
@@ -409,7 +514,7 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     color: COLORS.white,
-    fontSize: FONTS.sizes.lg,
+    fontSize: FONTS.sizes.md,
     fontWeight: '600',
   },
 });
