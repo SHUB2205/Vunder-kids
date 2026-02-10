@@ -11,9 +11,11 @@ import {
   Modal,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { usePost } from '../../context/PostContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -23,23 +25,22 @@ import StoriesBar from '../../components/Home/StoriesBar';
 import PostCard from '../../components/Home/PostCard';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
-const ACTION_BUTTONS = [
-  { id: 'post', label: 'Post/Reel', icon: 'image-outline', color: '#4A90D9' },
-  { id: 'match', label: 'Set Match', icon: 'trophy-outline', color: COLORS.primary },
-  { id: 'score', label: 'Add Score', icon: 'add-circle-outline', color: '#28A745' },
-  { id: 'live', label: 'Live Score', icon: 'radio-outline', color: '#DC3545' },
-];
-
 const HomeScreen = ({ navigation }) => {
   const { user } = useAuth();
-  const { posts, stories, fetchPosts, fetchStories, refreshing, setRefreshing } = usePost();
+  const { posts, stories, fetchPosts, fetchStories, createPost, refreshing, setRefreshing } = usePost();
   const { unreadCount: notifCount } = useNotification();
   const { unreadCount: chatCount, connectSocket } = useChat();
   const { matches, fetchMatches } = useMatch();
+  
   const [loading, setLoading] = useState(true);
-  const [postText, setPostText] = useState('');
+  const [postContent, setPostContent] = useState('');
+  const [mediaFile, setMediaFile] = useState(null);
+  const [posting, setPosting] = useState(false);
+  
+  // Modals
   const [showMatchModal, setShowMatchModal] = useState(false);
-  const [scoreModalType, setScoreModalType] = useState('fisiko'); // 'fisiko' or 'non-fisiko'
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [scoreModalType, setScoreModalType] = useState('fisiko');
 
   useEffect(() => {
     loadData();
@@ -55,40 +56,66 @@ const HomeScreen = ({ navigation }) => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([fetchPosts(), fetchStories()]);
+    await Promise.all([fetchPosts(), fetchStories(), fetchMatches()]);
     setRefreshing(false);
   }, []);
 
-  const handleActionPress = (actionId) => {
-    switch (actionId) {
-      case 'post':
-        navigation.navigate('CreatePost');
-        break;
-      case 'match':
-        navigation.navigate('CreateMatch');
-        break;
-      case 'score':
-        setShowMatchModal(true);
-        break;
-      case 'live':
-        navigation.getParent()?.navigate('Search');
-        break;
+  // Pick image/video for post
+  const pickMedia = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setMediaFile(result.assets[0]);
     }
   };
 
+  // Submit post (like PWA Header.js handlePostSubmit)
+  const handlePostSubmit = async () => {
+    if (!postContent.trim() && !mediaFile) {
+      return;
+    }
+
+    setPosting(true);
+    try {
+      const postData = {
+        content: postContent,
+      };
+      if (mediaFile) {
+        postData.media = mediaFile;
+      }
+      
+      const result = await createPost(postData);
+      if (result.success) {
+        setPostContent('');
+        setMediaFile(null);
+        Alert.alert('Success', 'Post created!');
+      } else {
+        Alert.alert('Error', result.error || 'Failed to create post');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create post');
+    }
+    setPosting(false);
+  };
+
   const handleSelectMatch = (match) => {
-    setShowMatchModal(false);
+    setShowScoreModal(false);
     navigation.navigate('SetScore', { match });
   };
 
   const getUserMatches = () => {
-    return matches.filter(m => 
+    return (matches || []).filter(m => 
       m.status !== 'completed' && 
       (m.creator?._id === user?._id || 
        m.players?.some(p => p._id === user?._id))
     );
   };
 
+  // Challenge Modal (Set Match) - like PWA ChallengeModal
   const renderMatchModal = () => (
     <Modal
       visible={showMatchModal}
@@ -99,8 +126,42 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add Score</Text>
+            <Text style={styles.modalTitle}>🏀 Set Match</Text>
             <TouchableOpacity onPress={() => setShowMatchModal(false)}>
+              <Ionicons name="close" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.modalBody}>
+            <Text style={styles.modalDescription}>Create a new match challenge</Text>
+            <TouchableOpacity
+              style={styles.createMatchBtn}
+              onPress={() => {
+                setShowMatchModal(false);
+                navigation.navigate('CreateMatch');
+              }}
+            >
+              <Ionicons name="add-circle" size={24} color={COLORS.white} />
+              <Text style={styles.createMatchBtnText}>Create New Match</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // Score Modal - like PWA ScoreModal
+  const renderScoreModal = () => (
+    <Modal
+      visible={showScoreModal}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setShowScoreModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Add Score</Text>
+            <TouchableOpacity onPress={() => setShowScoreModal(false)}>
               <Ionicons name="close" size={24} color={COLORS.text} />
             </TouchableOpacity>
           </View>
@@ -120,7 +181,7 @@ const HomeScreen = ({ navigation }) => {
               onPress={() => setScoreModalType('non-fisiko')}
             >
               <Text style={[styles.scoreTypeText, scoreModalType === 'non-fisiko' && styles.scoreTypeTextActive]}>
-                Non-Fisiko Matches
+                Non-Fisiko
               </Text>
             </TouchableOpacity>
           </View>
@@ -161,7 +222,7 @@ const HomeScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={styles.nonFisikoBtn}
                 onPress={() => {
-                  setShowMatchModal(false);
+                  setShowScoreModal(false);
                   Alert.alert('Coming Soon', 'Non-Fisiko match scoring will be available soon!');
                 }}
               >
@@ -174,6 +235,7 @@ const HomeScreen = ({ navigation }) => {
     </Modal>
   );
 
+  // Create Post Bar - like PWA Header.js
   const renderCreatePostBar = () => (
     <View style={styles.createPostContainer}>
       <View style={styles.createPostHeader}>
@@ -181,32 +243,65 @@ const HomeScreen = ({ navigation }) => {
           source={{ uri: user?.avatar || 'https://via.placeholder.com/40' }}
           style={styles.userAvatar}
         />
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={styles.postInput}
+            placeholder="Game face on! What's on your mind?"
+            placeholderTextColor={COLORS.textLight}
+            value={postContent}
+            onChangeText={setPostContent}
+            multiline
+          />
+          
+          {/* Media Preview */}
+          {mediaFile && (
+            <View style={styles.mediaPreview}>
+              <Image source={{ uri: mediaFile.uri }} style={styles.previewImage} />
+              <TouchableOpacity
+                style={styles.removeMedia}
+                onPress={() => setMediaFile(null)}
+              >
+                <Ionicons name="close-circle" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Action Buttons Row */}
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity style={styles.actionButton} onPress={pickMedia}>
+              <Ionicons name="image-outline" size={18} color="#4A90D9" />
+              <Text style={[styles.actionButtonText, { color: '#4A90D9' }]}>Photo/Video</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => setShowMatchModal(true)}
+            >
+              <Text style={{ fontSize: 16 }}>🏀</Text>
+              <Text style={[styles.actionButtonText, { color: COLORS.primary }]}>Set Match</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => setShowScoreModal(true)}
+            >
+              <Ionicons name="add-circle-outline" size={18} color="#28A745" />
+              <Text style={[styles.actionButtonText, { color: '#28A745' }]}>Add Score</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
         <TouchableOpacity
-          style={styles.postInputContainer}
-          onPress={() => navigation.navigate('CreatePost')}
+          style={[styles.postButton, (!postContent.trim() && !mediaFile) && styles.postButtonDisabled]}
+          onPress={handlePostSubmit}
+          disabled={(!postContent.trim() && !mediaFile) || posting}
         >
-          <Text style={styles.postInputPlaceholder}>Game face on! What's on your mind?</Text>
+          {posting ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Text style={styles.postButtonText}>Post</Text>
+          )}
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.postButton}
-          onPress={() => navigation.navigate('CreatePost')}
-        >
-          <Text style={styles.postButtonText}>Post</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.actionButtonsRow}>
-        {ACTION_BUTTONS.map((action) => (
-          <TouchableOpacity
-            key={action.id}
-            style={styles.actionButton}
-            onPress={() => handleActionPress(action.id)}
-          >
-            <Ionicons name={action.icon} size={18} color={action.color} />
-            <Text style={[styles.actionButtonText, { color: action.color }]}>
-              {action.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
       </View>
     </View>
   );
@@ -279,6 +374,7 @@ const HomeScreen = ({ navigation }) => {
       />
 
       {renderMatchModal()}
+      {renderScoreModal()}
     </SafeAreaView>
   );
 };
@@ -347,25 +443,48 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: COLORS.surface,
   },
-  postInputContainer: {
+  inputWrapper: {
     flex: 1,
     marginHorizontal: SPACING.md,
+  },
+  postInput: {
     backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.full,
+    borderRadius: BORDER_RADIUS.lg,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
-  },
-  postInputPlaceholder: {
-    color: COLORS.textLight,
     fontSize: FONTS.sizes.md,
+    color: COLORS.text,
+    minHeight: 40,
+    maxHeight: 100,
+  },
+  mediaPreview: {
+    marginTop: SPACING.sm,
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  removeMedia: {
+    position: 'absolute',
+    top: SPACING.xs,
+    right: SPACING.xs,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 12,
   },
   postButton: {
     backgroundColor: COLORS.primary,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.md,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  postButtonDisabled: {
+    opacity: 0.5,
   },
   postButtonText: {
     color: COLORS.white,
@@ -404,6 +523,29 @@ const styles = StyleSheet.create({
     borderTopRightRadius: BORDER_RADIUS.xl,
     maxHeight: '80%',
     paddingBottom: SPACING.xxl,
+  },
+  modalBody: {
+    padding: SPACING.lg,
+    alignItems: 'center',
+  },
+  modalDescription: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.lg,
+  },
+  createMatchBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    gap: SPACING.sm,
+  },
+  createMatchBtnText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
   },
   modalHeader: {
     flexDirection: 'row',

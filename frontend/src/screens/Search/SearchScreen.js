@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,283 +18,222 @@ import { useMatch } from '../../context/MatchContext';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
-const SPORTS_TABS = [
-  { id: 'all', label: 'All', icon: 'apps' },
-  { id: 'football', label: 'Football', icon: 'football' },
-  { id: 'tennis', label: 'Tennis', icon: 'tennisball' },
-  { id: 'cricket', label: 'Cricket', icon: 'baseball' },
-  { id: 'basketball', label: 'Basketball', icon: 'basketball' },
-  { id: 'soccer', label: 'Soccer', icon: 'football-outline' },
+// Top Search Items - like PWA Search.js topSearchItems
+const TOP_SEARCH_ITEMS = [
+  { label: 'Cricket', icon: 'baseball' },
+  { label: 'Badminton', icon: 'tennisball' },
+  { label: 'Tennis', icon: 'tennisball' },
+  { label: 'Basketball', icon: 'basketball' },
+  { label: 'Football', icon: 'football' },
+  { label: 'Soccer', icon: 'football-outline' },
 ];
 
-const DATE_TABS = ['Yesterday', 'Today', 'Tomorrow'];
-
 const SearchScreen = ({ navigation, route }) => {
-  const { matches, fetchMatches, loading: matchLoading } = useMatch();
-  const [activeSport, setActiveSport] = useState('all');
-  const [activeDate, setActiveDate] = useState('Today');
+  // State - like PWA Search.js
+  const [activeTab, setActiveTab] = useState('search'); // 'search', 'foryou', 'people'
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [liveScores, setLiveScores] = useState([]);
+  const [searchResults, setSearchResults] = useState({ users: [], posts: [] });
 
-  useEffect(() => {
-    fetchLiveScores();
-    fetchMatches();
+  // Debounced search - like PWA debouncedSearch
+  const performSearch = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSearchResults({ users: [], posts: [] });
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_ENDPOINTS.SEARCH}?q=${encodeURIComponent(query)}`);
+      setSearchResults({
+        users: response.data.users || [],
+        posts: response.data.posts || [],
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults({ users: [], posts: [] });
+    }
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    // Convert Fisiko matches to score format
-    if (matches && matches.length > 0) {
-      const fisikoScores = matches
-        .filter(m => m.status === 'in-progress' || m.status === 'completed')
-        .map(m => ({
-          id: m._id,
-          sport: m.sport?.name?.toLowerCase() || 'other',
-          league: 'Fisiko Match',
-          team1: {
-            name: m.isTeamMatch ? m.teams?.[0]?.name : (m.players?.[0]?.name || m.creator?.name || 'Player 1'),
-            logo: m.isTeamMatch ? 'https://via.placeholder.com/40' : (m.players?.[0]?.avatar || m.creator?.avatar || 'https://via.placeholder.com/40'),
-            score: m.scores?.team1 || 0,
-          },
-          team2: {
-            name: m.isTeamMatch ? m.teams?.[1]?.name : (m.players?.[1]?.name || 'Player 2'),
-            logo: m.isTeamMatch ? 'https://via.placeholder.com/40' : (m.players?.[1]?.avatar || 'https://via.placeholder.com/40'),
-            score: m.scores?.team2 || 0,
-          },
-          status: m.status === 'in-progress' ? 'live' : 'completed',
-          time: m.status === 'in-progress' ? 'Live' : 'Final',
-          isFisiko: true,
-          matchData: m,
-        }));
-      
-      setLiveScores(prev => {
-        const externalScores = prev.filter(s => !s.isFisiko);
-        return [...fisikoScores, ...externalScores];
-      });
-    }
-  }, [matches]);
-
-  const fetchLiveScores = async () => {
-    setLoading(true);
-    // Mock external live scores data - in production, this would call a sports API
-    setTimeout(() => {
-      const externalScores = [
-        {
-          id: 'ext-1',
-          sport: 'football',
-          league: 'Premier League',
-          team1: { name: 'Manchester United', logo: 'https://via.placeholder.com/40', score: 2 },
-          team2: { name: 'Liverpool', logo: 'https://via.placeholder.com/40', score: 1 },
-          status: 'live',
-          time: "65'",
-          isFisiko: false,
-        },
-        {
-          id: 'ext-2',
-          sport: 'tennis',
-          league: 'Wimbledon',
-          team1: { name: 'Djokovic', logo: 'https://via.placeholder.com/40', score: '6-4, 3-2' },
-          team2: { name: 'Nadal', logo: 'https://via.placeholder.com/40', score: '4-6, 2-3' },
-          status: 'live',
-          time: 'Set 2',
-          isFisiko: false,
-        },
-        {
-          id: 'ext-3',
-          sport: 'cricket',
-          league: 'IPL',
-          team1: { name: 'Mumbai Indians', logo: 'https://via.placeholder.com/40', score: '185/4' },
-          team2: { name: 'Chennai Super Kings', logo: 'https://via.placeholder.com/40', score: '142/6' },
-          status: 'live',
-          time: '18.2 overs',
-          isFisiko: false,
-        },
-        {
-          id: 'ext-4',
-          sport: 'basketball',
-          league: 'NBA',
-          team1: { name: 'Lakers', logo: 'https://via.placeholder.com/40', score: 98 },
-          team2: { name: 'Warriors', logo: 'https://via.placeholder.com/40', score: 102 },
-          status: 'completed',
-          time: 'Final',
-          isFisiko: false,
-        },
-      ];
-      
-      setLiveScores(prev => {
-        const fisikoScores = prev.filter(s => s.isFisiko);
-        return [...fisikoScores, ...externalScores];
-      });
-      setLoading(false);
-    }, 500);
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await Promise.all([fetchLiveScores(), fetchMatches()]);
-    setRefreshing(false);
-  };
-
-  const handleScorePress = (item) => {
-    if (item.isFisiko && item.matchData) {
-      navigation.navigate('MatchDetail', { match: item.matchData });
+  // Handle search input - like PWA handleSearchInput
+  const handleSearchInput = (query) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      setActiveTab('foryou');
+      // Debounce search
+      const timeoutId = setTimeout(() => performSearch(query), 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setActiveTab('search');
+      setSearchResults({ users: [], posts: [] });
     }
   };
 
-  const getFilteredScores = () => {
-    if (activeSport === 'all') return liveScores;
-    return liveScores.filter(score => score.sport === activeSport);
+  // Handle search item click - like PWA handleSearchItemClick
+  const handleSearchItemClick = (label) => {
+    setSearchQuery(label);
+    setActiveTab('foryou');
+    performSearch(label);
   };
 
-  const renderScoreCard = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.scoreCard}
-      onPress={() => handleScorePress(item)}
-      activeOpacity={item.isFisiko ? 0.7 : 1}
+  // Render search item - like PWA SearchItem
+  const renderSearchItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.searchItem}
+      onPress={() => handleSearchItemClick(item.label)}
     >
-      <View style={styles.scoreCardHeader}>
-        <View style={styles.leagueRow}>
-          <Text style={styles.leagueName}>{item.league}</Text>
-          {item.isFisiko && (
-            <View style={styles.fisikoBadge}>
-              <Text style={styles.fisikoBadgeText}>Fisiko</Text>
-            </View>
-          )}
-        </View>
-        {item.status === 'live' && (
-          <View style={styles.liveBadge}>
-            <View style={styles.liveIndicator} />
-            <Text style={styles.liveText}>LIVE</Text>
-          </View>
-        )}
-        {item.status === 'completed' && (
-          <Text style={styles.completedText}>Completed</Text>
-        )}
+      <View style={styles.searchItemIcon}>
+        <Ionicons name={item.icon} size={24} color={COLORS.primary} />
       </View>
-      
-      <View style={styles.teamsRow}>
-        {/* Team 1 */}
-        <View style={styles.teamContainer}>
-          <Image source={{ uri: item.team1.logo }} style={styles.teamLogo} />
-          <Text style={styles.teamName} numberOfLines={1}>{item.team1.name}</Text>
-        </View>
-        
-        {/* Score */}
-        <View style={styles.scoreContainer}>
-          <Text style={styles.scoreText}>{item.team1.score}</Text>
-          <Text style={styles.scoreDivider}>-</Text>
-          <Text style={styles.scoreText}>{item.team2.score}</Text>
-        </View>
-        
-        {/* Team 2 */}
-        <View style={styles.teamContainer}>
-          <Image source={{ uri: item.team2.logo }} style={styles.teamLogo} />
-          <Text style={styles.teamName} numberOfLines={1}>{item.team2.name}</Text>
-        </View>
+      <Text style={styles.searchItemLabel}>{item.label}</Text>
+    </TouchableOpacity>
+  );
+
+  // Render user result - like PWA People component
+  const renderUserResult = ({ item }) => (
+    <TouchableOpacity
+      style={styles.userResult}
+      onPress={() => navigation.navigate('UserProfile', { userId: item._id })}
+    >
+      <Image
+        source={{ uri: item.avatar || 'https://via.placeholder.com/50' }}
+        style={styles.userAvatar}
+      />
+      <View style={styles.userInfo}>
+        <Text style={styles.userName}>{item.userName || item.name}</Text>
+        <Text style={styles.userBio} numberOfLines={1}>{item.bio || 'Fisiko user'}</Text>
       </View>
-      
-      <View style={styles.scoreCardFooter}>
-        <Text style={styles.matchTime}>{item.time}</Text>
-        {item.isFisiko && (
-          <TouchableOpacity style={styles.detailsBtn} onPress={() => handleScorePress(item)}>
-            <Text style={styles.detailsBtnText}>View Match</Text>
-            <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
-          </TouchableOpacity>
-        )}
+      <TouchableOpacity style={styles.followBtn}>
+        <Text style={styles.followBtnText}>Follow</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  // Render post result - like PWA ForYou component
+  const renderPostResult = ({ item }) => (
+    <TouchableOpacity
+      style={styles.postResult}
+      onPress={() => navigation.navigate('PostDetail', { post: item })}
+    >
+      {item.mediaURL && (
+        <Image source={{ uri: item.mediaURL }} style={styles.postImage} />
+      )}
+      <View style={styles.postInfo}>
+        <View style={styles.postHeader}>
+          <Image
+            source={{ uri: item.creator?.avatar || 'https://via.placeholder.com/30' }}
+            style={styles.postCreatorAvatar}
+          />
+          <Text style={styles.postCreatorName}>{item.creator?.userName || 'User'}</Text>
+        </View>
+        <Text style={styles.postContent} numberOfLines={2}>{item.content}</Text>
       </View>
     </TouchableOpacity>
   );
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Scores</Text>
+  // Default content - Top Search like PWA
+  const renderDefaultContent = () => (
+    <View style={styles.defaultContent}>
+      <Text style={styles.heading}>Top Search</Text>
+      <View style={styles.gridContainer}>
+        {TOP_SEARCH_ITEMS.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.searchItem}
+            onPress={() => handleSearchItemClick(item.label)}
+          >
+            <View style={styles.searchItemIcon}>
+              <Ionicons name={item.icon} size={28} color={COLORS.primary} />
+            </View>
+            <Text style={styles.searchItemLabel}>{item.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
+    </View>
+  );
 
-      {/* Sports Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.sportsTabsContainer}
-        contentContainerStyle={styles.sportsTabsContent}
-      >
-        {SPORTS_TABS.map((sport) => (
-          <TouchableOpacity
-            key={sport.id}
-            style={[
-              styles.sportTab,
-              activeSport === sport.id && styles.sportTabActive,
-            ]}
-            onPress={() => setActiveSport(sport.id)}
-          >
-            <Ionicons
-              name={sport.icon}
-              size={18}
-              color={activeSport === sport.id ? COLORS.white : COLORS.text}
-            />
-            <Text
-              style={[
-                styles.sportTabText,
-                activeSport === sport.id && styles.sportTabTextActive,
-              ]}
-            >
-              {sport.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Date Tabs */}
-      <View style={styles.dateTabsContainer}>
-        {DATE_TABS.map((date) => (
-          <TouchableOpacity
-            key={date}
-            style={[
-              styles.dateTab,
-              activeDate === date && styles.dateTabActive,
-            ]}
-            onPress={() => setActiveDate(date)}
-          >
-            <Text
-              style={[
-                styles.dateTabText,
-                activeDate === date && styles.dateTabTextActive,
-              ]}
-            >
-              {date}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        <TouchableOpacity style={styles.calendarBtn}>
-          <Ionicons name="calendar" size={20} color={COLORS.text} />
+  // Search results content - like PWA ForYou and People
+  const renderSearchResults = () => (
+    <View style={styles.searchResultsContainer}>
+      {/* Toggle tabs */}
+      <View style={styles.searchToggle}>
+        <TouchableOpacity
+          style={[styles.toggleBtn, activeTab === 'foryou' && styles.activeToggle]}
+          onPress={() => setActiveTab('foryou')}
+        >
+          <Text style={[styles.toggleText, activeTab === 'foryou' && styles.activeToggleText]}>For you</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.toggleBtn, activeTab === 'people' && styles.activeToggle]}
+          onPress={() => setActiveTab('people')}
+        >
+          <Text style={[styles.toggleText, activeTab === 'people' && styles.activeToggleText]}>People</Text>
         </TouchableOpacity>
       </View>
 
-      {loading && !refreshing ? (
+      {/* Results */}
+      {activeTab === 'foryou' && (
+        <FlatList
+          data={[...searchResults.users.slice(0, 3), ...searchResults.posts]}
+          renderItem={({ item }) => 
+            item.avatar !== undefined ? renderUserResult({ item }) : renderPostResult({ item })
+          }
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.resultsList}
+          ListEmptyComponent={
+            <View style={styles.noResults}>
+              <Text style={styles.noResultsText}>No results found for "{searchQuery}"</Text>
+            </View>
+          }
+        />
+      )}
+
+      {activeTab === 'people' && (
+        <FlatList
+          data={searchResults.users}
+          renderItem={renderUserResult}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.resultsList}
+          ListEmptyComponent={
+            <View style={styles.noResults}>
+              <Text style={styles.noResultsText}>No users found</Text>
+            </View>
+          }
+        />
+      )}
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Search Header - like PWA searchHeader */}
+      <View style={styles.topHeader}>
+        <View style={styles.searchHeader}>
+          <Ionicons name="search" size={20} color={COLORS.textSecondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor={COLORS.textLight}
+            value={searchQuery}
+            onChangeText={handleSearchInput}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => handleSearchInput('')}>
+              <Ionicons name="close-circle" size={20} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <FlatList
-          data={getFilteredScores()}
-          renderItem={renderScoreCard}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.scoresListContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={COLORS.primary}
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="trophy-outline" size={60} color={COLORS.textLight} />
-              <Text style={styles.emptyText}>No scores available</Text>
-              <Text style={styles.emptySubtext}>Check back later for live scores</Text>
-            </View>
-          }
-        />
+        <>
+          {searchQuery ? renderSearchResults() : renderDefaultContent()}
+        </>
       )}
     </SafeAreaView>
   );
@@ -305,218 +244,184 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.surface,
   },
-  header: {
+  // Header - like PWA topHeader
+  topHeader: {
+    backgroundColor: COLORS.white,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  headerTitle: {
-    fontSize: FONTS.sizes.xxl,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  sportsTabsContainer: {
-    backgroundColor: COLORS.white,
-    maxHeight: 60,
-  },
-  sportsTabsContent: {
+  searchHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.full,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
   },
-  sportTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.surface,
-    marginRight: SPACING.sm,
-  },
-  sportTabActive: {
-    backgroundColor: COLORS.text,
-  },
-  sportTabText: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '500',
-    color: COLORS.text,
-    marginLeft: SPACING.xs,
-  },
-  sportTabTextActive: {
-    color: COLORS.white,
-  },
-  dateTabsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  dateTab: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    marginRight: SPACING.sm,
-  },
-  dateTabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.text,
-  },
-  dateTabText: {
+  searchInput: {
+    flex: 1,
+    marginLeft: SPACING.sm,
     fontSize: FONTS.sizes.md,
-    color: COLORS.textSecondary,
-  },
-  dateTabTextActive: {
     color: COLORS.text,
-    fontWeight: '600',
-  },
-  calendarBtn: {
-    marginLeft: 'auto',
-    padding: SPACING.sm,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scoresListContent: {
-    padding: SPACING.md,
-  },
-  scoreCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    marginBottom: SPACING.md,
-    ...SHADOWS.small,
-  },
-  scoreCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  leagueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  leagueName: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  fisikoBadge: {
-    backgroundColor: COLORS.primary + '20',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.sm,
-    marginLeft: SPACING.sm,
-  },
-  fisikoBadgeText: {
-    fontSize: FONTS.sizes.xs,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.error + '15',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.sm,
-  },
-  liveIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.error,
-    marginRight: SPACING.xs,
-  },
-  liveText: {
-    fontSize: FONTS.sizes.xs,
-    fontWeight: '700',
-    color: COLORS.error,
-  },
-  completedText: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-  },
-  teamsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.md,
-  },
-  teamContainer: {
+  // Default Content - like PWA
+  defaultContent: {
     flex: 1,
+    padding: SPACING.lg,
+  },
+  heading: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.lg,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  searchItem: {
+    width: '30%',
     alignItems: 'center',
+    marginBottom: SPACING.xl,
   },
-  teamLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.surface,
-    marginBottom: SPACING.xs,
+  searchItemIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
   },
-  teamName: {
+  searchItemLabel: {
     fontSize: FONTS.sizes.sm,
     fontWeight: '500',
     color: COLORS.text,
     textAlign: 'center',
   },
-  scoreContainer: {
+  // Search Results
+  searchResultsContainer: {
+    flex: 1,
+  },
+  searchToggle: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  toggleBtn: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    marginRight: SPACING.md,
+  },
+  activeToggle: {
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.primary,
+  },
+  toggleText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+  },
+  activeToggleText: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  resultsList: {
+    padding: SPACING.md,
+  },
+  // User Result - like PWA People
+  userResult: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.white,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.small,
   },
-  scoreText: {
-    fontSize: FONTS.sizes.xxl,
-    fontWeight: 'bold',
+  userAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.surface,
+  },
+  userInfo: {
+    flex: 1,
+    marginLeft: SPACING.md,
+  },
+  userName: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
     color: COLORS.text,
   },
-  scoreDivider: {
-    fontSize: FONTS.sizes.xl,
-    color: COLORS.textSecondary,
-    marginHorizontal: SPACING.sm,
-  },
-  scoreCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingTop: SPACING.md,
-  },
-  matchTime: {
+  userBio: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
   },
-  detailsBtn: {
+  followBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  followBtnText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
+  },
+  // Post Result - like PWA ForYou
+  postResult: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.md,
+    overflow: 'hidden',
+    ...SHADOWS.small,
+  },
+  postImage: {
+    width: '100%',
+    height: 150,
+    backgroundColor: COLORS.surface,
+  },
+  postInfo: {
+    padding: SPACING.md,
+  },
+  postHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: SPACING.sm,
   },
-  detailsBtnText: {
+  postCreatorAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.surface,
+  },
+  postCreatorName: {
     fontSize: FONTS.sizes.sm,
-    color: COLORS.primary,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: COLORS.text,
+    marginLeft: SPACING.sm,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  postContent: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  noResults: {
     alignItems: 'center',
     paddingVertical: SPACING.xxxl,
   },
-  emptyText: {
-    fontSize: FONTS.sizes.lg,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginTop: SPACING.lg,
-  },
-  emptySubtext: {
+  noResultsText: {
     fontSize: FONTS.sizes.md,
     color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
   },
 });
 

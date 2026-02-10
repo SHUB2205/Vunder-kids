@@ -113,19 +113,48 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  const renderPostItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.postItem}
-      onPress={() => navigation.navigate('PostDetail', { post: item })}
-    >
-      <Image source={{ uri: item.mediaURL }} style={styles.postImage} />
-      {item.mediaType === 'video' && (
-        <View style={styles.videoIndicator}>
-          <Ionicons name="play" size={16} color={COLORS.white} />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+  const renderPostItem = ({ item }) => {
+    // For Matches tab, render match cards
+    if (activeTab === 'Matches') {
+      return (
+        <TouchableOpacity
+          style={styles.matchItem}
+          onPress={() => navigation.navigate('MatchDetail', { match: item })}
+        >
+          <View style={styles.matchItemIcon}>
+            <Ionicons name="trophy" size={20} color={COLORS.primary} />
+          </View>
+          <View style={styles.matchItemInfo}>
+            <Text style={styles.matchItemName}>{item.name || 'Match'}</Text>
+            <Text style={styles.matchItemMeta}>
+              {item.sport?.name} • {new Date(item.date).toLocaleDateString()}
+            </Text>
+          </View>
+          <Text style={[styles.matchItemStatus, 
+            item.status === 'completed' && { color: COLORS.success },
+            item.status === 'in-progress' && { color: COLORS.error }
+          ]}>
+            {item.status === 'completed' ? 'Completed' : item.status === 'in-progress' ? 'Live' : 'Upcoming'}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    // For Posts/Photos/Reels tabs, render grid items
+    return (
+      <TouchableOpacity
+        style={styles.postItem}
+        onPress={() => navigation.navigate('PostDetail', { post: item })}
+      >
+        <Image source={{ uri: item.mediaURL }} style={styles.postImage} />
+        {item.mediaType === 'video' && (
+          <View style={styles.videoIndicator}>
+            <Ionicons name="play" size={16} color={COLORS.white} />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   const renderStatsCard = (icon, label, value, color) => (
     <View style={styles.statsCard}>
@@ -294,13 +323,33 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       <FlatList
-        data={posts}
+        data={getTabContent()}
         renderItem={renderPostItem}
         keyExtractor={(item) => item._id}
-        numColumns={3}
+        numColumns={activeTab === 'Matches' ? 1 : 3}
+        key={activeTab === 'Matches' ? 'matches' : 'grid'}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons 
+              name={activeTab === 'Matches' ? 'trophy-outline' : 'images-outline'} 
+              size={48} 
+              color={COLORS.textLight} 
+            />
+            <Text style={styles.emptyText}>
+              {activeTab === 'Matches' ? 'No matches yet' : 'No posts yet'}
+            </Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -600,6 +649,51 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.xs,
     right: SPACING.xs,
+  },
+  matchItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.md,
+    marginBottom: SPACING.sm,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    ...SHADOWS.small,
+  },
+  matchItemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  matchItemInfo: {
+    flex: 1,
+    marginLeft: SPACING.md,
+  },
+  matchItemName: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  matchItemMeta: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  matchItemStatus: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xxxl,
+  },
+  emptyText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.md,
   },
 });
 

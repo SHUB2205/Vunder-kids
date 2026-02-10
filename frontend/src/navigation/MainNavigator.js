@@ -63,6 +63,8 @@ const SearchStack = () => (
     <Stack.Screen name="SearchMain" component={SearchScreen} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
     <Stack.Screen name="PostDetail" component={PostDetailScreen} />
+    <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
+    <Stack.Screen name="SetScore" component={SetScoreScreen} />
   </Stack.Navigator>
 );
 
@@ -92,6 +94,8 @@ const ProfileStack = () => (
     <Stack.Screen name="Following" component={FollowingScreen} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
     <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
+    <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
+    <Stack.Screen name="SetScore" component={SetScoreScreen} />
   </Stack.Navigator>
 );
 

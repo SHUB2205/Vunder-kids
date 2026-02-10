@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,18 +18,19 @@ import { useMatch } from '../../context/MatchContext';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
-const STATUS_TABS = ['All Matches', 'Upcoming', 'Completed'];
-const MATCH_TYPES = ['1 on 1', 'Team'];
-const SPORTS = ['All', 'Football', 'Tennis', 'Cricket', 'Basketball', 'Soccer'];
+// Match PWA MatchesComponent.js sports
+const SPORT_TYPES = ['All', 'Football', 'Tennis', 'Cricket', 'Basketball', 'Soccer'];
 
 const MatchesScreen = ({ navigation }) => {
-  const { matches, fetchMatches, loading, joinMatch } = useMatch();
+  const { matches, fetchMatches, loading, toggleLike } = useMatch();
   const { user } = useAuth();
-  const [activeStatusTab, setActiveStatusTab] = useState('All Matches');
-  const [activeMatchType, setActiveMatchType] = useState('1 on 1');
-  const [activeSport, setActiveSport] = useState('All');
-  const [searchLocation, setSearchLocation] = useState('');
-  const [showMyMatches, setShowMyMatches] = useState(false);
+  
+  // Filters - matching PWA MatchesComponent.js
+  const [activeFilters, setActiveFilters] = useState({
+    matchType: '1 on 1',
+    sportType: 'All',
+  });
+  const [locationSearch, setLocationSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -41,55 +43,48 @@ const MatchesScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const getFilteredMatches = () => {
-    let filtered = matches || [];
+  // Filter matches - exactly like PWA filterMatches function
+  const filterMatches = () => {
+    if (!matches) return [];
     
-    // Filter by My Matches
-    if (showMyMatches && user) {
-      filtered = filtered.filter(m => 
-        m.creator?._id === user._id || 
-        m.players?.some(p => p._id === user._id) ||
-        m.teams?.some(t => t.players?.some(p => p._id === user._id))
-      );
-    }
-    
-    // Filter by status
-    if (activeStatusTab === 'Upcoming') {
-      filtered = filtered.filter(m => m.status === 'scheduled' || m.status === 'in-progress');
-    } else if (activeStatusTab === 'Completed') {
-      filtered = filtered.filter(m => m.status === 'completed');
-    }
-    
-    // Filter by match type
-    if (activeMatchType === '1 on 1') {
-      filtered = filtered.filter(m => !m.isTeamMatch);
-    } else {
-      filtered = filtered.filter(m => m.isTeamMatch);
-    }
-    
-    // Filter by sport
-    if (activeSport !== 'All') {
-      filtered = filtered.filter(m => m.sport?.name?.toLowerCase() === activeSport.toLowerCase());
-    }
-    
-    // Filter by location
-    if (searchLocation) {
-      filtered = filtered.filter(m => 
-        m.location?.toLowerCase().includes(searchLocation.toLowerCase())
-      );
-    }
-    
-    return filtered;
+    return matches.filter(match => {
+      // Match type filter (1 on 1 vs Team)
+      const matchTypeFilter = 
+        activeFilters.matchType === '1 on 1' ? !match.isTeamMatch : match.isTeamMatch;
+
+      // Sport type filter
+      const sportTypeFilter = 
+        activeFilters.sportType === 'All' || 
+        match.sport?.name?.toLowerCase() === activeFilters.sportType.toLowerCase();
+
+      // Location filter
+      const locationFilter = 
+        locationSearch.trim() === '' || 
+        match.location?.toLowerCase().includes(locationSearch.toLowerCase());
+
+      return matchTypeFilter && sportTypeFilter && locationFilter;
+    });
   };
 
-  const handleLikeMatch = (matchId) => {
-    // TODO: Implement like functionality via API
-    Alert.alert('Liked!', 'You liked this match');
+  const handleFilterChange = (type, value) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [type]: value,
+    }));
+  };
+
+  // Like match - like PWA MatchCardPost.js handleLike
+  const handleLikeMatch = async (matchId) => {
+    if (toggleLike) {
+      await toggleLike(matchId);
+    }
   };
 
   const handleShareMatch = (match) => {
     Alert.alert('Share', `Share ${match.name} with your friends!`);
   };
+
+  const filteredMatches = filterMatches();
 
   const formatDate = (date) => {
     const d = new Date(date);
@@ -102,253 +97,207 @@ const MatchesScreen = ({ navigation }) => {
     });
   };
 
+  // Match Card - like PWA MatchCardPost.js
   const renderMatchCard = ({ item }) => {
     const player1 = item.players?.[0] || item.creator;
     const player2 = item.players?.[1];
-    const hasScores = item.scores && item.status === 'completed';
+    const isLiked = item.likes?.includes(user?._id);
     
     return (
       <TouchableOpacity
         style={styles.matchCard}
         onPress={() => navigation.navigate('MatchDetail', { match: item })}
+        activeOpacity={0.9}
       >
-        {/* Creator info */}
-        <View style={styles.creatorRow}>
+        {/* Header - like PWA postHeader */}
+        <View style={styles.postHeader}>
           <Image
             source={{ uri: player1?.avatar || 'https://via.placeholder.com/40' }}
-            style={styles.creatorAvatar}
+            style={styles.userAvatar}
           />
-          <View style={styles.creatorInfo}>
-            <Text style={styles.creatorName}>{player1?.name || 'Player'}</Text>
-            <Text style={styles.matchStatus}>
-              {item.status === 'completed' ? 'Completed Match' : 
-               item.status === 'in-progress' ? 'Live Match' : 'score-requested'}
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{player1?.userName || player1?.name || 'Player'}</Text>
+            <Text style={styles.postTime}>Upcoming Match</Text>
+          </View>
+        </View>
+
+        {/* Post Content - like PWA postContent */}
+        <Text style={styles.postContent}>
+          {player1?.userName || player1?.name || 'Player 1'} vs {player2?.userName || player2?.name || '?'} in an exciting {item.sport?.name || 'Sport'} match!
+        </Text>
+
+        {/* Match Card Inner */}
+        <View style={styles.matchCardInner}>
+          <View style={styles.matchInfo}>
+            <Text style={styles.matchType}>{item.isTeamMatch ? 'Team' : '1 on 1'}</Text>
+            <Text style={styles.matchLocation}>
+              <Ionicons name="location" size={12} color={COLORS.textSecondary} /> {item.location || 'TBD'}
             </Text>
           </View>
-        </View>
 
-        {/* Match description */}
-        <Text style={styles.matchDescription}>
-          {item.name || `${player1?.name || 'Player 1'} vs ${player2?.name || 'Player 2'} in an exciting ${item.sport?.name || 'Sport'} match!`}
-        </Text>
-
-        {/* Match type and location */}
-        <View style={styles.matchMetaRow}>
-          <Text style={styles.matchType}>{item.isTeamMatch ? 'Team' : '1 on 1'}</Text>
-          <Text style={styles.matchLocation}>Location: {item.location || 'TBD'}</Text>
-          {item.predictions && (
-            <Text style={styles.predictLabel}>Predictions</Text>
-          )}
-        </View>
-
-        {/* Players with scores */}
-        <View style={styles.playersContainer}>
-          {/* Player 1 */}
-          <View style={styles.playerRow}>
-            <Image
-              source={{ uri: player1?.avatar || 'https://via.placeholder.com/32' }}
-              style={styles.playerSmallAvatar}
-            />
-            <Text style={styles.playerName}>{player1?.name || 'Player 1'}</Text>
-            {hasScores && (
-              <View style={styles.scoresRow}>
-                {(item.scores?.sets || [item.scores?.player1 || 0]).map((score, idx) => (
-                  <View key={idx} style={styles.scoreBox}>
-                    <Text style={styles.scoreText}>{score}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            {item.predictions && (
-              <View style={styles.predictionBar}>
-                <View style={[styles.predictionFill, { width: `${item.predictions?.player1 || 50}%` }]} />
-                <Text style={styles.predictionPercent}>{item.predictions?.player1 || 50}%</Text>
-              </View>
-            )}
+          {/* Players */}
+          <View style={styles.playersRow}>
+            <View style={styles.playerCard}>
+              <Image
+                source={{ uri: player1?.avatar || 'https://via.placeholder.com/50' }}
+                style={styles.playerAvatar}
+              />
+              <Text style={styles.playerName}>{player1?.userName || player1?.name || 'Player 1'}</Text>
+            </View>
+            
+            <Text style={styles.vsText}>VS</Text>
+            
+            <View style={styles.playerCard}>
+              <Image
+                source={{ uri: player2?.avatar || 'https://via.placeholder.com/50' }}
+                style={styles.playerAvatar}
+              />
+              <Text style={styles.playerName}>{player2?.userName || player2?.name || '?'}</Text>
+            </View>
           </View>
 
-          {/* Player 2 */}
-          <View style={styles.playerRow}>
-            <Image
-              source={{ uri: player2?.avatar || 'https://via.placeholder.com/32' }}
-              style={styles.playerSmallAvatar}
-            />
-            <Text style={styles.playerName}>{player2?.name || 'Player 2'}</Text>
-            {hasScores && (
-              <View style={styles.scoresRow}>
-                {(item.scores?.sets2 || [item.scores?.player2 || 0]).map((score, idx) => (
-                  <View key={idx} style={styles.scoreBox}>
-                    <Text style={styles.scoreText}>{score}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            {item.predictions && (
-              <View style={styles.predictionBar}>
-                <View style={[styles.predictionFill, { width: `${item.predictions?.player2 || 50}%` }]} />
-                <Text style={styles.predictionPercent}>{item.predictions?.player2 || 50}%</Text>
-              </View>
-            )}
+          {/* Sport and Date */}
+          <View style={styles.matchMeta}>
+            <Text style={styles.sportName}>{item.sport?.name || 'Sport'}</Text>
+            <Text style={styles.matchDate}>{formatDate(item.date)}</Text>
           </View>
         </View>
 
-        {/* Votes info */}
-        {item.predictions && (
-          <Text style={styles.votesText}>
-            {item.predictions?.totalVotes || 0} votes | {item.status === 'completed' ? 'Expired' : 'Active'}
-          </Text>
-        )}
-
-        {/* Sport and date */}
-        <Text style={styles.sportDateText}>
-          {item.sport?.name || 'Sport'},  {formatDate(item.date)}
-        </Text>
-
-        {/* Actions */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Ionicons name="heart-outline" size={20} color={COLORS.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Ionicons name="chatbubble-outline" size={20} color={COLORS.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Ionicons name="share-outline" size={20} color={COLORS.text} />
+        {/* Footer - like PWA postFooter */}
+        <View style={styles.postFooter}>
+          <View style={styles.likeSection}>
+            <TouchableOpacity 
+              style={styles.actionBtn} 
+              onPress={() => handleLikeMatch(item._id)}
+            >
+              <Ionicons 
+                name={isLiked ? 'heart' : 'heart-outline'} 
+                size={24} 
+                color={isLiked ? '#FA2A55' : COLORS.text} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn}>
+              <Ionicons name="chatbubble-outline" size={22} color={COLORS.text} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => handleShareMatch(item)}>
+              <Ionicons name="share-social-outline" size={22} color={COLORS.text} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.likesCount}>{item.likes?.length || 0} likes</Text>
+          <TouchableOpacity>
+            <Text style={styles.viewComments}>View all comments</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.likesText}>{item.likes?.length || 0} likes</Text>
       </TouchableOpacity>
     );
   };
 
+  // Filters - like PWA MatchesComponent.js filterContainer
   const renderFilters = () => (
     <View style={styles.filtersContainer}>
-      {/* Search by location */}
-      <View style={styles.searchRow}>
-        <View style={styles.searchInputContainer}>
+      {/* Fixed Filters Row */}
+      <View style={styles.fixedFilters}>
+        {/* Location Filter */}
+        <View style={styles.locationFilter}>
           <Ionicons name="location-outline" size={18} color={COLORS.textSecondary} />
           <TextInput
-            style={styles.searchInput}
+            style={styles.locationInput}
             placeholder="Search by Location"
             placeholderTextColor={COLORS.textLight}
-            value={searchLocation}
-            onChangeText={setSearchLocation}
+            value={locationSearch}
+            onChangeText={setLocationSearch}
           />
         </View>
         
-        {/* Match type toggle */}
-        <View style={styles.matchTypeToggle}>
-          {MATCH_TYPES.map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.matchTypeBtn,
-                activeMatchType === type && styles.matchTypeBtnActive,
-              ]}
-              onPress={() => setActiveMatchType(type)}
-            >
-              <Text
-                style={[
-                  styles.matchTypeText,
-                  activeMatchType === type && styles.matchTypeTextActive,
-                ]}
-              >
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Type Filters (1 on 1 / Team) */}
+        <View style={styles.typeFilters}>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              activeFilters.matchType === '1 on 1' && styles.activeFilter,
+            ]}
+            onPress={() => handleFilterChange('matchType', '1 on 1')}
+          >
+            <Text style={[
+              styles.filterButtonText,
+              activeFilters.matchType === '1 on 1' && styles.activeFilterText,
+            ]}>1 on 1</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              activeFilters.matchType === 'Team' && styles.activeFilter,
+            ]}
+            onPress={() => handleFilterChange('matchType', 'Team')}
+          >
+            <Text style={[
+              styles.filterButtonText,
+              activeFilters.matchType === 'Team' && styles.activeFilterText,
+            ]}>Team</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Sports filter */}
+      {/* Sport Type Filter - horizontal scroll like PWA */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.sportsScroll}
-        contentContainerStyle={styles.sportsContainer}
+        style={styles.sportTypeScroll}
+        contentContainerStyle={styles.sportTypeContainer}
       >
-        {SPORTS.map((sport) => (
+        {SPORT_TYPES.map((sport) => (
           <TouchableOpacity
             key={sport}
             style={[
-              styles.sportChip,
-              activeSport === sport && styles.sportChipActive,
+              styles.filterButton,
+              activeFilters.sportType === sport && styles.activeFilter,
             ]}
-            onPress={() => setActiveSport(sport)}
+            onPress={() => handleFilterChange('sportType', sport)}
           >
-            <Text
-              style={[
-                styles.sportChipText,
-                activeSport === sport && styles.sportChipTextActive,
-              ]}
-            >
-              {sport}
-            </Text>
+            <Text style={[
+              styles.filterButtonText,
+              activeFilters.sportType === sport && styles.activeFilterText,
+            ]}>{sport}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
-
-      {/* Status tabs */}
-      <View style={styles.statusTabsContainer}>
-        {STATUS_TABS.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.statusTab,
-              activeStatusTab === tab && styles.statusTabActive,
-            ]}
-            onPress={() => setActiveStatusTab(tab)}
-          >
-            <Text
-              style={[
-                styles.statusTabText,
-                activeStatusTab === tab && styles.statusTabTextActive,
-              ]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header - like PWA matchesTitle */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Matches</Text>
-        <View style={styles.headerRight}>
-          <Text style={styles.myMatchesLabel}>My Matches</Text>
-          <TouchableOpacity
-            style={[styles.toggleSwitch, showMyMatches && styles.toggleSwitchActive]}
-            onPress={() => setShowMyMatches(!showMyMatches)}
-          >
-            <View style={[styles.toggleKnob, showMyMatches && styles.toggleKnobActive]} />
-          </TouchableOpacity>
-        </View>
       </View>
 
-      <FlatList
-        data={getFilteredMatches()}
-        renderItem={renderMatchCard}
-        keyExtractor={(item) => item._id}
-        ListHeaderComponent={renderFilters}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.primary}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="trophy-outline" size={60} color={COLORS.textLight} />
-            <Text style={styles.emptyText}>No matches found</Text>
-            <Text style={styles.emptySubtext}>Create a new match to get started</Text>
-          </View>
-        }
-      />
+      {loading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredMatches}
+          renderItem={renderMatchCard}
+          keyExtractor={(item) => item._id}
+          ListHeaderComponent={renderFilters}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="trophy-outline" size={60} color={COLORS.textLight} />
+              <Text style={styles.emptyText}>No matches found</Text>
+              <Text style={styles.emptySubtext}>Try adjusting your filters</Text>
+            </View>
+          }
+        />
+      )}
 
       {/* FAB for creating match */}
       <TouchableOpacity
@@ -367,9 +316,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     backgroundColor: COLORS.white,
@@ -381,34 +327,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
   },
-  headerRight: {
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  myMatchesLabel: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-    marginRight: SPACING.sm,
-  },
-  toggleSwitch: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.border,
-    padding: 2,
-  },
-  toggleSwitchActive: {
-    backgroundColor: COLORS.primary,
-  },
-  toggleKnob: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.white,
-  },
-  toggleKnobActive: {
-    transform: [{ translateX: 20 }],
-  },
+  // Filters - like PWA filterContainer
   filtersContainer: {
     backgroundColor: COLORS.white,
     marginHorizontal: SPACING.md,
@@ -417,12 +341,12 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     ...SHADOWS.small,
   },
-  searchRow: {
+  fixedFilters: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
-  searchInputContainer: {
+  locationFilter: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -434,220 +358,161 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  searchInput: {
+  locationInput: {
     flex: 1,
     marginLeft: SPACING.sm,
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
   },
-  matchTypeToggle: {
+  typeFilters: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.md,
     padding: 2,
   },
-  matchTypeBtn: {
+  filterButton: {
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.md,
+    marginRight: SPACING.xs,
   },
-  matchTypeBtnActive: {
+  activeFilter: {
     backgroundColor: COLORS.text,
   },
-  matchTypeText: {
+  filterButtonText: {
     fontSize: FONTS.sizes.sm,
     fontWeight: '500',
     color: COLORS.textSecondary,
   },
-  matchTypeTextActive: {
+  activeFilterText: {
     color: COLORS.white,
   },
-  sportsScroll: {
-    marginBottom: SPACING.md,
+  sportTypeScroll: {
+    marginTop: SPACING.sm,
   },
-  sportsContainer: {
+  sportTypeContainer: {
     paddingRight: SPACING.md,
-  },
-  sportChip: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.surface,
-    marginRight: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  sportChipActive: {
-    backgroundColor: COLORS.text,
-    borderColor: COLORS.text,
-  },
-  sportChipText: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  sportChipTextActive: {
-    color: COLORS.white,
-  },
-  statusTabsContainer: {
-    flexDirection: 'row',
-  },
-  statusTab: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    marginRight: SPACING.sm,
-    backgroundColor: COLORS.surface,
-  },
-  statusTabActive: {
-    backgroundColor: COLORS.primary + '20',
-  },
-  statusTabText: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  statusTabTextActive: {
-    color: COLORS.primary,
   },
   listContent: {
     paddingBottom: 100,
   },
+  // Match Card - like PWA MatchCardPost
   matchCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: SPACING.md,
     marginTop: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
     ...SHADOWS.small,
   },
-  creatorRow: {
+  postHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    padding: SPACING.md,
   },
-  creatorAvatar: {
+  userAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: COLORS.surface,
   },
-  creatorInfo: {
+  userInfo: {
     marginLeft: SPACING.md,
   },
-  creatorName: {
+  userName: {
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
     color: COLORS.text,
   },
-  matchStatus: {
+  postTime: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.primary,
   },
-  matchDescription: {
+  postContent: {
+    paddingHorizontal: SPACING.md,
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
     marginBottom: SPACING.md,
   },
-  matchMetaRow: {
+  matchCardInner: {
+    backgroundColor: COLORS.surface,
+    marginHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+  },
+  matchInfo: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: SPACING.md,
   },
   matchType: {
     fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-    marginRight: SPACING.md,
-  },
-  matchLocation: {
-    flex: 1,
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-  },
-  predictLabel: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-  },
-  playersContainer: {
-    marginBottom: SPACING.md,
-  },
-  playerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  playerSmallAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.surface,
-  },
-  playerName: {
-    flex: 1,
-    marginLeft: SPACING.sm,
-    fontSize: FONTS.sizes.md,
-    color: COLORS.text,
-  },
-  scoresRow: {
-    flexDirection: 'row',
-  },
-  scoreBox: {
-    width: 28,
-    height: 28,
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: SPACING.xs,
-  },
-  scoreText: {
-    fontSize: FONTS.sizes.sm,
     fontWeight: '600',
     color: COLORS.text,
   },
-  predictionBar: {
-    flex: 1,
-    height: 8,
-    backgroundColor: COLORS.surface,
-    borderRadius: 4,
-    marginLeft: SPACING.md,
+  matchLocation: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  playersRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  predictionFill: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: 4,
-  },
-  predictionPercent: {
-    marginLeft: SPACING.sm,
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-  },
-  votesText: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-    textAlign: 'right',
-    marginBottom: SPACING.sm,
-  },
-  sportDateText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.primary,
+    justifyContent: 'space-around',
     marginBottom: SPACING.md,
   },
-  actionsRow: {
+  playerCard: {
+    alignItems: 'center',
+  },
+  playerAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.white,
+    marginBottom: SPACING.xs,
+  },
+  playerName: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  vsText: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: 'bold',
+    color: COLORS.textSecondary,
+  },
+  matchMeta: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  sportName: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  matchDate: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  postFooter: {
+    padding: SPACING.md,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    paddingTop: SPACING.md,
+  },
+  likeSection: {
+    flexDirection: 'row',
+    marginBottom: SPACING.sm,
   },
   actionBtn: {
     marginRight: SPACING.lg,
   },
-  likesText: {
+  likesCount: {
     fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
     color: COLORS.text,
-    marginTop: SPACING.sm,
+  },
+  viewComments: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
   },
   fab: {
     position: 'absolute',

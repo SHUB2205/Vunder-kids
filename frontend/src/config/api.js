@@ -1,7 +1,7 @@
 // Use your machine's IP address for physical device testing
 // For emulator: 10.0.2.2 (Android) or localhost (iOS)
-const API_BASE_URL = 'http://10.226.163.93:5000/api';
-const CHAT_BASE_URL = 'http://10.226.163.93:5000';
+const API_BASE_URL = 'http://10.226.167.21:5000/api';
+const CHAT_BASE_URL = 'http://10.226.167.21:5000';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
   JOIN_MATCH: (matchId) => `${API_BASE_URL}/matches/join/${matchId}`,
   
   // Search
+  SEARCH: `${API_BASE_URL}/search`,
   SEARCH_USERS: `${API_BASE_URL}/search/users`,
   SEARCH_NEWS: `${API_BASE_URL}/search/news`,
   SEARCH_SPORTS: `${API_BASE_URL}/search/sports`,

@@ -104,6 +104,22 @@ export const MatchProvider = ({ children }) => {
     }
   };
 
+  // Toggle like on match - like PWA MatchContext toggleLike
+  const toggleLike = async (matchId) => {
+    try {
+      const response = await axios.post(`${API_ENDPOINTS.GET_MATCHES}/${matchId}/like`);
+      setMatches(prev =>
+        prev.map(match =>
+          match._id === matchId ? { ...match, likes: response.data.likes } : match
+        )
+      );
+      return { success: true, likes: response.data.likes, isLiked: response.data.isLiked };
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      return { success: false };
+    }
+  };
+
   return (
     <MatchContext.Provider
       value={{
@@ -118,6 +134,7 @@ export const MatchProvider = ({ children }) => {
         fetchSports,
         fetchFacilities,
         bookFacility,
+        toggleLike,
         setMatches,
       }}
     >
