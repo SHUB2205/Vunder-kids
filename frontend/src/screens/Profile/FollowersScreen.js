@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import api from '../../config/axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
@@ -42,7 +42,7 @@ const FollowersScreen = ({ navigation }) => {
 
   const fetchFollowers = async () => {
     try {
-      const response = await axios.get(`${API_ENDPOINTS.GET_USER}/${user._id}/followers`);
+      const response = await api.get(`${API_ENDPOINTS.GET_USER}/${user._id}/followers`);
       setFollowers(response.data.followers || []);
       setFilteredFollowers(response.data.followers || []);
     } catch (error) {
@@ -54,7 +54,7 @@ const FollowersScreen = ({ navigation }) => {
 
   const handleRemoveFollower = async (followerId) => {
     try {
-      await axios.post(`${API_ENDPOINTS.GET_USER}/remove-follower`, { followerId });
+      await api.post(`${API_ENDPOINTS.GET_USER}/remove-follower`, { followerId });
       setFollowers((prev) => prev.filter((f) => f._id !== followerId));
     } catch (error) {
       console.error('Error removing follower:', error);

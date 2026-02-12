@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import api from '../../config/axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
@@ -42,7 +42,7 @@ const FollowingScreen = ({ navigation }) => {
 
   const fetchFollowing = async () => {
     try {
-      const response = await axios.get(`${API_ENDPOINTS.GET_USER}/${user._id}/following`);
+      const response = await api.get(`${API_ENDPOINTS.GET_USER}/${user._id}/following`);
       setFollowing(response.data.following || []);
       setFilteredFollowing(response.data.following || []);
     } catch (error) {
@@ -54,7 +54,7 @@ const FollowingScreen = ({ navigation }) => {
 
   const handleUnfollow = async (userId) => {
     try {
-      await axios.post(API_ENDPOINTS.UNFOLLOW_USER, { userId });
+      await api.post(API_ENDPOINTS.UNFOLLOW_USER, { userId });
       setFollowing((prev) => prev.filter((f) => f._id !== userId));
     } catch (error) {
       console.error('Error unfollowing:', error);

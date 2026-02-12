@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Animated, PanResponder, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 import HomeScreen from '../screens/Home/HomeScreen';
 import SearchScreen from '../screens/Search/SearchScreen';
@@ -99,8 +102,94 @@ const ProfileStack = () => (
   </Stack.Navigator>
 );
 
+// Draggable Floating Action Buttons Component - matching PWA OpenAiBtn
+const FloatingButtons = () => {
+  const navigation = useNavigation();
+  const pan = useRef(new Animated.ValueXY({ x: SCREEN_WIDTH - 76, y: SCREEN_HEIGHT - 200 })).current;
+  const [isDragging, setIsDragging] = useState(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
+      },
+      onPanResponderGrant: () => {
+        pan.setOffset({
+          x: pan.x._value,
+          y: pan.y._value,
+        });
+        pan.setValue({ x: 0, y: 0 });
+        setIsDragging(true);
+      },
+      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
+        useNativeDriver: false,
+      }),
+      onPanResponderRelease: (_, gestureState) => {
+        pan.flattenOffset();
+        setIsDragging(false);
+        
+        // Snap to edges
+        const currentX = pan.x._value;
+        const snapX = currentX < SCREEN_WIDTH / 2 ? 16 : SCREEN_WIDTH - 76;
+        
+        // Keep within bounds
+        let currentY = pan.y._value;
+        currentY = Math.max(100, Math.min(currentY, SCREEN_HEIGHT - 200));
+        
+        Animated.spring(pan, {
+          toValue: { x: snapX, y: currentY },
+          useNativeDriver: false,
+          friction: 5,
+        }).start();
+      },
+    })
+  ).current;
+
+  const handleChatbotPress = () => {
+    if (!isDragging) {
+      navigation.navigate('Profile', { screen: 'AIAssistant' });
+    }
+  };
+
+  const handleMatchPress = () => {
+    if (!isDragging) {
+      navigation.navigate('Matches', { screen: 'CreateMatch' });
+    }
+  };
+
+  return (
+    <Animated.View
+      style={[styles.floatingContainer, { transform: pan.getTranslateTransform() }]}
+      {...panResponder.panHandlers}
+    >
+      {/* Chatbot Button */}
+      <TouchableOpacity
+        style={styles.chatbotButton}
+        onPress={handleChatbotPress}
+        activeOpacity={0.8}
+      >
+        <View style={styles.chatbotInner}>
+          <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
+          <Text style={styles.robotEmoji}>🤖</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Set Match Button (Basketball) */}
+      <TouchableOpacity
+        style={styles.matchButton}
+        onPress={handleMatchPress}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.basketballEmoji}>🏀</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
 const MainNavigator = () => {
   return (
+    <View style={{ flex: 1 }}>
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
@@ -139,6 +228,10 @@ const MainNavigator = () => {
       <Tab.Screen name="Matches" component={MatchesStack} />
       <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
+    
+    {/* Floating Action Buttons */}
+    <FloatingButtons />
+    </View>
   );
 };
 
@@ -154,6 +247,54 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  floatingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  chatbotButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#4A90D9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  chatbotInner: {
+    alignItems: 'center',
+  },
+  robotEmoji: {
+    fontSize: 10,
+    position: 'absolute',
+    bottom: -6,
+    right: -6,
+  },
+  matchButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+  },
+  basketballEmoji: {
+    fontSize: 32,
   },
 });
 

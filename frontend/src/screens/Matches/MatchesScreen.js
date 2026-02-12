@@ -20,6 +20,7 @@ import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/the
 
 // Match PWA MatchesComponent.js sports
 const SPORT_TYPES = ['All', 'Football', 'Tennis', 'Cricket', 'Basketball', 'Soccer'];
+const STATUS_TABS = ['All Matches', 'Upcoming', 'Completed'];
 
 const MatchesScreen = ({ navigation }) => {
   const { matches, fetchMatches, loading, toggleLike } = useMatch();
@@ -32,6 +33,8 @@ const MatchesScreen = ({ navigation }) => {
   });
   const [locationSearch, setLocationSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [showMyMatches, setShowMyMatches] = useState(false);
+  const [activeStatusTab, setActiveStatusTab] = useState('All Matches');
 
   useEffect(() => {
     fetchMatches();
@@ -48,6 +51,22 @@ const MatchesScreen = ({ navigation }) => {
     if (!matches) return [];
     
     return matches.filter(match => {
+      // My Matches filter
+      if (showMyMatches && user) {
+        const isMyMatch = 
+          match.creator?._id === user._id || 
+          match.players?.some(p => p._id === user._id) ||
+          match.teams?.some(t => t.players?.some(p => p._id === user._id));
+        if (!isMyMatch) return false;
+      }
+
+      // Status filter
+      if (activeStatusTab === 'Upcoming') {
+        if (match.status !== 'scheduled' && match.status !== 'in-progress') return false;
+      } else if (activeStatusTab === 'Completed') {
+        if (match.status !== 'completed') return false;
+      }
+
       // Match type filter (1 on 1 vs Team)
       const matchTypeFilter = 
         activeFilters.matchType === '1 on 1' ? !match.isTeamMatch : match.isTeamMatch;
@@ -261,14 +280,42 @@ const MatchesScreen = ({ navigation }) => {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Status Tabs - like PWA */}
+      <View style={styles.statusTabs}>
+        {STATUS_TABS.map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[
+              styles.statusTab,
+              activeStatusTab === tab && styles.statusTabActive,
+            ]}
+            onPress={() => setActiveStatusTab(tab)}
+          >
+            <Text style={[
+              styles.statusTabText,
+              activeStatusTab === tab && styles.statusTabTextActive,
+            ]}>{tab}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header - like PWA matchesTitle */}
+      {/* Header with My Matches toggle - like PWA */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Matches</Text>
+        <View style={styles.myMatchesToggle}>
+          <Text style={styles.myMatchesLabel}>My Matches</Text>
+          <TouchableOpacity
+            style={[styles.toggleSwitch, showMyMatches && styles.toggleSwitchActive]}
+            onPress={() => setShowMyMatches(!showMyMatches)}
+          >
+            <View style={[styles.toggleKnob, showMyMatches && styles.toggleKnobActive]} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading && !refreshing ? (
@@ -316,6 +363,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     backgroundColor: COLORS.white,
@@ -326,6 +376,35 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.xxl,
     fontWeight: 'bold',
     color: COLORS.text,
+  },
+  myMatchesToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  myMatchesLabel: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    marginRight: SPACING.sm,
+  },
+  toggleSwitch: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.border,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleSwitchActive: {
+    backgroundColor: COLORS.primary,
+  },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.white,
+  },
+  toggleKnobActive: {
+    alignSelf: 'flex-end',
   },
   loadingContainer: {
     flex: 1,
@@ -392,6 +471,28 @@ const styles = StyleSheet.create({
   },
   sportTypeContainer: {
     paddingRight: SPACING.md,
+  },
+  statusTabs: {
+    flexDirection: 'row',
+    marginTop: SPACING.md,
+  },
+  statusTab: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginRight: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.surface,
+  },
+  statusTabActive: {
+    backgroundColor: COLORS.primary + '20',
+  },
+  statusTabText: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  statusTabTextActive: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   listContent: {
     paddingBottom: 100,

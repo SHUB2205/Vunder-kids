@@ -9,11 +9,15 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMatch } from '../../context/MatchContext';
+import api from '../../config/axios';
+import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 const CreateMatchScreen = ({ navigation }) => {
@@ -35,10 +39,40 @@ const CreateMatchScreen = ({ navigation }) => {
   const [teamPlayers, setTeamPlayers] = useState('');
   const [opponentTeamName, setOpponentTeamName] = useState('');
   const [opponentPlayers, setOpponentPlayers] = useState('');
+  
+  // Dropdown states
+  const [showSportPicker, setShowSportPicker] = useState(false);
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
     fetchSports();
   }, []);
+  
+  // Search users for opponent selection
+  const searchUsers = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchLoading(true);
+    try {
+      const response = await api.get(`${API_ENDPOINTS.SEARCH}?q=${encodeURIComponent(query)}`);
+      setSearchResults(response.data.users || []);
+    } catch (error) {
+      console.error('Search error:', error);
+    }
+    setSearchLoading(false);
+  };
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (userSearchQuery) searchUsers(userSearchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [userSearchQuery]);
 
   const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -300,16 +334,16 @@ const CreateMatchScreen = ({ navigation }) => {
               </View>
 
               <Text style={styles.label}>Choose sport *</Text>
-              <View style={styles.inputContainer}>
+              <TouchableOpacity
+                style={styles.inputContainer}
+                onPress={() => setShowSportPicker(true)}
+              >
                 <Ionicons name="basketball" size={18} color={COLORS.primary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Tennis"
-                  placeholderTextColor={COLORS.textLight}
-                  value={selectedSport?.name || ''}
-                  onChangeText={(text) => setSelectedSport({ name: text })}
-                />
-              </View>
+                <Text style={[styles.inputText, !selectedSport && { color: COLORS.textLight }]}>
+                  {selectedSport?.name || 'Select a sport'}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color={COLORS.textSecondary} />
+              </TouchableOpacity>
 
               <Text style={styles.label}>Choose opponent</Text>
               <View style={styles.inputContainer}>
@@ -375,6 +409,107 @@ const CreateMatchScreen = ({ navigation }) => {
           </Text>
         </View>
       </ScrollView>
+      
+      {/* Sport Picker Modal */}
+      <Modal
+        visible={showSportPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSportPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Sport</Text>
+              <TouchableOpacity onPress={() => setShowSportPicker(false)}>
+                <Ionicons name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={displaySports}
+              keyExtractor={(item) => item._id || item.name}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.sportItem}
+                  onPress={() => {
+                    setSelectedSport(item);
+                    setShowSportPicker(false);
+                  }}
+                >
+                  <Text style={styles.sportItemText}>{item.name}</Text>
+                  {selectedSport?.name === item.name && (
+                    <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+      
+      {/* User Search Modal */}
+      <Modal
+        visible={showUserSearch}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowUserSearch(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Find Opponent</Text>
+              <TouchableOpacity onPress={() => setShowUserSearch(false)}>
+                <Ionicons name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="search" size={18} color={COLORS.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by username..."
+                placeholderTextColor={COLORS.textLight}
+                value={userSearchQuery}
+                onChangeText={setUserSearchQuery}
+                autoFocus
+              />
+            </View>
+            {searchLoading ? (
+              <ActivityIndicator style={{ marginTop: SPACING.lg }} color={COLORS.primary} />
+            ) : (
+              <FlatList
+                data={searchResults}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.userItem}
+                    onPress={() => {
+                      setOpponent(item.userName || item.name);
+                      setShowUserSearch(false);
+                      setUserSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                  >
+                    <View style={styles.userAvatar}>
+                      <Ionicons name="person" size={20} color={COLORS.textSecondary} />
+                    </View>
+                    <View>
+                      <Text style={styles.userName}>{item.userName || item.name}</Text>
+                      <Text style={styles.userEmail}>{item.email}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  userSearchQuery ? (
+                    <Text style={styles.emptyText}>No users found</Text>
+                  ) : (
+                    <Text style={styles.emptyText}>Type to search for users</Text>
+                  )
+                }
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -516,6 +651,94 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: BORDER_RADIUS.xl,
+    borderTopRightRadius: BORDER_RADIUS.xl,
+    maxHeight: '70%',
+    paddingBottom: SPACING.xl,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  sportItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  sportItemText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.text,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    marginHorizontal: SPACING.lg,
+    marginVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.text,
+  },
+  userItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  userName: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  userEmail: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xl,
+    fontSize: FONTS.sizes.md,
   },
 });
 

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import api from '../../config/axios';
 import { useAuth } from '../../context/AuthContext';
 import { usePost } from '../../context/PostContext';
 import { API_ENDPOINTS } from '../../config/api';
@@ -33,7 +33,7 @@ const CommentsScreen = ({ navigation, route }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await axios.get(`${API_ENDPOINTS.GET_POSTS}/${postId}/comments`);
+      const response = await api.get(`${API_ENDPOINTS.GET_POSTS}/${postId}/comments`);
       setComments(response.data.comments || []);
     } catch (error) {
       console.error('Error fetching comments:', error);

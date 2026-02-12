@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import api from '../../config/axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
@@ -36,8 +36,8 @@ const UserProfileScreen = ({ navigation, route }) => {
   const fetchUserProfile = async () => {
     try {
       const [userRes, postsRes] = await Promise.all([
-        axios.get(`${API_ENDPOINTS.GET_USER}/${userId}`),
-        axios.get(API_ENDPOINTS.GET_USER_POSTS(userId)),
+        api.get(`${API_ENDPOINTS.GET_USER}/${userId}`),
+        api.get(API_ENDPOINTS.GET_USER_POSTS(userId)),
       ]);
       setUser(userRes.data.user);
       setPosts(postsRes.data.posts || []);
@@ -53,14 +53,14 @@ const UserProfileScreen = ({ navigation, route }) => {
     setFollowLoading(true);
     try {
       if (isFollowing) {
-        await axios.post(API_ENDPOINTS.UNFOLLOW_USER, { userId });
+        await api.post(API_ENDPOINTS.UNFOLLOW_USER, { userId });
         setIsFollowing(false);
         setUser((prev) => ({
           ...prev,
           followers: prev.followers.filter((id) => id !== currentUser?._id),
         }));
       } else {
-        await axios.post(API_ENDPOINTS.FOLLOW_USER, { userId });
+        await api.post(API_ENDPOINTS.FOLLOW_USER, { userId });
         setIsFollowing(true);
         setUser((prev) => ({
           ...prev,

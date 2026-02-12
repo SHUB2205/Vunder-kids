@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
-import axios from 'axios';
+import api from '../config/axios';
 import { API_ENDPOINTS } from '../config/api';
 import { useAuth } from './AuthContext';
 
@@ -48,7 +48,7 @@ export const NotificationProvider = ({ children }) => {
       setExpoPushToken(token);
 
       // Send token to backend
-      await axios.post(API_ENDPOINTS.UPDATE_TOKEN, { notificationToken: token });
+      await api.post(API_ENDPOINTS.UPDATE_TOKEN, { notificationToken: token });
     } catch (error) {
       console.error('Error registering for push notifications:', error);
     }
@@ -56,7 +56,7 @@ export const NotificationProvider = ({ children }) => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.GET_NOTIFICATIONS);
+      const response = await api.get(API_ENDPOINTS.GET_NOTIFICATIONS);
       setNotifications(response.data.notifications);
       const unread = response.data.notifications.filter(n => !n.read).length;
       setUnreadCount(unread);
@@ -69,7 +69,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.put(API_ENDPOINTS.MARK_READ(notificationId));
+      await api.put(API_ENDPOINTS.MARK_READ(notificationId));
       setNotifications(prev =>
         prev.map(notif =>
           notif._id === notificationId ? { ...notif, read: true } : notif

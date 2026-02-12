@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import axios from 'axios';
+import api from '../config/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_ENDPOINTS, CHAT_BASE_URL } from '../config/api';
 
@@ -81,7 +81,7 @@ export const ChatProvider = ({ children }) => {
 
   const fetchConversations = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.GET_CONVERSATIONS);
+      const response = await api.get(API_ENDPOINTS.GET_CONVERSATIONS);
       setConversations(response.data.conversations);
       return response.data.conversations;
     } catch (error) {
@@ -92,7 +92,7 @@ export const ChatProvider = ({ children }) => {
 
   const fetchMessages = async (recipientId) => {
     try {
-      const response = await axios.get(`${API_ENDPOINTS.GET_MESSAGES}/${recipientId}`);
+      const response = await api.get(`${API_ENDPOINTS.GET_MESSAGES}/${recipientId}`);
       setMessages(response.data.messages);
       return response.data.messages;
     } catch (error) {

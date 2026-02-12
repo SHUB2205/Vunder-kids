@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
-import axios from 'axios';
+import api from '../config/axios';
 import { API_ENDPOINTS } from '../config/api';
 
 const PostContext = createContext();
@@ -16,7 +16,7 @@ export const PostProvider = ({ children }) => {
   const fetchPosts = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_ENDPOINTS.GET_POSTS}?page=${page}`);
+      const response = await api.get(`${API_ENDPOINTS.GET_POSTS}?page=${page}`);
       if (page === 1) {
         setPosts(response.data.posts);
       } else {
@@ -47,7 +47,7 @@ export const PostProvider = ({ children }) => {
       if (postData.title) formData.append('title', postData.title);
       if (postData.tags) formData.append('tags', JSON.stringify(postData.tags));
 
-      const response = await axios.post(API_ENDPOINTS.CREATE_POST, formData, {
+      const response = await api.post(API_ENDPOINTS.CREATE_POST, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -63,7 +63,7 @@ export const PostProvider = ({ children }) => {
 
   const likePost = async (postId) => {
     try {
-      await axios.post(API_ENDPOINTS.LIKE_POST(postId));
+      await api.post(API_ENDPOINTS.LIKE_POST(postId));
       setPosts(prev => 
         prev.map(post => 
           post._id === postId 
@@ -79,7 +79,7 @@ export const PostProvider = ({ children }) => {
 
   const commentOnPost = async (postId, content) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.COMMENT_POST(postId), { content });
+      const response = await api.post(API_ENDPOINTS.COMMENT_POST(postId), { content });
       setPosts(prev =>
         prev.map(post =>
           post._id === postId
@@ -95,7 +95,7 @@ export const PostProvider = ({ children }) => {
 
   const deletePost = async (postId) => {
     try {
-      await axios.delete(API_ENDPOINTS.DELETE_POST(postId));
+      await api.delete(API_ENDPOINTS.DELETE_POST(postId));
       setPosts(prev => prev.filter(post => post._id !== postId));
       return { success: true };
     } catch (error) {
@@ -105,7 +105,7 @@ export const PostProvider = ({ children }) => {
 
   const fetchStories = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.GET_STORIES);
+      const response = await api.get(API_ENDPOINTS.GET_STORIES);
       setStories(response.data.stories);
       return response.data.stories;
     } catch (error) {
@@ -123,7 +123,7 @@ export const PostProvider = ({ children }) => {
         name: storyData.media.fileName || 'story.jpg',
       });
 
-      const response = await axios.post(API_ENDPOINTS.CREATE_STORY, formData, {
+      const response = await api.post(API_ENDPOINTS.CREATE_STORY, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -136,7 +136,7 @@ export const PostProvider = ({ children }) => {
 
   const viewStory = async (storyId) => {
     try {
-      await axios.post(API_ENDPOINTS.VIEW_STORY(storyId));
+      await api.post(API_ENDPOINTS.VIEW_STORY(storyId));
     } catch (error) {
       console.error('Error viewing story:', error);
     }
@@ -144,7 +144,7 @@ export const PostProvider = ({ children }) => {
 
   const fetchReels = async (page = 1) => {
     try {
-      const response = await axios.get(`${API_ENDPOINTS.GET_REELS}?page=${page}`);
+      const response = await api.get(`${API_ENDPOINTS.GET_REELS}?page=${page}`);
       if (page === 1) {
         setReels(response.data.reels);
       } else {
@@ -167,7 +167,7 @@ export const PostProvider = ({ children }) => {
       });
       if (reelData.caption) formData.append('caption', reelData.caption);
 
-      const response = await axios.post(API_ENDPOINTS.CREATE_REEL, formData, {
+      const response = await api.post(API_ENDPOINTS.CREATE_REEL, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -180,7 +180,7 @@ export const PostProvider = ({ children }) => {
 
   const likeReel = async (reelId) => {
     try {
-      await axios.post(API_ENDPOINTS.LIKE_REEL(reelId));
+      await api.post(API_ENDPOINTS.LIKE_REEL(reelId));
       setReels(prev =>
         prev.map(reel =>
           reel._id === reelId

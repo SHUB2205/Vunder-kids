@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
-import axios from 'axios';
+import api from '../config/axios';
 import { API_ENDPOINTS } from '../config/api';
 
 const MatchContext = createContext();
@@ -15,7 +15,7 @@ export const MatchProvider = ({ children }) => {
   const fetchMatches = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(API_ENDPOINTS.GET_MATCHES);
+      const response = await api.get(API_ENDPOINTS.GET_MATCHES);
       setMatches(response.data.matches);
       return response.data.matches;
     } catch (error) {
@@ -28,7 +28,7 @@ export const MatchProvider = ({ children }) => {
 
   const createMatch = async (matchData) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.CREATE_MATCH, matchData);
+      const response = await api.post(API_ENDPOINTS.CREATE_MATCH, matchData);
       setMatches(prev => [response.data.match, ...prev]);
       return { success: true, match: response.data.match };
     } catch (error) {
@@ -41,7 +41,7 @@ export const MatchProvider = ({ children }) => {
 
   const updateScore = async (matchId, scores) => {
     try {
-      const response = await axios.put(API_ENDPOINTS.UPDATE_SCORE(matchId), { scores });
+      const response = await api.put(API_ENDPOINTS.UPDATE_SCORE(matchId), { scores });
       setMatches(prev =>
         prev.map(match =>
           match._id === matchId ? { ...match, scores, status: 'score-requested' } : match
@@ -55,7 +55,7 @@ export const MatchProvider = ({ children }) => {
 
   const joinMatch = async (matchId) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.JOIN_MATCH(matchId));
+      const response = await api.post(API_ENDPOINTS.JOIN_MATCH(matchId));
       setMatches(prev =>
         prev.map(match =>
           match._id === matchId ? response.data.match : match
@@ -72,7 +72,7 @@ export const MatchProvider = ({ children }) => {
 
   const fetchSports = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.GET_SPORTS);
+      const response = await api.get(API_ENDPOINTS.GET_SPORTS);
       setSports(response.data.sports);
       return response.data.sports;
     } catch (error) {
@@ -83,7 +83,7 @@ export const MatchProvider = ({ children }) => {
 
   const fetchFacilities = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.GET_FACILITIES);
+      const response = await api.get(API_ENDPOINTS.GET_FACILITIES);
       setFacilities(response.data.facilities);
       return response.data.facilities;
     } catch (error) {
@@ -94,7 +94,7 @@ export const MatchProvider = ({ children }) => {
 
   const bookFacility = async (bookingData) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.BOOK_FACILITY, bookingData);
+      const response = await api.post(API_ENDPOINTS.BOOK_FACILITY, bookingData);
       return { success: true, booking: response.data.booking };
     } catch (error) {
       return { 
@@ -107,7 +107,7 @@ export const MatchProvider = ({ children }) => {
   // Toggle like on match - like PWA MatchContext toggleLike
   const toggleLike = async (matchId) => {
     try {
-      const response = await axios.post(`${API_ENDPOINTS.GET_MATCHES}/${matchId}/like`);
+      const response = await api.post(`${API_ENDPOINTS.GET_MATCHES}/${matchId}/like`);
       setMatches(prev =>
         prev.map(match =>
           match._id === matchId ? { ...match, likes: response.data.likes } : match

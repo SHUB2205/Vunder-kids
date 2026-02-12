@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useMatch } from '../../context/MatchContext';
-import axios from 'axios';
+import api from '../../config/axios';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
@@ -24,11 +24,36 @@ const POST_SIZE = (width - SPACING.lg * 2 - 4) / 3;
 
 const PROFILE_TABS = ['Overview', 'Photos', 'Post', 'Reels', 'Matches'];
 
+// Badges with ranges - matching PWA Badges.js
 const BADGES = [
-  { id: 'learner', name: 'Learner', icon: '🏆', color: '#FF6B35', isCurrent: true },
-  { id: 'rising', name: 'Rising Star', icon: '⭐', color: '#FFD700', isCurrent: false },
-  { id: 'champion', name: 'Champion', icon: '🥇', color: '#C0C0C0', isCurrent: false },
+  { range: [0, 20], name: 'Learner', icon: '📚', color: '#8B5CF6' },
+  { range: [21, 40], name: 'Hunter', icon: '🎯', color: '#F59E0B' },
+  { range: [41, 70], name: 'Rising Star', icon: '⭐', color: '#EAB308' },
+  { range: [71, 100], name: 'Professional', icon: '💼', color: '#3B82F6' },
+  { range: [101, 150], name: 'Winner', icon: '🏆', color: '#10B981' },
+  { range: [151, 200], name: 'Achievers', icon: '🎖️', color: '#6366F1' },
+  { range: [201, 250], name: 'Conqueror', icon: '👑', color: '#EC4899' },
+  { range: [251, 350], name: 'Legend', icon: '🌟', color: '#F97316' },
+  { range: [351, 500], name: 'Top Gun', icon: '🔥', color: '#EF4444' },
+  { range: [501, 1000], name: 'GOAT', icon: '🐐', color: '#14B8A6' },
 ];
+
+// Get current badge based on score - matching PWA ProfileBadges.js
+const getCurrentBadge = (score) => {
+  const sortedBadges = [...BADGES].reverse();
+  return sortedBadges.find(badge => score >= badge.range[0] && score <= badge.range[1]) || BADGES[0];
+};
+
+// Get badges to display (earned + current)
+const getDisplayBadges = (score) => {
+  const sortedBadges = [...BADGES].reverse();
+  const currentIndex = sortedBadges.findIndex(badge => score >= badge.range[0] && score <= badge.range[1]);
+  if (currentIndex === -1) return [{ ...BADGES[0], isCurrent: true }];
+  
+  const earned = sortedBadges.slice(0, currentIndex).map(b => ({ ...b, isCurrent: false }));
+  const current = { ...sortedBadges[currentIndex], isCurrent: true };
+  return [...earned, current];
+};
 
 const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -39,16 +64,21 @@ const ProfileScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Stats - would come from user data in real app
+  // Stats - matching PWA ProfileStats.js getStats function
+  const progress = user?.progress || {};
   const stats = {
-    coins: user?.coins || 0,
-    matchesPlayed: user?.matchesPlayed || 0,
-    matchesWon: user?.matchesWon || 0,
-    matchesLost: user?.matchesLost || 0,
-    winPercent: user?.matchesPlayed > 0 
-      ? Math.round((user?.matchesWon / user?.matchesPlayed) * 100) 
+    coins: progress.overallScore || 0,
+    matchesPlayed: progress.totalMatches || 0,
+    matchesWon: progress.matchesWon || 0,
+    matchesLost: (progress.totalMatches || 0) - (progress.matchesWon || 0),
+    winPercent: progress.totalMatches > 0 
+      ? Math.ceil((progress.matchesWon * 100) / progress.totalMatches) 
       : 0,
   };
+  
+  // Get badges based on user's overall score
+  const userBadges = getDisplayBadges(stats.coins);
+  const currentBadge = getCurrentBadge(stats.coins);
 
   useEffect(() => {
     fetchUserData();
@@ -65,7 +95,7 @@ const ProfileScreen = ({ navigation }) => {
 
   const fetchUserPosts = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.GET_USER_POSTS(user._id));
+      const response = await api.get(API_ENDPOINTS.GET_USER_POSTS(user._id));
       const allPosts = response.data.posts || [];
       setPosts(allPosts.filter(p => p.mediaType !== 'video'));
       setReels(allPosts.filter(p => p.mediaType === 'video'));
@@ -220,17 +250,17 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Badges Section */}
+        {/* Badges Section - matching PWA ProfileBadges.js */}
         <View style={styles.badgesSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Badges</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => Alert.alert('All Badges', BADGES.map(b => `${b.icon} ${b.name} (${b.range[0]}-${b.range[1]} coins)`).join('\n'))}>
               <Text style={styles.viewMoreText}>View More ▾</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {BADGES.map((badge) => (
-              <View key={badge.id} style={styles.badgeItem}>
+            {userBadges.map((badge, index) => (
+              <View key={index} style={styles.badgeItem}>
                 <View style={[styles.badgeCircle, { backgroundColor: badge.color + '30' }]}>
                   <Text style={styles.badgeIcon}>{badge.icon}</Text>
                 </View>
@@ -238,6 +268,14 @@ const ProfileScreen = ({ navigation }) => {
                 {badge.isCurrent && (
                   <View style={styles.currentBadge}>
                     <Text style={styles.currentBadgeText}>Current</Text>
+                  </View>
+                )}
+                {badge.isCurrent && (
+                  <View style={styles.progressBar}>
+                    <View style={[
+                      styles.progressFill, 
+                      { width: `${((stats.coins - badge.range[0]) / (badge.range[1] - badge.range[0])) * 100}%` }
+                    ]} />
                   </View>
                 )}
               </View>
@@ -249,7 +287,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.passionsSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Passions</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
               <Text style={styles.editPassionsText}>✏️ Edit Passions</Text>
             </TouchableOpacity>
           </View>
@@ -518,6 +556,19 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.xs,
     color: COLORS.white,
     fontWeight: '600',
+  },
+  progressBar: {
+    width: 60,
+    height: 4,
+    backgroundColor: COLORS.border,
+    borderRadius: 2,
+    marginTop: SPACING.xs,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
   },
   passionsSection: {
     marginBottom: SPACING.sm,

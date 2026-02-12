@@ -19,6 +19,7 @@ const searchRoutes = require('./routes/searchRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const scoreRoutes = require('./routes/scoreRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -66,6 +67,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/scores', scoreRoutes);
 
 // Socket.IO for real-time chat
 const socketAuth = require('./middleware/socketAuth');
@@ -135,7 +137,7 @@ app.use((error, req, res, next) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
-  console.log(`Accessible at http://10.226.163.93:${PORT}`);
+  console.log(`Accessible at http://10.226.171.40:${PORT}`);
 });
 
 module.exports = { app, io };

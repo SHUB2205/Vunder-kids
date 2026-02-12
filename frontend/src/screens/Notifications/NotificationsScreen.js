@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import api from '../../config/axios';
 import { useNotification } from '../../context/NotificationContext';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
@@ -35,7 +35,7 @@ const NotificationsScreen = ({ navigation }) => {
     
     setLoadingFollow(prev => ({ ...prev, [userId]: true }));
     try {
-      await axios.post(API_ENDPOINTS.FOLLOW_USER, { userId });
+      await api.post(API_ENDPOINTS.FOLLOW_USER, { userId });
       setFollowingUsers(prev => ({ ...prev, [userId]: true }));
       Alert.alert('Success', 'You are now following this user!');
     } catch (error) {

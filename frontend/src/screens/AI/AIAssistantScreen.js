@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+import api from '../../config/axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
@@ -57,7 +57,7 @@ const AIAssistantScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(API_ENDPOINTS.AI_CHAT, {
+      const response = await api.post(API_ENDPOINTS.AI_CHAT, {
         message: inputText.trim(),
         context: {
           userName: user?.name,

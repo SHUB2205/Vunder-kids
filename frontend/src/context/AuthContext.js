@@ -28,11 +28,29 @@ export const AuthProvider = ({ children }) => {
       const storedToken = await AsyncStorage.getItem('token');
       const storedUser = await AsyncStorage.getItem('user');
       
+      console.log('Loading stored auth - token exists:', !!storedToken, 'user exists:', !!storedUser);
+      
       if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-        setIsAuthenticated(true);
+        // Set token first
         axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        
+        // Validate token by making a test request
+        try {
+          const response = await axios.get(API_ENDPOINTS.GET_USER);
+          console.log('Token validated successfully');
+          setToken(storedToken);
+          setUser(response.data.user || JSON.parse(storedUser));
+          setIsAuthenticated(true);
+        } catch (validationError) {
+          console.log('Token validation failed, clearing auth:', validationError.message);
+          // Token is invalid/expired - clear it
+          await AsyncStorage.removeItem('token');
+          await AsyncStorage.removeItem('user');
+          delete axios.defaults.headers.common['Authorization'];
+          setToken(null);
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       }
     } catch (error) {
       console.error('Error loading auth:', error);

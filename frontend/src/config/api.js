@@ -1,7 +1,6 @@
-// Use your machine's IP address for physical device testing
-// For emulator: 10.0.2.2 (Android) or localhost (iOS)
-const API_BASE_URL = 'http://10.226.167.21:5000/api';
-const CHAT_BASE_URL = 'http://10.226.167.21:5000';
+// Local development API URLs
+const API_BASE_URL = 'http://10.226.171.40:5000/api';
+const CHAT_BASE_URL = 'http://10.226.171.40:5000';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -50,6 +49,10 @@ export const API_ENDPOINTS = {
   SEARCH_USERS: `${API_BASE_URL}/search/users`,
   SEARCH_NEWS: `${API_BASE_URL}/search/news`,
   SEARCH_SPORTS: `${API_BASE_URL}/search/sports`,
+  
+  // Live Scores - matching PWA scoreRoutes.js
+  GET_LIVE_SCORES: (sport) => `${API_BASE_URL}/scores/live/${sport}`,
+  GET_SCHEDULED_SCORES: (sport, date) => `${API_BASE_URL}/scores/scheduled/${sport}/${date}`,
   
   // Facilities
   GET_FACILITIES: `${API_BASE_URL}/facilities`,
