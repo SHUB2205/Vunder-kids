@@ -2,7 +2,42 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const User = require('../models/User');
+const Post = require('../models/Post');
 const Sport = require('../models/Sport');
+
+// @route   GET /api/search
+// @desc    General search for users and posts
+router.get('/', auth, async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || q.length < 1) {
+      return res.json({ users: [], posts: [] });
+    }
+
+    const users = await User.find({
+      $or: [
+        { name: new RegExp(q, 'i') },
+        { userName: new RegExp(q, 'i') },
+        { email: new RegExp(q, 'i') },
+      ],
+      _id: { $ne: req.user._id }
+    })
+      .select('name userName avatar bio followers email')
+      .limit(20);
+
+    const posts = await Post.find({
+      content: new RegExp(q, 'i')
+    })
+      .populate('creator', 'name userName avatar')
+      .limit(20);
+
+    res.json({ users, posts });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // @route   GET /api/search/users
 // @desc    Search users

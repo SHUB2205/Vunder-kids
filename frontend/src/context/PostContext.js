@@ -16,15 +16,19 @@ export const PostProvider = ({ children }) => {
   const fetchPosts = async (page = 1) => {
     try {
       setLoading(true);
+      console.log('Fetching posts from:', `${API_ENDPOINTS.GET_POSTS}?page=${page}`);
       const response = await api.get(`${API_ENDPOINTS.GET_POSTS}?page=${page}`);
+      console.log('Posts response:', response.data);
+      console.log('Number of posts:', response.data.posts?.length || 0);
       if (page === 1) {
-        setPosts(response.data.posts);
+        setPosts(response.data.posts || []);
       } else {
-        setPosts(prev => [...prev, ...response.data.posts]);
+        setPosts(prev => [...prev, ...(response.data.posts || [])]);
       }
       return response.data;
     } catch (error) {
       console.error('Error fetching posts:', error);
+      console.error('Error details:', error.response?.data);
       return { posts: [] };
     } finally {
       setLoading(false);

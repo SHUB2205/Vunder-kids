@@ -14,11 +14,13 @@ router.get('/', auth, async (req, res) => {
       .populate('sport', 'name')
       .populate('creator', 'name userName avatar')
       .populate('players', 'name userName avatar')
-      .populate('teams.team', 'name');
+      .populate('teams.team', 'name')
+      .lean();
 
-    res.json({ matches });
+    res.json({ matches: matches || [] });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Get matches error:', error);
+    res.json({ matches: [] });
   }
 });
 

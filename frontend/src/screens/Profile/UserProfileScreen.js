@@ -22,7 +22,7 @@ const POST_SIZE = (width - SPACING.lg * 2 - 4) / 3;
 
 const UserProfileScreen = ({ navigation, route }) => {
   const { userId } = route.params;
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +67,8 @@ const UserProfileScreen = ({ navigation, route }) => {
           followers: [...(prev.followers || []), currentUser?._id],
         }));
       }
+      // Refresh current user to update their following count
+      await refreshUser();
     } catch (error) {
       console.error('Error following/unfollowing:', error);
     } finally {
@@ -96,109 +98,190 @@ const UserProfileScreen = ({ navigation, route }) => {
   }
 
   const renderHeader = () => (
-    <View>
-      <View style={styles.profileHeader}>
-        <Image source={{ uri: user?.avatar }} style={styles.avatar} />
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{posts.length}</Text>
-            <Text style={styles.statLabel}>Posts</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user?.followers?.length || 0}</Text>
-            <Text style={styles.statLabel}>Followers</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user?.following?.length || 0}</Text>
-            <Text style={styles.statLabel}>Following</Text>
-          </View>
-        </View>
+    <View style={styles.profileCard}>
+      {/* Avatar centered */}
+      <View style={styles.avatarContainer}>
+        <Image source={{ uri: user?.avatar || 'https://via.placeholder.com/100' }} style={styles.avatar} />
       </View>
 
-      <View style={styles.bioSection}>
-        <Text style={styles.name}>{user?.name}</Text>
-        <Text style={styles.username}>@{user?.userName}</Text>
-        {user?.bio && <Text style={styles.bio}>{user.bio}</Text>}
+      {/* Name */}
+      <Text style={styles.name}>{user?.name || user?.userName}</Text>
+
+      {/* Stats Row */}
+      <View style={styles.statsRow}>
+        <TouchableOpacity style={styles.statItem}>
+          <Text style={styles.statNumber}>{posts.length}</Text>
+          <Text style={styles.statLabel}> posts</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.statItem}
+          onPress={() => navigation.navigate('Followers', { userId })}
+        >
+          <Text style={styles.statNumber}>{user?.followers?.length || 0}</Text>
+          <Text style={styles.statLabel}> followers</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.statItem}
+          onPress={() => navigation.navigate('Following', { userId })}
+        >
+          <Text style={styles.statNumber}>{user?.following?.length || 0}</Text>
+          <Text style={styles.statLabel}> following</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Bio */}
+      {user?.bio && <Text style={styles.bio}>{user.bio}</Text>}
+
+      {/* Location & Work */}
+      <View style={styles.infoRow}>
         {user?.location && (
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
-            <Text style={styles.location}>{user.location}</Text>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoIcon}>📍</Text>
+            <Text style={styles.infoText}>{user.location}</Text>
+          </View>
+        )}
+        {user?.work && (
+          <View style={styles.infoItem}>
+            <Text style={styles.infoIcon}>🏢</Text>
+            <Text style={styles.infoText}>{user.work}</Text>
           </View>
         )}
       </View>
 
-      {user?.passions?.length > 0 && (
-        <View style={styles.passionsSection}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {user.passions.map((passion, index) => (
-              <View key={index} style={styles.passionChip}>
-                <Ionicons name="trophy" size={14} color={COLORS.primary} />
-                <Text style={styles.passionText}>{passion.name}</Text>
-              </View>
-            ))}
-          </ScrollView>
+      {/* Private Account Indicator */}
+      {user?.isPrivate && (
+        <View style={styles.privateIndicator}>
+          <Ionicons name="lock-closed-outline" size={14} color={COLORS.textSecondary} />
+          <Text style={styles.privateText}>Private Account</Text>
         </View>
       )}
 
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          style={[
-            styles.followButton,
-            isFollowing && styles.followingButton,
-          ]}
-          onPress={handleFollow}
-          disabled={followLoading}
-        >
-          {followLoading ? (
-            <ActivityIndicator size="small" color={isFollowing ? COLORS.text : COLORS.white} />
+      {/* Request to Follow / Follow Button */}
+      <TouchableOpacity
+        style={[styles.followButton, isFollowing && styles.followingButton]}
+        onPress={handleFollow}
+        disabled={followLoading}
+      >
+        {followLoading ? (
+          <ActivityIndicator size="small" color={COLORS.white} />
+        ) : (
+          <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
+            {isFollowing ? 'Following' : user?.isPrivate ? 'Request to Follow' : 'Follow'}
+          </Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Badges Section */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Badges</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.badgesScroll}>
+          {(user?.badges && user.badges.length > 0) ? (
+            user.badges.map((badge, index) => (
+              <View key={index} style={styles.badgeCard}>
+                <View style={styles.badgeIconContainer}>
+                  <Image 
+                    source={{ uri: badge.icon || 'https://via.placeholder.com/80' }} 
+                    style={styles.badgeIcon}
+                  />
+                </View>
+                <Text style={styles.badgeName}>{badge.name}</Text>
+                {badge.isCurrent && (
+                  <View style={styles.currentBadge}>
+                    <Text style={styles.currentBadgeText}>Current</Text>
+                  </View>
+                )}
+              </View>
+            ))
           ) : (
-            <Text
-              style={[
-                styles.followButtonText,
-                isFollowing && styles.followingButtonText,
-              ]}
-            >
-              {isFollowing ? 'Following' : 'Follow'}
-            </Text>
+            <View style={styles.badgeCard}>
+              <View style={styles.badgeIconContainer}>
+                <View style={styles.defaultBadgeIcon}>
+                  <Text style={styles.defaultBadgeEmoji}>⚽</Text>
+                </View>
+              </View>
+              <Text style={styles.badgeName}>Learner</Text>
+              <View style={styles.currentBadge}>
+                <Text style={styles.currentBadgeText}>Current</Text>
+              </View>
+            </View>
           )}
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.messageButton} onPress={handleMessage}>
-          <Text style={styles.messageButtonText}>Message</Text>
-        </TouchableOpacity>
+        </ScrollView>
       </View>
 
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity style={[styles.tab, styles.tabActive]}>
-          <Ionicons name="grid-outline" size={24} color={COLORS.text} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab}>
-          <Ionicons name="play-circle-outline" size={24} color={COLORS.textSecondary} />
-        </TouchableOpacity>
+      {/* Passions Section */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Passions</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.passionsScroll}>
+          {(user?.passions && user.passions.length > 0) ? (
+            user.passions.map((passion, index) => (
+              <View key={index} style={styles.passionCard}>
+                <Image 
+                  source={{ uri: passion.image || 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=100&h=80&fit=crop' }} 
+                  style={styles.passionImage}
+                />
+                <Text style={styles.passionName}>{passion.name}</Text>
+                <Text style={styles.passionLevel}>{passion.level || 'Foundation'}</Text>
+                <View style={styles.passionDots}>
+                  {[1,2,3,4,5].map((dot) => (
+                    <View 
+                      key={dot} 
+                      style={[
+                        styles.passionDot, 
+                        dot <= (passion.levelNum || 2) && styles.passionDotFilled
+                      ]} 
+                    />
+                  ))}
+                </View>
+              </View>
+            ))
+          ) : (
+            <>
+              <View style={styles.passionCard}>
+                <Image 
+                  source={{ uri: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=100&h=80&fit=crop' }} 
+                  style={styles.passionImage}
+                />
+                <Text style={styles.passionName}>Basketball</Text>
+                <Text style={styles.passionLevel}>Intermediate</Text>
+                <View style={styles.passionDots}>
+                  {[1,2,3,4,5].map((dot) => (
+                    <View key={dot} style={[styles.passionDot, dot <= 3 && styles.passionDotFilled]} />
+                  ))}
+                </View>
+              </View>
+              <View style={styles.passionCard}>
+                <Image 
+                  source={{ uri: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=100&h=80&fit=crop' }} 
+                  style={styles.passionImage}
+                />
+                <Text style={styles.passionName}>Football</Text>
+                <Text style={styles.passionLevel}>Foundation</Text>
+                <View style={styles.passionDots}>
+                  {[1,2,3,4,5].map((dot) => (
+                    <View key={dot} style={[styles.passionDot, dot <= 2 && styles.passionDotFilled]} />
+                  ))}
+                </View>
+              </View>
+            </>
+          )}
+        </ScrollView>
       </View>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header with @username */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerUsername}>{user?.userName}</Text>
-        <TouchableOpacity>
-          <Ionicons name="ellipsis-vertical" size={24} color={COLORS.text} />
-        </TouchableOpacity>
+        <View style={styles.headerSearch}>
+          <Ionicons name="search" size={18} color={COLORS.textSecondary} />
+          <Text style={styles.headerUsername}>@{user?.userName}</Text>
+        </View>
       </View>
 
-      <FlatList
-        data={posts}
-        renderItem={renderPostItem}
-        keyExtractor={(item) => item._id}
-        numColumns={3}
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {renderHeader()}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -206,7 +289,7 @@ const UserProfileScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surface,
   },
   loadingContainer: {
     flex: 1,
@@ -214,110 +297,109 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
+    backgroundColor: COLORS.white,
+  },
+  headerSearch: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
   headerUsername: {
-    fontSize: FONTS.sizes.lg,
-    fontWeight: '600',
+    fontSize: FONTS.sizes.md,
     color: COLORS.text,
+    marginLeft: SPACING.sm,
   },
-  listContent: {
-    paddingBottom: 100,
-  },
-  profileHeader: {
-    flexDirection: 'row',
+  profileCard: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+  },
+  avatarContainer: {
+    marginBottom: SPACING.md,
   },
   avatar: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: COLORS.surface,
+    borderWidth: 3,
+    borderColor: '#E8F5E9',
   },
-  statsContainer: {
-    flex: 1,
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginLeft: SPACING.lg,
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
   },
   statItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginHorizontal: SPACING.sm,
   },
   statNumber: {
-    fontSize: FONTS.sizes.xl,
+    fontSize: FONTS.sizes.md,
     fontWeight: 'bold',
     color: COLORS.text,
   },
   statLabel: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-  },
-  bioSection: {
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-  },
-  name: {
     fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  username: {
-    fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
   },
   bio: {
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
-    marginTop: SPACING.xs,
+    textAlign: 'center',
+    marginBottom: SPACING.md,
+    lineHeight: 22,
   },
-  locationRow: {
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginBottom: SPACING.sm,
+  },
+  infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SPACING.xs,
+    marginHorizontal: SPACING.sm,
   },
-  location: {
+  infoIcon: {
+    fontSize: 14,
+    marginRight: 4,
+  },
+  infoText: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  privateIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  privateText: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
     marginLeft: SPACING.xs,
   },
-  passionsSection: {
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-  },
-  passionChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primary + '15',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    marginRight: SPACING.sm,
-  },
-  passionText: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '500',
-    color: COLORS.primary,
-    marginLeft: SPACING.xs,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    gap: SPACING.sm,
-  },
   followButton: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.text,
+    borderRadius: BORDER_RADIUS.full,
     paddingVertical: SPACING.sm,
-    alignItems: 'center',
+    paddingHorizontal: SPACING.xxl,
+    marginBottom: SPACING.lg,
   },
   followingButton: {
     backgroundColor: COLORS.surface,
@@ -332,44 +414,104 @@ const styles = StyleSheet.create({
   followingButtonText: {
     color: COLORS.text,
   },
-  messageButton: {
-    flex: 1,
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.md,
-    paddingVertical: SPACING.sm,
+  sectionContainer: {
+    width: '100%',
+    marginTop: SPACING.md,
+  },
+  sectionTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: SPACING.md,
+  },
+  badgesScroll: {
+    marginBottom: SPACING.md,
+  },
+  badgeCard: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
     alignItems: 'center',
+    marginRight: SPACING.md,
+    minWidth: 120,
+  },
+  badgeIconContainer: {
+    marginBottom: SPACING.sm,
+  },
+  badgeIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+  },
+  defaultBadgeIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#E67E22',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  defaultBadgeEmoji: {
+    fontSize: 32,
+  },
+  badgeName: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
+    color: '#3498DB',
+    marginBottom: SPACING.xs,
+  },
+  currentBadge: {
+    backgroundColor: '#3498DB',
+    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 4,
+  },
+  currentBadgeText: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.white,
+    fontWeight: '600',
+  },
+  passionsScroll: {
+    marginBottom: SPACING.md,
+  },
+  passionCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.sm,
+    alignItems: 'center',
+    marginRight: SPACING.md,
+    minWidth: 110,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  messageButtonText: {
-    fontSize: FONTS.sizes.md,
+  passionImage: {
+    width: 80,
+    height: 60,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.xs,
+  },
+  passionName: {
+    fontSize: FONTS.sizes.sm,
     fontWeight: '600',
     color: COLORS.text,
   },
-  tabsContainer: {
+  passionLevel: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xs,
+  },
+  passionDots: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    gap: 4,
   },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'transparent',
+  passionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.border,
   },
-  tabActive: {
-    borderBottomColor: COLORS.text,
-  },
-  postItem: {
-    width: POST_SIZE,
-    height: POST_SIZE,
-    margin: 1,
-  },
-  postImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: COLORS.surface,
+  passionDotFilled: {
+    backgroundColor: COLORS.text,
   },
 });
 

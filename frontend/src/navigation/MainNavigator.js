@@ -25,6 +25,7 @@ import ChatScreen from '../screens/Messages/ChatScreen';
 import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
+import EditPassionsScreen from '../screens/Profile/EditPassionsScreen';
 import FollowersScreen from '../screens/Profile/FollowersScreen';
 import FollowingScreen from '../screens/Profile/FollowingScreen';
 import UserProfileScreen from '../screens/Profile/UserProfileScreen';
@@ -93,6 +94,7 @@ const ProfileStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="ProfileMain" component={ProfileScreen} />
     <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+    <Stack.Screen name="EditPassions" component={EditPassionsScreen} />
     <Stack.Screen name="Followers" component={FollowersScreen} />
     <Stack.Screen name="Following" component={FollowingScreen} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />

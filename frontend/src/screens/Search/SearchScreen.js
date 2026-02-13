@@ -39,14 +39,38 @@ const STATUS_FILTERS = [
   { id: 'upcoming', label: 'Upcoming' },
 ];
 
-// Top search items - matching PWA Search.js topSearchItems
+// Top search items - matching PWA Search.js topSearchItems with images
 const TOP_SEARCH_ITEMS = [
-  { label: 'Football', emoji: '⚽' },
-  { label: 'Cricket', emoji: '🏏' },
-  { label: 'BasketBall', emoji: '🏀' },
-  { label: 'Tennis', emoji: '🎾' },
-  { label: 'Padel', emoji: '🎾' },
-  { label: 'Badminton', emoji: '🏸' },
+  { 
+    label: 'Football', 
+    emoji: '⚽',
+    image: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=400&h=300&fit=crop'
+  },
+  { 
+    label: 'Cricket', 
+    emoji: '🏏',
+    image: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=300&fit=crop'
+  },
+  { 
+    label: 'BasketBall', 
+    emoji: '🏀',
+    image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=300&fit=crop'
+  },
+  { 
+    label: 'Tennis', 
+    emoji: '🎾',
+    image: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=400&h=300&fit=crop'
+  },
+  { 
+    label: 'Badminton', 
+    emoji: '�',
+    image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&h=300&fit=crop'
+  },
+  { 
+    label: 'Padel', 
+    emoji: '�',
+    image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=300&fit=crop'
+  },
 ];
 
 const SearchScreen = ({ navigation }) => {
@@ -61,6 +85,9 @@ const SearchScreen = ({ navigation }) => {
   
   // Search results state
   const [searchResults, setSearchResults] = useState({ users: [], posts: [] });
+  
+  // Suggestions state
+  const [suggestions, setSuggestions] = useState([]);
   
   // News state
   const [news, setNews] = useState([]);
@@ -169,6 +196,21 @@ const SearchScreen = ({ navigation }) => {
     }
   }, [activeTab]);
 
+  // Fetch suggestions on mount
+  useEffect(() => {
+    fetchSuggestions();
+  }, []);
+
+  const fetchSuggestions = async () => {
+    try {
+      const response = await api.get(API_ENDPOINTS.GET_SUGGESTIONS);
+      setSuggestions(response.data.users || []);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setSuggestions([]);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     if (activeTab === 'scores') {
@@ -202,7 +244,7 @@ const SearchScreen = ({ navigation }) => {
     }
   };
 
-  // Render user result - matching PWA People.js
+  // Render user result - matching PWA People.js with black Follow button
   const renderUserResult = (item) => (
     <TouchableOpacity
       style={styles.userCard}
@@ -213,9 +255,11 @@ const SearchScreen = ({ navigation }) => {
         style={styles.userAvatar}
       />
       <View style={styles.userInfo}>
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.userHandle}>@{item.userName}</Text>
-        <Text style={styles.userBio} numberOfLines={1}>{item.bio}</Text>
+        <View style={styles.userNameRow}>
+          <Text style={styles.userName}>{item.name || item.userName}</Text>
+          <Text style={styles.userFollowers}>{item.followers?.length || 0} Followers</Text>
+        </View>
+        <Text style={styles.userHandle}>{item.userName || item.email}</Text>
       </View>
       <TouchableOpacity style={styles.followBtn}>
         <Text style={styles.followBtnText}>Follow</Text>
@@ -298,25 +342,42 @@ const SearchScreen = ({ navigation }) => {
     );
   };
 
-  // Render default content (Top Search) - matching PWA Search.js
+  // Render default content (Top Search) - matching PWA Search.js with image cards
   const renderDefaultContent = () => (
-    <View style={styles.defaultContent}>
+    <ScrollView style={styles.defaultContent} showsVerticalScrollIndicator={false}>
       <Text style={styles.heading}>Top Search</Text>
       <View style={styles.gridContainer}>
         {TOP_SEARCH_ITEMS.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.searchItem}
+            style={styles.sportCard}
             onPress={() => handleSearchItemClick(item.label)}
           >
-            <View style={styles.searchItemIcon}>
-              <Text style={styles.searchItemEmoji}>{item.emoji}</Text>
+            <Image 
+              source={{ uri: item.image }} 
+              style={styles.sportCardImage}
+              resizeMode="cover"
+            />
+            <View style={styles.sportCardOverlay}>
+              <Text style={styles.sportCardLabel}>{item.label}</Text>
+              <Text style={styles.sportCardTrend}>📈</Text>
             </View>
-            <Text style={styles.searchItemLabel}>{item.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
-    </View>
+
+      {/* Stay updated section - Suggested Users */}
+      <View style={styles.stayUpdatedSection}>
+        <Text style={styles.stayUpdatedTitle}>People you may know</Text>
+        {suggestions.length > 0 ? (
+          suggestions.map((u) => (
+            <View key={u._id}>{renderUserResult(u)}</View>
+          ))
+        ) : (
+          <Text style={styles.emptyText}>No suggestions available</Text>
+        )}
+      </View>
+    </ScrollView>
   );
 
   // Render For You tab - matching PWA ForYou.js
@@ -602,56 +663,76 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.textSecondary,
   },
-  // Default Content
+  // Default Content - Sport Cards Grid
   defaultContent: {
     flex: 1,
-    padding: SPACING.lg,
+    padding: SPACING.md,
   },
   heading: {
     fontSize: FONTS.sizes.lg,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: COLORS.text,
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
+    marginLeft: SPACING.xs,
   },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  searchItem: {
-    width: '30%',
-    alignItems: 'center',
-    marginBottom: SPACING.xl,
+  sportCard: {
+    width: '48%',
+    height: 140,
+    borderRadius: BORDER_RADIUS.lg,
+    overflow: 'hidden',
+    marginBottom: SPACING.md,
   },
-  searchItemIcon: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+  sportCardImage: {
+    width: '100%',
+    height: '100%',
     backgroundColor: COLORS.surface,
-    justifyContent: 'center',
+  },
+  sportCardOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: SPACING.sm,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    justifyContent: 'space-between',
   },
-  searchItemEmoji: {
-    fontSize: 32,
+  sportCardLabel: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
-  searchItemLabel: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '500',
+  sportCardTrend: {
+    fontSize: 16,
+  },
+  stayUpdatedSection: {
+    marginTop: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+  },
+  stayUpdatedTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: 'bold',
     color: COLORS.text,
-    textAlign: 'center',
   },
-  // User Card
+  // User Card - matching PWA design
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    marginBottom: SPACING.sm,
-    ...SHADOWS.small,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   userAvatar: {
     width: 50,
@@ -663,24 +744,30 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: SPACING.md,
   },
+  userNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
   userName: {
     fontSize: FONTS.sizes.md,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: COLORS.text,
+  },
+  userFollowers: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
   },
   userHandle: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
-  },
-  userBio: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textLight,
+    marginTop: 2,
   },
   followBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.text,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.md,
+    borderRadius: BORDER_RADIUS.full,
   },
   followBtnText: {
     color: COLORS.white,

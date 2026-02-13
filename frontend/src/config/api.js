@@ -1,6 +1,6 @@
 // Local development API URLs
-const API_BASE_URL = 'http://10.226.171.40:5000/api';
-const CHAT_BASE_URL = 'http://10.226.171.40:5000';
+const API_BASE_URL = 'http://10.226.169.245:5000/api';
+const CHAT_BASE_URL = 'http://10.226.169.245:5000';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   GET_USER: `${API_BASE_URL}/user`,
   UPDATE_USER: `${API_BASE_URL}/user`,
   GET_USER_BY_ID: (userId) => `${API_BASE_URL}/user/${userId}`,
+  GET_SUGGESTIONS: `${API_BASE_URL}/user/suggestions`,
   FOLLOW_USER: `${API_BASE_URL}/user/follow`,
   UNFOLLOW_USER: `${API_BASE_URL}/user/unfollow`,
   GET_FOLLOWERS: (userId) => `${API_BASE_URL}/user/${userId}/followers`,

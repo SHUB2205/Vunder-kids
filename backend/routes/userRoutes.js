@@ -19,6 +19,29 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/user/suggestions
+// @desc    Get suggested users to follow
+router.get('/suggestions', auth, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id);
+    const followingIds = currentUser.following || [];
+    
+    // Get users that the current user is not following
+    const suggestions = await User.find({
+      _id: { $nin: [...followingIds, req.user._id] },
+      isVerified: true
+    })
+      .select('name userName avatar bio followers')
+      .limit(10)
+      .sort({ createdAt: -1 });
+
+    res.json({ users: suggestions });
+  } catch (error) {
+    console.error('Suggestions error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/user/:id
 // @desc    Get user by ID
 router.get('/:id', auth, async (req, res) => {

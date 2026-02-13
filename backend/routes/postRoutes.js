@@ -8,20 +8,15 @@ const Notification = require('../models/Notification');
 const { upload, uploadToCloudinary } = require('../middleware/upload');
 
 // @route   GET /api/post/posts
-// @desc    Get feed posts
+// @desc    Get feed posts (all posts for now, can filter by following later)
 router.get('/posts', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const user = await User.findById(req.user._id);
-    const followingIds = [...user.following, req.user._id];
-
-    const posts = await Post.find({ 
-      creator: { $in: followingIds },
-      isArchived: false 
-    })
+    // Show all posts (not just from following) so new users can see content
+    const posts = await Post.find({ isArchived: { $ne: true } })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -31,7 +26,9 @@ router.get('/posts', auth, async (req, res) => {
         populate: { path: 'user', select: 'name userName avatar' }
       });
 
-    const total = await Post.countDocuments({ creator: { $in: followingIds } });
+    const total = await Post.countDocuments({ isArchived: { $ne: true } });
+
+    console.log(`Fetched ${posts.length} posts for user ${req.user._id}`);
 
     res.json({
       posts,

@@ -287,7 +287,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.passionsSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Passions</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
+            <TouchableOpacity onPress={() => navigation.navigate('EditPassions')}>
               <Text style={styles.editPassionsText}>✏️ Edit Passions</Text>
             </TouchableOpacity>
           </View>
@@ -327,18 +327,24 @@ const ProfileScreen = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      {/* Stats Grid - Only show on Overview tab */}
+      {/* Stats Grid - Only show on Overview tab - 2 cards per row */}
       {activeTab === 'Overview' && (
         <View style={styles.statsGrid}>
-          {renderStatsCard('🏆', 'Coins', stats.coins)}
-          {renderStatsCard('🎾', 'Matches played', stats.matchesPlayed)}
-          {renderStatsCard('🥇', 'Matches won', stats.matchesWon)}
-          {renderStatsCard('😢', 'Matches lost', stats.matchesLost)}
-          <View style={[styles.statsCard, styles.statsCardWide]}>
-            <Text style={styles.statsCardLabel}>Win/loss %</Text>
-            <View style={styles.statsCardContent}>
-              <Text style={styles.statsCardIcon}>🎯</Text>
-              <Text style={styles.statsCardValue}>{stats.winPercent}%</Text>
+          <View style={styles.statsRow}>
+            {renderStatsCard('🏆', 'Coins', stats.coins)}
+            {renderStatsCard('🎾', 'Matches played', stats.matchesPlayed)}
+          </View>
+          <View style={styles.statsRow}>
+            {renderStatsCard('🥇', 'Matches won', stats.matchesWon)}
+            {renderStatsCard('😢', 'Matches lost', stats.matchesLost)}
+          </View>
+          <View style={styles.statsRow}>
+            <View style={[styles.statsCard, styles.statsCardWide]}>
+              <Text style={styles.statsCardLabel}>Win/loss %</Text>
+              <View style={styles.statsCardContent}>
+                <Text style={styles.statsCardIcon}>🎯</Text>
+                <Text style={styles.statsCardValue}>{stats.winPercent}%</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -646,23 +652,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     paddingHorizontal: SPACING.md,
     marginTop: SPACING.md,
   },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
   statsCard: {
-    width: (width - SPACING.md * 3) / 2,
+    width: '48%',
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    marginRight: SPACING.md,
-    marginBottom: SPACING.md,
+    padding: SPACING.md,
     ...SHADOWS.small,
   },
   statsCardWide: {
-    width: width - SPACING.md * 2,
-    marginRight: 0,
+    width: '100%',
   },
   statsCardLabel: {
     fontSize: FONTS.sizes.md,

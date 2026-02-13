@@ -22,6 +22,7 @@ import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/the
 
 const CreateMatchScreen = ({ navigation }) => {
   const { createMatch, sports, fetchSports } = useMatch();
+  const [matchType, setMatchType] = useState('fisiko'); // 'fisiko' or 'non-fisiko'
   const [name, setName] = useState('');
   const [selectedSport, setSelectedSport] = useState(null);
   const [location, setLocation] = useState('');
@@ -30,6 +31,7 @@ const CreateMatchScreen = ({ navigation }) => {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isTeamMatch, setIsTeamMatch] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showOpponentSuggestions, setShowOpponentSuggestions] = useState(false);
   
   // 1on1 specific
   const [opponent, setOpponent] = useState('');
@@ -182,18 +184,37 @@ const CreateMatchScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header with Fisiko/Non-Fisiko Tabs */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="close" size={28} color={COLORS.text} />
+        <TouchableOpacity 
+          style={styles.closeButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="close-circle" size={28} color={COLORS.text} />
+        </TouchableOpacity>
+        
+        <View style={styles.headerTabs}>
+          <TouchableOpacity
+            style={[styles.headerTab, matchType === 'fisiko' && styles.headerTabActive]}
+            onPress={() => setMatchType('fisiko')}
+          >
+            <Text style={[styles.headerTabText, matchType === 'fisiko' && styles.headerTabTextActive]}>
+              Fisiko Matches
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.headerTab, matchType === 'non-fisiko' && styles.headerTabActive]}
+            onPress={() => setMatchType('non-fisiko')}
+          >
+            <Text style={[styles.headerTabText, matchType === 'non-fisiko' && styles.headerTabTextActive]}>
+              Non Fisiko Matches
+            </Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.headerTitle}>Set Match</Text>
-        <View style={{ width: 28 }} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Match Type Toggle */}
+        {/* 1 on 1 / Team Toggle */}
         <View style={styles.matchTypeToggle}>
           <TouchableOpacity
             style={[styles.toggleBtn, !isTeamMatch && styles.toggleBtnActive]}
@@ -345,16 +366,46 @@ const CreateMatchScreen = ({ navigation }) => {
                 <Ionicons name="chevron-down" size={18} color={COLORS.textSecondary} />
               </TouchableOpacity>
 
-              <Text style={styles.label}>Choose opponent</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="person" size={18} color={COLORS.primary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="john"
-                  placeholderTextColor={COLORS.textLight}
-                  value={opponent}
-                  onChangeText={setOpponent}
-                />
+              <Text style={styles.label}>Choose opponent *</Text>
+              <View style={styles.opponentContainer}>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="person" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="@"
+                    placeholderTextColor={COLORS.textLight}
+                    value={opponent}
+                    onChangeText={(text) => {
+                      setOpponent(text);
+                      if (text.length > 0) {
+                        setShowOpponentSuggestions(true);
+                        setUserSearchQuery(text);
+                      } else {
+                        setShowOpponentSuggestions(false);
+                      }
+                    }}
+                    onFocus={() => opponent.length > 0 && setShowOpponentSuggestions(true)}
+                  />
+                </View>
+                
+                {/* Inline Suggestions Dropdown */}
+                {showOpponentSuggestions && searchResults.length > 0 && (
+                  <View style={styles.suggestionsDropdown}>
+                    {searchResults.slice(0, 5).map((user) => (
+                      <TouchableOpacity
+                        key={user._id}
+                        style={styles.suggestionItem}
+                        onPress={() => {
+                          setOpponent(user.userName || user.email);
+                          setShowOpponentSuggestions(false);
+                        }}
+                      >
+                        <Text style={styles.suggestionText}>{user.userName || user.name}</Text>
+                        <Text style={styles.suggestionEmail}>{user.email}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
 
               <Text style={styles.label}>Choose date & time *</Text>
@@ -536,18 +587,36 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
-  headerLeft: {
-    width: 28,
+  closeButton: {
+    padding: SPACING.xs,
   },
-  headerTitle: {
-    fontSize: FONTS.sizes.lg,
-    fontWeight: '600',
+  headerTabs: {
+    flex: 1,
+    flexDirection: 'row',
+    marginLeft: SPACING.md,
+  },
+  headerTab: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  headerTabActive: {
+    borderBottomColor: COLORS.text,
+  },
+  headerTabText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+  },
+  headerTabTextActive: {
     color: COLORS.text,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
@@ -739,6 +808,38 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: SPACING.xl,
     fontSize: FONTS.sizes.md,
+  },
+  opponentContainer: {
+    position: 'relative',
+    zIndex: 100,
+  },
+  suggestionsDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    maxHeight: 200,
+    zIndex: 1000,
+    ...SHADOWS.medium,
+  },
+  suggestionItem: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  suggestionText: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  suggestionEmail: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
   },
 });
 

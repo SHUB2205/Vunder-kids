@@ -40,7 +40,7 @@ const StoriesBar = ({ stories, onStoryPress, onAddStory, currentUser }) => {
         <TouchableOpacity style={styles.storyItem} onPress={onAddStory}>
           <View style={styles.addStoryContainer}>
             <Image
-              source={{ uri: currentUser?.avatar }}
+              source={{ uri: currentUser?.avatar || 'https://via.placeholder.com/60' }}
               style={styles.storyImage}
             />
             <View style={styles.addButton}>
@@ -91,7 +91,7 @@ const StoriesBar = ({ stories, onStoryPress, onAddStory, currentUser }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.white,
-    paddingVertical: SPACING.md,
+    paddingVertical: SPACING.sm,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
@@ -105,6 +105,8 @@ const styles = StyleSheet.create({
   },
   addStoryContainer: {
     position: 'relative',
+    width: 68,
+    height: 68,
   },
   storyRing: {
     width: 68,
@@ -132,9 +134,9 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   storyImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: COLORS.surface,
   },
   addButton: {

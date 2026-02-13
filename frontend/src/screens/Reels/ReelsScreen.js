@@ -16,7 +16,7 @@ import { usePost } from '../../context/PostContext';
 import { COLORS, SPACING, FONTS } from '../../config/theme';
 
 const { width, height } = Dimensions.get('window');
-const REEL_HEIGHT = height - 150;
+const REEL_HEIGHT = height - 80; // Full screen minus tab bar
 
 const ReelsScreen = ({ navigation }) => {
   const { reels, fetchReels, likeReel } = usePost();
@@ -101,6 +101,7 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
   const [liked, setLiked] = useState(reel.isLiked || false);
   const [likesCount, setLikesCount] = useState(reel.likes || 0);
   const [paused, setPaused] = useState(false);
+  const [muted, setMuted] = useState(false);
 
   React.useEffect(() => {
     if (videoRef.current) {
@@ -122,6 +123,10 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
     setPaused(!paused);
   };
 
+  const toggleMute = () => {
+    setMuted(!muted);
+  };
+
   const formatCount = (count) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
@@ -141,62 +146,77 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
           style={styles.video}
           resizeMode="cover"
           isLooping
+          isMuted={muted}
           shouldPlay={isActive && !paused}
         />
-        {paused && (
-          <View style={styles.pauseOverlay}>
-            <Ionicons name="play" size={60} color={COLORS.white} />
-          </View>
-        )}
+        {/* Top Controls - Pause/Mute */}
+        <View style={styles.topControls}>
+          <TouchableOpacity onPress={togglePlayPause} style={styles.topControlBtn}>
+            <Ionicons name={paused ? 'play' : 'pause'} size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleMute} style={styles.topControlBtn}>
+            <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={24} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
+
+        {/* More Options */}
+        <TouchableOpacity style={styles.moreOptions}>
+          <Ionicons name="ellipsis-horizontal" size={24} color={COLORS.white} />
+        </TouchableOpacity>
       </TouchableOpacity>
 
+      {/* Right Side Actions */}
       <View style={styles.actions}>
+        {/* Like Button - Thumbs Up like PWA */}
         <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
           <Ionicons
-            name={liked ? 'heart' : 'heart-outline'}
-            size={32}
-            color={liked ? COLORS.error : COLORS.white}
+            name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
+            size={28}
+            color={COLORS.white}
           />
           <Text style={styles.actionText}>{formatCount(likesCount)}</Text>
         </TouchableOpacity>
 
+        {/* Comment Button */}
         <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="chatbubble-outline" size={30} color={COLORS.white} />
+          <Ionicons name="chatbox-outline" size={26} color={COLORS.white} />
           <Text style={styles.actionText}>{formatCount(reel.comments?.length || 0)}</Text>
         </TouchableOpacity>
 
+        {/* Share Button */}
         <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="paper-plane-outline" size={30} color={COLORS.white} />
+          <Ionicons name="arrow-redo-outline" size={26} color={COLORS.white} />
           <Text style={styles.actionText}>Share</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="ellipsis-vertical" size={24} color={COLORS.white} />
         </TouchableOpacity>
       </View>
 
+      {/* Bottom Info - Creator and Caption */}
       <View style={styles.reelInfo}>
         <TouchableOpacity style={styles.creatorInfo} onPress={onProfilePress}>
-          <Image source={{ uri: reel.creator?.avatar }} style={styles.creatorAvatar} />
+          <Image 
+            source={{ uri: reel.creator?.avatar || 'https://via.placeholder.com/40' }} 
+            style={styles.creatorAvatar} 
+          />
           <Text style={styles.creatorName}>
             {reel.creator?.userName || reel.creator?.name}
           </Text>
-          <TouchableOpacity style={styles.followButton}>
-            <Text style={styles.followButtonText}>Follow</Text>
-          </TouchableOpacity>
         </TouchableOpacity>
 
         {reel.caption && (
-          <Text style={styles.caption} numberOfLines={2}>
-            {reel.caption}
-          </Text>
+          <View style={styles.captionContainer}>
+            <Text style={styles.caption} numberOfLines={2}>
+              {reel.caption}
+            </Text>
+          </View>
         )}
-
-        <View style={styles.musicInfo}>
-          <Ionicons name="musical-notes" size={14} color={COLORS.white} />
-          <Text style={styles.musicText}>Original Audio</Text>
-        </View>
       </View>
+
+      {/* Bottom Score Ticker (if match related) */}
+      {reel.matchScore && (
+        <View style={styles.scoreTicker}>
+          <Text style={styles.scoreText}>{reel.matchScore}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -223,11 +243,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     zIndex: 10,
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontSize: FONTS.sizes.xl,
     fontWeight: 'bold',
     color: COLORS.white,
+  },
+  topControls: {
+    position: 'absolute',
+    top: SPACING.xl,
+    left: SPACING.md,
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  topControlBtn: {
+    padding: SPACING.xs,
+  },
+  moreOptions: {
+    position: 'absolute',
+    top: SPACING.xl,
+    right: SPACING.md,
   },
   reelContainer: {
     height: REEL_HEIGHT,
@@ -249,23 +285,24 @@ const styles = StyleSheet.create({
   actions: {
     position: 'absolute',
     right: SPACING.md,
-    bottom: 100,
+    bottom: 150,
     alignItems: 'center',
   },
   actionButton: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   actionText: {
     color: COLORS.white,
-    fontSize: FONTS.sizes.xs,
-    marginTop: SPACING.xs,
+    fontSize: FONTS.sizes.sm,
+    marginTop: 4,
+    fontWeight: '500',
   },
   reelInfo: {
     position: 'absolute',
     left: SPACING.md,
-    right: 60,
-    bottom: SPACING.xl,
+    right: 70,
+    bottom: SPACING.lg,
   },
   creatorInfo: {
     flexDirection: 'row',
@@ -273,44 +310,43 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   creatorAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: COLORS.white,
   },
   creatorName: {
     color: COLORS.white,
-    fontWeight: '600',
+    fontWeight: 'bold',
     fontSize: FONTS.sizes.md,
     marginLeft: SPACING.sm,
   },
-  followButton: {
-    marginLeft: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.white,
-    borderRadius: 4,
-    paddingHorizontal: SPACING.md,
+  captionContainer: {
+    backgroundColor: 'rgba(0, 150, 200, 0.8)',
+    paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
-  },
-  followButtonText: {
-    color: COLORS.white,
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
+    borderRadius: 4,
+    alignSelf: 'flex-start',
   },
   caption: {
     color: COLORS.white,
-    fontSize: FONTS.sizes.md,
-    marginBottom: SPACING.sm,
-  },
-  musicInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  musicText: {
-    color: COLORS.white,
     fontSize: FONTS.sizes.sm,
-    marginLeft: SPACING.xs,
+    fontWeight: '500',
+  },
+  scoreTicker: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 150, 200, 0.9)',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+  },
+  scoreText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
   },
 });
 

@@ -55,9 +55,12 @@ const UserSchema = new mongoose.Schema({
   // Industry
   industry: {
     type: String,
-    enum: ['Technology', 'Banking', 'Consulting', 'Healthcare', 'Education', 'Player', 'Other'],
+    enum: ['Technology', 'Banking', 'Banking and Financial Services', 'Consulting', 'Healthcare', 'Education', 'Finance', 'Player', 'Other'],
     default: 'Player'
-  }
+  },
+  
+  // Occupation
+  occupation: { type: String }
 }, { timestamps: true });
 
 // Hash password before saving
