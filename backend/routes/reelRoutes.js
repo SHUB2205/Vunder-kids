@@ -28,7 +28,8 @@ router.get('/', auth, async (req, res) => {
       total,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Get reels error:', error);
+    res.json({ reels: [], currentPage: 1, totalPages: 0, total: 0 });
   }
 });
 

@@ -14,7 +14,6 @@ router.get('/', auth, async (req, res) => {
       .populate('sport', 'name')
       .populate('creator', 'name userName avatar')
       .populate('players', 'name userName avatar')
-      .populate('teams.team', 'name')
       .lean();
 
     res.json({ matches: matches || [] });

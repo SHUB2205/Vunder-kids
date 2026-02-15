@@ -30,7 +30,8 @@ router.get('/', auth, async (req, res) => {
 
     res.json({ sports });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Get sports error:', error);
+    res.json({ sports: [] });
   }
 });
 

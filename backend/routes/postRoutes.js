@@ -111,6 +111,28 @@ router.post('/like/:id', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/post/posts/:id/comments
+// @desc    Get comments for a post
+router.get('/posts/:id/comments', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+      .populate({
+        path: 'comments',
+        populate: { path: 'user', select: 'name userName avatar' },
+        options: { sort: { createdAt: -1 } }
+      });
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json({ comments: post.comments || [] });
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.json({ comments: [] });
+  }
+});
+
 // @route   POST /api/post/comment/:id
 // @desc    Comment on a post
 router.post('/comment/:id', auth, async (req, res) => {
