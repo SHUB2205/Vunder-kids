@@ -1,6 +1,6 @@
 // Local development API URLs
-const API_BASE_URL = 'http://10.226.171.40:5000/api';
-const CHAT_BASE_URL = 'http://10.226.171.40:5000';
+const API_BASE_URL = 'https://vunder-kids-production.up.railway.app/api';
+const CHAT_BASE_URL = 'https://vunder-kids-production.up.railway.app';
 
 export const API_ENDPOINTS = {
   // Auth

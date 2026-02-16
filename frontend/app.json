@@ -14,13 +14,21 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.fisiko.app"
+      "bundleIdentifier": "com.fisiko.io",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FF6B35"
       },
-      "package": "com.fisiko.app"
+      "package": "com.fisiko.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": ""
@@ -31,6 +39,11 @@
       "expo-notifications",
       "expo-web-browser",
       "expo-apple-authentication"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d65e9609-a54a-4fbd-80e8-c43c9c2ea90e"
+      }
+    }
   }
 }
