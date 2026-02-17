@@ -14,6 +14,7 @@ router.get('/', auth, async (req, res) => {
       .populate('sport', 'name')
       .populate('creator', 'name userName avatar')
       .populate('players', 'name userName avatar')
+      .populate('opponent', 'name userName avatar')
       .lean();
 
     res.json({ matches: matches || [] });
@@ -27,33 +28,91 @@ router.get('/', auth, async (req, res) => {
 // @desc    Create a new match
 router.post('/create', auth, async (req, res) => {
   try {
-    const { name, sport, date, location, isTeamMatch, agreementTime } = req.body;
+    const { name, sport, date, location, isTeamMatch, agreementTime, opponent, teams } = req.body;
 
-    const match = new Match({
+    // Handle sport - can be ObjectId or string name
+    let sportId = null;
+    let sportName = null;
+    
+    if (sport) {
+      // Check if it's a valid ObjectId
+      const mongoose = require('mongoose');
+      if (mongoose.Types.ObjectId.isValid(sport)) {
+        sportId = sport;
+      } else {
+        // It's a sport name string
+        sportName = sport;
+        // Try to find the sport by name
+        const Sport = require('../models/Sport');
+        const foundSport = await Sport.findOne({ name: { $regex: new RegExp(sport, 'i') } });
+        if (foundSport) {
+          sportId = foundSport._id;
+        }
+      }
+    }
+
+    const matchData = {
       name,
-      sport,
       date,
       location,
-      isTeamMatch,
+      isTeamMatch: isTeamMatch || false,
       agreementTime: agreementTime || 24,
       creator: req.user._id,
       admins: [req.user._id],
       players: [req.user._id],
-    });
+    };
 
+    // Add sport
+    if (sportId) matchData.sport = sportId;
+    if (sportName) matchData.sportName = sportName;
+
+    // Handle 1v1 match - opponent
+    if (!isTeamMatch && opponent) {
+      // Check if opponent is a user ID or just a name
+      const mongoose = require('mongoose');
+      if (mongoose.Types.ObjectId.isValid(opponent)) {
+        matchData.opponent = opponent;
+        matchData.players.push(opponent);
+      } else {
+        matchData.opponentName = opponent;
+      }
+    }
+
+    // Handle team match
+    if (isTeamMatch && teams && teams.length > 0) {
+      matchData.teams = teams;
+    }
+
+    const match = new Match(matchData);
     await match.save();
-    await match.populate('sport', 'name');
+    
+    // Populate fields
+    if (sportId) {
+      await match.populate('sport', 'name');
+    }
     await match.populate('creator', 'name userName avatar');
+    await match.populate('opponent', 'name userName avatar');
 
     // Add match to user
     await User.findByIdAndUpdate(req.user._id, {
       $push: { matchIds: match._id }
     });
 
+    // Notify opponent if they're a Fisiko user
+    if (matchData.opponent) {
+      await Notification.create({
+        recipient: matchData.opponent,
+        sender: req.user._id,
+        type: 'match',
+        message: 'challenged you to a match',
+        match: match._id,
+      });
+    }
+
     res.status(201).json({ match });
   } catch (error) {
     console.error('Create match error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
   }
 });
 

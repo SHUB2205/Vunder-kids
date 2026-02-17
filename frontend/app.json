@@ -6,7 +6,10 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/Fisiko_logo-noBG.png",
     "splash": {
+      "image": "./assets/Fisiko_logo-noBG.png",
+      "resizeMode": "contain",
       "backgroundColor": "#FF6B35"
     },
     "assetBundlePatterns": [
@@ -15,13 +18,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fisiko.io",
-      "buildNumber": "1",
+      "buildNumber": "2",
+      "icon": "./assets/Fisiko_logo-noBG.png",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/Fisiko_logo-noBG.png",
         "backgroundColor": "#FF6B35"
       },
       "package": "com.fisiko.app",
@@ -31,7 +36,7 @@
       ]
     },
     "web": {
-      "favicon": ""
+      "favicon": "./assets/Fisiko_logo-noBG.png"
     },
     "plugins": [
       "expo-camera",

@@ -72,9 +72,10 @@ const MatchesScreen = ({ navigation }) => {
         activeFilters.matchType === '1 on 1' ? !match.isTeamMatch : match.isTeamMatch;
 
       // Sport type filter
+      const matchSportName = match.sport?.name || match.sportName || '';
       const sportTypeFilter = 
         activeFilters.sportType === 'All' || 
-        match.sport?.name?.toLowerCase() === activeFilters.sportType.toLowerCase();
+        matchSportName.toLowerCase() === activeFilters.sportType.toLowerCase();
 
       // Location filter
       const locationFilter = 
@@ -118,9 +119,11 @@ const MatchesScreen = ({ navigation }) => {
 
   // Match Card - like PWA MatchCardPost.js
   const renderMatchCard = ({ item }) => {
-    const player1 = item.players?.[0] || item.creator;
-    const player2 = item.players?.[1];
+    const player1 = item.creator;
+    // For 1v1, use opponent field; for team matches or fallback, use players array
+    const player2 = item.opponent || item.players?.[1] || (item.opponentName ? { name: item.opponentName } : null);
     const isLiked = item.likes?.includes(user?._id);
+    const sportName = item.sport?.name || item.sportName || 'Sport';
     
     return (
       <TouchableOpacity
@@ -142,7 +145,7 @@ const MatchesScreen = ({ navigation }) => {
 
         {/* Post Content - like PWA postContent */}
         <Text style={styles.postContent}>
-          {player1?.userName || player1?.name || 'Player 1'} vs {player2?.userName || player2?.name || '?'} in an exciting {item.sport?.name || 'Sport'} match!
+          {player1?.userName || player1?.name || 'Player 1'} vs {player2?.userName || player2?.name || '?'} in an exciting {sportName} match!
         </Text>
 
         {/* Match Card Inner */}
@@ -177,7 +180,7 @@ const MatchesScreen = ({ navigation }) => {
 
           {/* Sport and Date */}
           <View style={styles.matchMeta}>
-            <Text style={styles.sportName}>{item.sport?.name || 'Sport'}</Text>
+            <Text style={styles.sportName}>{sportName}</Text>
             <Text style={styles.matchDate}>{formatDate(item.date)}</Text>
           </View>
         </View>

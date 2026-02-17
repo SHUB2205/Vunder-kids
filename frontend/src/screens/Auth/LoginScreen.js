@@ -12,6 +12,7 @@ import {
   Alert,
   ImageBackground,
   Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -120,7 +121,11 @@ const LoginScreen = ({ navigation }) => {
         resizeMode="cover"
       >
         <SafeAreaView style={styles.logoContainer}>
-          <Text style={styles.logo}>Fisiko</Text>
+          <Image 
+            source={require('../../../assets/Fisiko_logo-noBG.png')} 
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </SafeAreaView>
       </ImageBackground>
 
@@ -260,6 +265,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     fontStyle: 'italic',
+  },
+  logoImage: {
+    width: 150,
+    height: 150,
   },
   keyboardView: {
     flex: 1,

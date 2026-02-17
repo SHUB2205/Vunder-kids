@@ -445,7 +445,11 @@ const HomeScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.logo}>Fisiko</Text>
+        <Image 
+          source={require('../../../assets/Fisiko_logo-noBG.png')} 
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <View style={styles.headerRight}>
           {/* Calendar Icon */}
           <TouchableOpacity
@@ -537,6 +541,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     fontStyle: 'italic',
+  },
+  logoImage: {
+    width: 100,
+    height: 40,
   },
   headerRight: {
     flexDirection: 'row',
