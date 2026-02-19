@@ -156,20 +156,30 @@ const UserProfileScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* Request to Follow / Follow Button */}
-      <TouchableOpacity
-        style={[styles.followButton, isFollowing && styles.followingButton]}
-        onPress={handleFollow}
-        disabled={followLoading}
-      >
-        {followLoading ? (
-          <ActivityIndicator size="small" color={COLORS.white} />
-        ) : (
-          <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
-            {isFollowing ? 'Following' : user?.isPrivate ? 'Request to Follow' : 'Follow'}
-          </Text>
-        )}
-      </TouchableOpacity>
+      {/* Action Buttons Row */}
+      <View style={styles.actionButtonsRow}>
+        <TouchableOpacity
+          style={[styles.followButton, isFollowing && styles.followingButton]}
+          onPress={handleFollow}
+          disabled={followLoading}
+        >
+          {followLoading ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
+              {isFollowing ? 'Following' : user?.isPrivate ? 'Request to Follow' : 'Follow'}
+            </Text>
+          )}
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.messageButton}
+          onPress={handleMessage}
+        >
+          <Ionicons name="chatbubble-outline" size={18} color={COLORS.text} />
+          <Text style={styles.messageButtonText}>Message</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Badges Section */}
       <View style={styles.sectionContainer}>
@@ -394,12 +404,20 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginLeft: SPACING.xs,
   },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
   followButton: {
     backgroundColor: COLORS.text,
     borderRadius: BORDER_RADIUS.full,
     paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.xxl,
-    marginBottom: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   followingButton: {
     backgroundColor: COLORS.surface,
@@ -412,6 +430,23 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   followingButtonText: {
+    color: COLORS.text,
+  },
+  messageButton: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.full,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: SPACING.xs,
+  },
+  messageButtonText: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
     color: COLORS.text,
   },
   sectionContainer: {

@@ -80,6 +80,8 @@ const CreateMatchScreen = ({ navigation }) => {
     setShowDatePicker(false);
     if (selectedDate) {
       setDate(selectedDate);
+      // Show time picker after date is selected
+      setTimeout(() => setShowTimePicker(true), 300);
     }
   };
 

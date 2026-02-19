@@ -101,22 +101,31 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const sendMessage = (recipientId, content) => {
-    return new Promise((resolve, reject) => {
-      if (!socketRef.current) {
-        reject(new Error('Socket not connected'));
-        return;
-      }
-
-      socketRef.current.emit('private message', { recipientId, content }, (response) => {
-        if (response.success) {
-          setMessages(prev => [...prev, response.message]);
-          resolve(response.message);
-        } else {
-          reject(new Error(response.error));
-        }
+  const sendMessage = async (recipientId, content) => {
+    // Try socket first, fall back to HTTP
+    if (socketRef.current?.connected) {
+      return new Promise((resolve, reject) => {
+        socketRef.current.emit('private message', { recipientId, content }, (response) => {
+          if (response.success) {
+            setMessages(prev => [...prev, response.message]);
+            resolve(response.message);
+          } else {
+            reject(new Error(response.error));
+          }
+        });
       });
-    });
+    } else {
+      // HTTP fallback
+      try {
+        const response = await api.post(API_ENDPOINTS.SEND_MESSAGE, { recipientId, content });
+        const message = response.data.message;
+        setMessages(prev => [...prev, message]);
+        return message;
+      } catch (error) {
+        console.error('Send message error:', error);
+        throw new Error('Failed to send message');
+      }
+    }
   };
 
   const joinRoom = (roomId) => {
@@ -140,6 +149,23 @@ export const ChatProvider = ({ children }) => {
     setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
+  const startNewChat = async (recipient) => {
+    // Check if conversation already exists
+    const existing = conversations.find(c => c.recipient?._id === recipient._id);
+    if (!existing) {
+      // Add to conversations list
+      setConversations(prev => [{
+        _id: recipient._id,
+        recipient,
+        lastMessage: null,
+        lastMessageTime: null,
+        unread: 0,
+      }, ...prev]);
+    }
+    setCurrentChat(recipient);
+    return recipient;
+  };
+
   return (
     <ChatContext.Provider
       value={{
@@ -158,6 +184,7 @@ export const ChatProvider = ({ children }) => {
         markAsRead,
         setCurrentChat,
         setMessages,
+        startNewChat,
       }}
     >
       {children}
