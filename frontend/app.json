@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fisiko.io",
-      "buildNumber": "3",
+      "buildNumber": "5",
       "icon": "./assets/Fisiko_logo-noBG.png",
       "usesAppleSignIn": true,
       "infoPlist": {

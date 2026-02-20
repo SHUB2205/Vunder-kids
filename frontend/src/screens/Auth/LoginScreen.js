@@ -33,11 +33,19 @@ const LoginScreen = ({ navigation }) => {
   const [appleLoading, setAppleLoading] = useState(false);
   const { login, googleSignIn, appleSignIn } = useAuth();
 
+  // Google OAuth Client IDs - Replace with your actual credentials from Google Cloud Console
+  // 1. Go to https://console.cloud.google.com/
+  // 2. Create OAuth 2.0 credentials for iOS, Android, and Web
+  // 3. Replace the placeholders below
+  const GOOGLE_IOS_CLIENT_ID = ''; // Your iOS client ID
+  const GOOGLE_ANDROID_CLIENT_ID = ''; // Your Android client ID  
+  const GOOGLE_WEB_CLIENT_ID = ''; // Your Web client ID (also used as expoClientId)
+
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: 'YOUR_EXPO_CLIENT_ID',
-    iosClientId: 'YOUR_IOS_CLIENT_ID',
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID',
-    webClientId: 'YOUR_WEB_CLIENT_ID',
+    expoClientId: GOOGLE_WEB_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
   });
 
   useEffect(() => {
@@ -59,6 +67,14 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleGoogleSignIn = async () => {
+    // Check if Google OAuth is configured
+    if (!GOOGLE_WEB_CLIENT_ID || GOOGLE_WEB_CLIENT_ID === '') {
+      Alert.alert(
+        'Google Sign In Not Configured',
+        'Google OAuth credentials have not been set up yet. Please use email/password login or contact support.'
+      );
+      return;
+    }
     try {
       await promptAsync();
     } catch (error) {
@@ -67,6 +83,18 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleAppleSignIn = async () => {
+    // Check if Apple Sign In is available (iOS 13+ only)
+    if (Platform.OS !== 'ios') {
+      Alert.alert('Not Available', 'Apple Sign In is only available on iOS devices.');
+      return;
+    }
+    
+    const isAvailable = await AppleAuthentication.isAvailableAsync();
+    if (!isAvailable) {
+      Alert.alert('Not Available', 'Apple Sign In is not available on this device. Please use iOS 13 or later.');
+      return;
+    }
+
     try {
       setAppleLoading(true);
       const credential = await AppleAuthentication.signInAsync({
@@ -74,6 +102,12 @@ const LoginScreen = ({ navigation }) => {
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+      });
+      
+      console.log('Apple credential received:', { 
+        hasIdentityToken: !!credential.identityToken,
+        hasEmail: !!credential.email,
+        hasFullName: !!credential.fullName 
       });
       
       const result = await appleSignIn(credential.identityToken, {
@@ -91,9 +125,12 @@ const LoginScreen = ({ navigation }) => {
       }
     } catch (error) {
       setAppleLoading(false);
-      if (error.code !== 'ERR_CANCELED') {
-        Alert.alert('Error', 'Apple sign in failed. Please try again.');
+      console.error('Apple Sign In error:', error);
+      if (error.code === 'ERR_REQUEST_CANCELED' || error.code === 'ERR_CANCELED') {
+        // User cancelled - do nothing
+        return;
       }
+      Alert.alert('Error', `Apple sign in failed: ${error.message || 'Please try again.'}`);
     }
   };
 
