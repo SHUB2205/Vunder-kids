@@ -37,9 +37,9 @@ const LoginScreen = ({ navigation }) => {
   // 1. Go to https://console.cloud.google.com/
   // 2. Create OAuth 2.0 credentials for iOS, Android, and Web
   // 3. Replace the placeholders below
-  const GOOGLE_IOS_CLIENT_ID = ''; // Your iOS client ID
+  const GOOGLE_IOS_CLIENT_ID = '1030504227545-8rln86bm79abnphcgm906ft3cmm84eck.apps.googleusercontent.com'; // Your iOS client ID
   const GOOGLE_ANDROID_CLIENT_ID = ''; // Your Android client ID  
-  const GOOGLE_WEB_CLIENT_ID = ''; // Your Web client ID (also used as expoClientId)
+  const GOOGLE_WEB_CLIENT_ID = '1030504227545-7ngrdrgj665me1kgmuepp5cp8f4fg5mp.apps.googleusercontent.com'; // Your Web client ID (also used as expoClientId)
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: GOOGLE_WEB_CLIENT_ID,

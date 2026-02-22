@@ -178,6 +178,16 @@ router.post('/google', async (req, res) => {
 router.post('/apple', async (req, res) => {
   try {
     const { identityToken, user: appleUser } = req.body;
+    
+    console.log('Apple Sign In request received:', {
+      hasIdentityToken: !!identityToken,
+      hasAppleUser: !!appleUser,
+      appleUserName: appleUser?.name
+    });
+
+    if (!identityToken) {
+      return res.status(400).json({ message: 'Identity token is required' });
+    }
 
     // For Expo/native Apple Sign In, we can decode the JWT without full verification
     // since Apple's native SDK already verified it on the device
@@ -237,8 +247,9 @@ router.post('/apple', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Apple auth error:', error);
-    res.status(500).json({ message: 'Apple authentication failed' });
+    console.error('Apple auth error:', error.message);
+    console.error('Apple auth error stack:', error.stack);
+    res.status(500).json({ message: `Apple authentication failed: ${error.message}` });
   }
 });
 

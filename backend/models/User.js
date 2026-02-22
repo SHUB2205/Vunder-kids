@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   userName: { type: String, unique: true, sparse: true },
   email: { type: String, required: true, unique: true, index: true },
-  password: { type: String, required: function() { return !this.googleId; } },
+  password: { type: String, required: function() { return !this.googleId && !this.appleId; } },
   avatar: { 
     type: String, 
     default: 'https://res.cloudinary.com/dlolz3flx/image/upload/v1734952795/jgwiq6esp4mipcltneeo.jpg' 
