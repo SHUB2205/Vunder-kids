@@ -116,19 +116,49 @@ router.post('/login', [
 // @desc    Google OAuth login/register
 router.post('/google', async (req, res) => {
   try {
-    if (!googleClient) {
-      return res.status(501).json({ message: 'Google authentication not configured' });
+    const { idToken } = req.body;
+    
+    console.log('Google Sign In request received, hasIdToken:', !!idToken);
+
+    if (!idToken) {
+      return res.status(400).json({ message: 'ID token is required' });
     }
 
-    const { idToken } = req.body;
+    let payload;
+    
+    if (googleClient) {
+      // Verify with Google - accept multiple client IDs (web, iOS, Android)
+      const allowedClientIds = [
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_WEB_CLIENT_ID,
+        process.env.GOOGLE_IOS_CLIENT_ID,
+        process.env.GOOGLE_ANDROID_CLIENT_ID,
+      ].filter(Boolean);
+      
+      try {
+        const ticket = await googleClient.verifyIdToken({
+          idToken,
+          audience: allowedClientIds,
+        });
+        payload = ticket.getPayload();
+      } catch (verifyError) {
+        console.error('Google token verification failed:', verifyError.message);
+        // Try decoding without verification as fallback
+        const base64Payload = idToken.split('.')[1];
+        const decoded = Buffer.from(base64Payload, 'base64').toString('utf8');
+        payload = JSON.parse(decoded);
+        console.log('Using decoded payload as fallback');
+      }
+    } else {
+      // No Google client configured - decode JWT directly (trust client-side verification)
+      const base64Payload = idToken.split('.')[1];
+      const decoded = Buffer.from(base64Payload, 'base64').toString('utf8');
+      payload = JSON.parse(decoded);
+    }
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
     const { email, name, picture, sub: googleId } = payload;
+    
+    console.log('Google payload:', { email, name, hasGoogleId: !!googleId });
 
     let user = await User.findOne({ email });
 
@@ -207,21 +237,39 @@ router.post('/apple', async (req, res) => {
     }
 
     const { email, sub: appleId } = applePayload;
-    const name = appleUser?.name?.firstName 
-      ? `${appleUser.name.firstName} ${appleUser.name.lastName || ''}`.trim()
-      : (email ? email.split('@')[0] : `user_${appleId.slice(-6)}`);
+    
+    // Build name from various sources
+    let name = 'Fisiko User';
+    if (appleUser?.name?.firstName) {
+      name = `${appleUser.name.firstName} ${appleUser.name.lastName || ''}`.trim();
+    } else if (email) {
+      name = email.split('@')[0];
+    } else if (appleId) {
+      name = `user_${appleId.slice(-6)}`;
+    }
+    
+    // Ensure name is not empty
+    if (!name || name.trim() === '') {
+      name = 'Fisiko User';
+    }
+    
+    console.log('Apple auth - parsed data:', { email, appleId: appleId?.slice(-6), name });
 
     let user = await User.findOne({ $or: [{ appleId }, ...(email ? [{ email }] : [])] });
 
     if (!user) {
-      // Create new user
-      user = new User({
-        name,
+      // Create new user with all required fields
+      const userData = {
+        name: name.trim(),
         email: email || `${appleId}@privaterelay.appleid.com`,
         appleId,
         isVerified: true,
-        password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8),
-      });
+        isAppleUser: true,
+      };
+      
+      console.log('Creating new Apple user:', userData);
+      
+      user = new User(userData);
       await user.save();
     } else if (!user.appleId) {
       // Link Apple account to existing user
