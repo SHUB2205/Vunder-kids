@@ -95,4 +95,75 @@ router.post('/like/:id', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/reels/comment/:id
+// @desc    Comment on a reel
+router.post('/comment/:id', auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    const reel = await Reel.findById(req.params.id);
+    
+    if (!reel) {
+      return res.status(404).json({ message: 'Reel not found' });
+    }
+
+    if (!content || content.trim() === '') {
+      return res.status(400).json({ message: 'Comment content is required' });
+    }
+
+    // Create comment using Comment model
+    const Comment = require('../models/Comment');
+    const comment = new Comment({
+      user: req.user._id,
+      content: content.trim(),
+      reel: reel._id,
+    });
+    await comment.save();
+
+    reel.comments.push(comment._id);
+    await reel.save();
+
+    await comment.populate('user', 'name userName avatar');
+
+    // Notify reel creator
+    if (reel.creator.toString() !== req.user._id.toString()) {
+      await Notification.create({
+        recipient: reel.creator,
+        sender: req.user._id,
+        type: 'comment',
+        message: 'commented on your reel',
+      });
+    }
+
+    res.json({ comment });
+  } catch (error) {
+    console.error('Comment on reel error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/reels/:id
+// @desc    Get a single reel
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id)
+      .populate('creator', 'name userName avatar')
+      .populate({
+        path: 'comments',
+        populate: { path: 'user', select: 'name userName avatar' }
+      });
+
+    if (!reel) {
+      return res.status(404).json({ message: 'Reel not found' });
+    }
+
+    // Increment views
+    reel.views += 1;
+    await reel.save();
+
+    res.json({ reel });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

@@ -29,6 +29,7 @@ import EditPassionsScreen from '../screens/Profile/EditPassionsScreen';
 import FollowersScreen from '../screens/Profile/FollowersScreen';
 import FollowingScreen from '../screens/Profile/FollowingScreen';
 import UserProfileScreen from '../screens/Profile/UserProfileScreen';
+import SettingsScreen from '../screens/Profile/SettingsScreen';
 
 import CreateMatchScreen from '../screens/Matches/CreateMatchScreen';
 import MatchDetailScreen from '../screens/Matches/MatchDetailScreen';
@@ -101,6 +102,9 @@ const ProfileStack = () => (
     <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
+    <Stack.Screen name="Settings" component={SettingsScreen} />
+    <Stack.Screen name="CreatePost" component={CreatePostScreen} />
+    <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
   </Stack.Navigator>
 );
 

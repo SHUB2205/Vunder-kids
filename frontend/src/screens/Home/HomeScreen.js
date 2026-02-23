@@ -164,6 +164,18 @@ const HomeScreen = ({ navigation }) => {
           {/* Title */}
           <Text style={styles.matchModalTitle}>Past & Upcoming Matches</Text>
 
+          {/* Create Match Button */}
+          <TouchableOpacity
+            style={styles.createMatchButton}
+            onPress={() => {
+              setShowMatchModal(false);
+              navigation.navigate('Matches', { screen: 'CreateMatch' });
+            }}
+          >
+            <Ionicons name="add-circle" size={20} color={COLORS.white} />
+            <Text style={styles.createMatchButtonText}>Create New Match</Text>
+          </TouchableOpacity>
+
           {/* Tabs: My Matches / Friends Matches */}
           <View style={styles.matchModalTabs}>
             <TouchableOpacity
@@ -882,8 +894,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
     paddingHorizontal: SPACING.xl,
+  },
+  createMatchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    gap: SPACING.sm,
+  },
+  createMatchButtonText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
   },
   matchModalTabs: {
     flexDirection: 'row',

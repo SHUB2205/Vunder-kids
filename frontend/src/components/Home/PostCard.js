@@ -141,9 +141,6 @@ const PostCard = ({ post, onPress, onProfilePress, onCommentPress }) => {
             <Ionicons name="paper-plane-outline" size={24} color={COLORS.text} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="bookmark-outline" size={24} color={COLORS.text} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>

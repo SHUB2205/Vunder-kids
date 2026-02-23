@@ -192,6 +192,101 @@ router.put('/score/:id', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/matches/:id/like
+// @desc    Like/unlike a match
+router.post('/:id/like', auth, async (req, res) => {
+  try {
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    // Initialize likes array if it doesn't exist
+    if (!match.likes) {
+      match.likes = [];
+    }
+
+    const isLiked = match.likes.includes(req.user._id);
+    
+    if (isLiked) {
+      match.likes.pull(req.user._id);
+    } else {
+      match.likes.push(req.user._id);
+      
+      // Notify match creator
+      if (match.creator.toString() !== req.user._id.toString()) {
+        await Notification.create({
+          recipient: match.creator,
+          sender: req.user._id,
+          type: 'like',
+          message: 'liked your match',
+          match: match._id,
+        });
+      }
+    }
+
+    await match.save();
+    res.json({ likes: match.likes, isLiked: !isLiked });
+  } catch (error) {
+    console.error('Like match error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/matches/:id/comment
+// @desc    Comment on a match
+router.post('/:id/comment', auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    if (!content || content.trim() === '') {
+      return res.status(400).json({ message: 'Comment content is required' });
+    }
+
+    // Initialize comments array if it doesn't exist
+    if (!match.comments) {
+      match.comments = [];
+    }
+
+    const comment = {
+      user: req.user._id,
+      content: content.trim(),
+      createdAt: new Date(),
+    };
+
+    match.comments.push(comment);
+    await match.save();
+
+    // Populate the user info for the new comment
+    await match.populate('comments.user', 'name userName avatar');
+
+    // Notify match creator
+    if (match.creator.toString() !== req.user._id.toString()) {
+      await Notification.create({
+        recipient: match.creator,
+        sender: req.user._id,
+        type: 'comment',
+        message: 'commented on your match',
+        match: match._id,
+      });
+    }
+
+    res.json({ 
+      comment: match.comments[match.comments.length - 1],
+      comments: match.comments 
+    });
+  } catch (error) {
+    console.error('Comment on match error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/matches/:id
 // @desc    Get match by ID
 router.get('/:id', auth, async (req, res) => {

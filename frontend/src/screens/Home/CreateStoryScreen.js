@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { usePost } from '../../context/PostContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
 
@@ -19,9 +19,15 @@ const CreateStoryScreen = ({ navigation }) => {
   const { createStory } = usePost();
   const [media, setMedia] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [hasPermission, setHasPermission] = useState(null);
-  const [cameraType, setCameraType] = useState('back');
+  const [permission, requestPermission] = useCameraPermissions();
+  const [facing, setFacing] = useState('back');
   const cameraRef = useRef(null);
+
+  useEffect(() => {
+    if (!permission?.granted) {
+      requestPermission();
+    }
+  }, []);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -41,12 +47,21 @@ const CreateStoryScreen = ({ navigation }) => {
 
   const takePhoto = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-      setMedia({
-        uri: photo.uri,
-        type: 'image/jpeg',
-      });
+      try {
+        const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
+        setMedia({
+          uri: photo.uri,
+          type: 'image/jpeg',
+        });
+      } catch (error) {
+        console.error('Error taking photo:', error);
+        Alert.alert('Error', 'Failed to take photo. Please try using the gallery instead.');
+      }
     }
+  };
+
+  const toggleCameraFacing = () => {
+    setFacing(current => (current === 'back' ? 'front' : 'back'));
   };
 
   const handleShare = async () => {
@@ -100,10 +115,21 @@ const CreateStoryScreen = ({ navigation }) => {
         <View style={{ width: 28 }} />
       </View>
 
-      <View style={styles.cameraPlaceholder}>
-        <Ionicons name="camera" size={60} color={COLORS.textLight} />
-        <Text style={styles.placeholderText}>Camera preview</Text>
-      </View>
+      {permission?.granted ? (
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+        />
+      ) : (
+        <View style={styles.cameraPlaceholder}>
+          <Ionicons name="camera" size={60} color={COLORS.textLight} />
+          <Text style={styles.placeholderText}>Camera permission required</Text>
+          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+            <Text style={styles.permissionButtonText}>Grant Permission</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.controls}>
         <TouchableOpacity style={styles.controlButton} onPress={pickImage}>
@@ -111,13 +137,13 @@ const CreateStoryScreen = ({ navigation }) => {
           <Text style={styles.controlText}>Gallery</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.captureButton} onPress={pickImage}>
+        <TouchableOpacity style={styles.captureButton} onPress={permission?.granted ? takePhoto : pickImage}>
           <View style={styles.captureInner} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.controlButton}
-          onPress={() => setCameraType(cameraType === 'back' ? 'front' : 'back')}
+          onPress={toggleCameraFacing}
         >
           <Ionicons name="camera-reverse" size={28} color={COLORS.white} />
           <Text style={styles.controlText}>Flip</Text>
@@ -173,6 +199,9 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'cover',
   },
+  camera: {
+    flex: 1,
+  },
   cameraPlaceholder: {
     flex: 1,
     justifyContent: 'center',
@@ -182,6 +211,18 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: COLORS.textLight,
     marginTop: SPACING.md,
+    fontSize: FONTS.sizes.md,
+  },
+  permissionButton: {
+    marginTop: SPACING.lg,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+  },
+  permissionButtonText: {
+    color: COLORS.white,
+    fontWeight: '600',
     fontSize: FONTS.sizes.md,
   },
   controls: {

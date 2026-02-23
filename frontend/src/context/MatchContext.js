@@ -107,7 +107,7 @@ export const MatchProvider = ({ children }) => {
   // Toggle like on match - like PWA MatchContext toggleLike
   const toggleLike = async (matchId) => {
     try {
-      const response = await api.post(`${API_ENDPOINTS.GET_MATCHES}/${matchId}/like`);
+      const response = await api.post(API_ENDPOINTS.LIKE_MATCH(matchId));
       setMatches(prev =>
         prev.map(match =>
           match._id === matchId ? { ...match, likes: response.data.likes } : match
@@ -116,6 +116,24 @@ export const MatchProvider = ({ children }) => {
       return { success: true, likes: response.data.likes, isLiked: response.data.isLiked };
     } catch (error) {
       console.error('Error toggling like:', error);
+      return { success: false };
+    }
+  };
+
+  // Comment on match
+  const commentOnMatch = async (matchId, content) => {
+    try {
+      const response = await api.post(API_ENDPOINTS.COMMENT_MATCH(matchId), { content });
+      setMatches(prev =>
+        prev.map(match =>
+          match._id === matchId 
+            ? { ...match, comments: response.data.comments } 
+            : match
+        )
+      );
+      return { success: true, comment: response.data.comment };
+    } catch (error) {
+      console.error('Error commenting on match:', error);
       return { success: false };
     }
   };
@@ -135,6 +153,7 @@ export const MatchProvider = ({ children }) => {
         fetchFacilities,
         bookFacility,
         toggleLike,
+        commentOnMatch,
         setMatches,
       }}
     >

@@ -29,7 +29,11 @@ const MatchSchema = new mongoose.Schema({
   agreementTime: { type: Number, default: 24 },
   agreement: { type: Boolean, default: false },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+  comments: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    content: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+  }],
   predictions: {
     option1: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     option2: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

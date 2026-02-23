@@ -357,10 +357,13 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.headerUsername}>{user?.userName}</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerButton}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('CreatePost')}
+          >
             <Ionicons name="add-circle-outline" size={28} color={COLORS.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={handleLogout}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Settings')}>
             <Ionicons name="menu-outline" size={28} color={COLORS.text} />
           </TouchableOpacity>
         </View>

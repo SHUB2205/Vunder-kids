@@ -35,8 +35,10 @@ export const API_ENDPOINTS = {
   
   // Reels
   GET_REELS: `${API_BASE_URL}/reels`,
+  GET_REEL: (reelId) => `${API_BASE_URL}/reels/${reelId}`,
   CREATE_REEL: `${API_BASE_URL}/reels/create`,
   LIKE_REEL: (reelId) => `${API_BASE_URL}/reels/like/${reelId}`,
+  COMMENT_REEL: (reelId) => `${API_BASE_URL}/reels/comment/${reelId}`,
   
   // Matches
   GET_MATCHES: `${API_BASE_URL}/matches`,
@@ -44,6 +46,8 @@ export const API_ENDPOINTS = {
   CREATE_MATCH: `${API_BASE_URL}/matches/create`,
   UPDATE_SCORE: (matchId) => `${API_BASE_URL}/matches/score/${matchId}`,
   JOIN_MATCH: (matchId) => `${API_BASE_URL}/matches/join/${matchId}`,
+  LIKE_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/like`,
+  COMMENT_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/comment`,
   
   // Search
   SEARCH: `${API_BASE_URL}/search`,

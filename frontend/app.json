@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "icon": "./assets/Fisiko_logo-noBG.png",
+    "icon": "./assets/Fisiko logo.jpg",
     "splash": {
       "image": "./assets/Fisiko_logo-noBG.png",
       "resizeMode": "contain",
@@ -18,8 +18,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fisiko.io",
-      "buildNumber": "6",
-      "icon": "./assets/Fisiko_logo-noBG.png",
+      "buildNumber": "8",
+      "icon": "./assets/Fisiko logo.jpg",
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false

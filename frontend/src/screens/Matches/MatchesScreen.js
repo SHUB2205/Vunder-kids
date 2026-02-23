@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMatch } from '../../context/MatchContext';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
+import { getSportIcon, getSportEmoji } from '../../utils/sportIcons';
 
 // Match PWA MatchesComponent.js sports
 const SPORT_TYPES = ['All', 'Football', 'Tennis', 'Cricket', 'Basketball', 'Soccer'];
@@ -180,7 +181,10 @@ const MatchesScreen = ({ navigation }) => {
 
           {/* Sport and Date */}
           <View style={styles.matchMeta}>
-            <Text style={styles.sportName}>{sportName}</Text>
+            <View style={styles.sportBadge}>
+              <Ionicons name={getSportIcon(sportName)} size={16} color={COLORS.primary} />
+              <Text style={styles.sportName}>{sportName}</Text>
+            </View>
             <Text style={styles.matchDate}>{formatDate(item.date)}</Text>
           </View>
         </View>
@@ -586,6 +590,16 @@ const styles = StyleSheet.create({
   matchMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sportBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.full,
+    gap: 4,
   },
   sportName: {
     fontSize: FONTS.sizes.sm,

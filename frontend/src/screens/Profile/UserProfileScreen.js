@@ -41,7 +41,12 @@ const UserProfileScreen = ({ navigation, route }) => {
       ]);
       setUser(userRes.data.user);
       setPosts(postsRes.data.posts || []);
-      setIsFollowing(userRes.data.user.followers?.includes(currentUser?._id));
+      // Check if current user is in followers - handle both populated objects and IDs
+      const followers = userRes.data.user.followers || [];
+      const isCurrentlyFollowing = followers.some(f => 
+        (typeof f === 'object' ? f._id : f) === currentUser?._id
+      );
+      setIsFollowing(isCurrentlyFollowing);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {

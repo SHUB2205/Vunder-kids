@@ -57,6 +57,21 @@ const ReelsScreen = ({ navigation }) => {
     />
   );
 
+  const pickVideoForReel = async () => {
+    const result = await require('expo-image-picker').launchImageLibraryAsync({
+      mediaTypes: require('expo-image-picker').MediaTypeOptions.Videos,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      navigation.navigate('UserProfile', { 
+        createReel: true, 
+        video: result.assets[0] 
+      });
+    }
+  };
+
   if (loading && reels.length === 0) {
     return (
       <View style={styles.loadingContainer}>
@@ -69,11 +84,22 @@ const ReelsScreen = ({ navigation }) => {
     <View style={styles.container}>
       <SafeAreaView style={styles.header}>
         <Text style={styles.headerTitle}>Reels</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={pickVideoForReel}>
           <Ionicons name="camera-outline" size={28} color={COLORS.white} />
         </TouchableOpacity>
       </SafeAreaView>
 
+      {reels.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="videocam-outline" size={64} color={COLORS.textLight} />
+          <Text style={styles.emptyTitle}>No Reels Yet</Text>
+          <Text style={styles.emptySubtitle}>Be the first to share a reel!</Text>
+          <TouchableOpacity style={styles.createReelButton} onPress={pickVideoForReel}>
+            <Ionicons name="add-circle" size={20} color={COLORS.white} />
+            <Text style={styles.createReelButtonText}>Create Reel</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
       <FlatList
         ref={flatListRef}
         data={reels}
@@ -92,6 +118,7 @@ const ReelsScreen = ({ navigation }) => {
           index,
         })}
       />
+      )}
     </View>
   );
 };
@@ -344,6 +371,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   scoreText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xl,
+  },
+  emptyTitle: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.xl,
+    fontWeight: 'bold',
+    marginTop: SPACING.lg,
+  },
+  emptySubtitle: {
+    color: COLORS.textLight,
+    fontSize: FONTS.sizes.md,
+    marginTop: SPACING.sm,
+    textAlign: 'center',
+  },
+  createReelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: SPACING.lg,
+    marginTop: SPACING.xl,
+    gap: SPACING.sm,
+  },
+  createReelButtonText: {
     color: COLORS.white,
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
