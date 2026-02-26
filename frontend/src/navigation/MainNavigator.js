@@ -40,6 +40,8 @@ import BookFacilityScreen from '../screens/Facilities/BookFacilityScreen';
 
 import AIAssistantScreen from '../screens/AI/AIAssistantScreen';
 
+import { TermsScreen, PrivacyPolicyScreen, EULAScreen } from '../screens/Legal';
+
 import { COLORS } from '../config/theme';
 
 const Tab = createBottomTabNavigator();
@@ -105,6 +107,9 @@ const ProfileStack = () => (
     <Stack.Screen name="Settings" component={SettingsScreen} />
     <Stack.Screen name="CreatePost" component={CreatePostScreen} />
     <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
+    <Stack.Screen name="Terms" component={TermsScreen} />
+    <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+    <Stack.Screen name="EULA" component={EULAScreen} />
   </Stack.Navigator>
 );
 

@@ -7,17 +7,50 @@ import {
   StyleSheet,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import api from '../../config/axios';
+import { API_ENDPOINTS } from '../../config/api';
 
 const SettingsScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [privateAccount, setPrivateAccount] = useState(user?.isPrivate || false);
   const [darkMode, setDarkMode] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone. All your data, posts, and connections will be permanently deleted.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => confirmDeleteAccount(),
+        },
+      ]
+    );
+  };
+
+  const confirmDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await api.delete(API_ENDPOINTS.DELETE_ACCOUNT);
+      Alert.alert('Account Deleted', 'Your account has been successfully deleted.', [
+        { text: 'OK', onPress: logout },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -140,11 +173,29 @@ const SettingsScreen = ({ navigation }) => {
           />
         </SettingSection>
 
+        <SettingSection title="Legal">
+          <SettingItem
+            icon="document-text-outline"
+            title="Terms of Service"
+            onPress={() => navigation.navigate('Terms')}
+          />
+          <SettingItem
+            icon="shield-outline"
+            title="Privacy Policy"
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          />
+          <SettingItem
+            icon="reader-outline"
+            title="End User License Agreement"
+            onPress={() => navigation.navigate('EULA')}
+          />
+        </SettingSection>
+
         <SettingSection title="Support">
           <SettingItem
             icon="help-circle-outline"
             title="Help Center"
-            onPress={() => Alert.alert('Help', 'Help center coming soon')}
+            onPress={() => Alert.alert('Help', 'For support, please email support@fisiko.io')}
           />
           <SettingItem
             icon="information-circle-outline"
@@ -152,22 +203,28 @@ const SettingsScreen = ({ navigation }) => {
             subtitle="Version 1.0.0"
             onPress={() => Alert.alert('About', 'Fisiko v1.0.0\nThe Sports Social Network')}
           />
+        </SettingSection>
+
+        <SettingSection title="Account Actions">
           <SettingItem
-            icon="document-text-outline"
-            title="Terms of Service"
-            onPress={() => Alert.alert('Terms', 'Terms of service coming soon')}
-          />
-          <SettingItem
-            icon="shield-outline"
-            title="Privacy Policy"
-            onPress={() => Alert.alert('Privacy', 'Privacy policy coming soon')}
+            icon="trash-outline"
+            title="Delete Account"
+            subtitle="Permanently delete your account and data"
+            onPress={handleDeleteAccount}
           />
         </SettingSection>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} disabled={deleting}>
           <Ionicons name="log-out-outline" size={22} color={COLORS.error} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
+
+        {deleting && (
+          <View style={styles.deletingOverlay}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Text style={styles.deletingText}>Deleting account...</Text>
+          </View>
+        )}
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Fisiko</Text>
@@ -280,6 +337,23 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.sm,
     color: COLORS.textLight,
     marginTop: SPACING.xs,
+  },
+  deletingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  deletingText: {
+    marginTop: SPACING.md,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.text,
+    fontWeight: '500',
   },
 });
 

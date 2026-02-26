@@ -168,4 +168,81 @@ router.get('/:id/following', auth, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/user/delete-account
+// @desc    Delete user account and all associated data
+router.delete('/delete-account', auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Import models
+    const Post = require('../models/Post');
+    const Story = require('../models/Story');
+    const Reel = require('../models/Reel');
+    const Match = require('../models/Match');
+    const Comment = require('../models/Comment');
+    const Notification = require('../models/Notification');
+    const Message = require('../models/Message');
+
+    // Delete user's posts
+    await Post.deleteMany({ creator: userId });
+
+    // Delete user's stories
+    await Story.deleteMany({ creator: userId });
+
+    // Delete user's reels
+    await Reel.deleteMany({ creator: userId });
+
+    // Delete user's comments
+    await Comment.deleteMany({ user: userId });
+
+    // Delete notifications sent by or to user
+    await Notification.deleteMany({
+      $or: [{ sender: userId }, { recipient: userId }]
+    });
+
+    // Delete messages sent by user
+    await Message.deleteMany({ sender: userId });
+
+    // Remove user from matches they created
+    await Match.deleteMany({ creator: userId });
+
+    // Remove user from other matches as player
+    await Match.updateMany(
+      { players: userId },
+      { $pull: { players: userId, admins: userId } }
+    );
+
+    // Remove user from followers/following lists of other users
+    await User.updateMany(
+      { followers: userId },
+      { $pull: { followers: userId } }
+    );
+
+    await User.updateMany(
+      { following: userId },
+      { $pull: { following: userId } }
+    );
+
+    // Remove user from follow requests
+    await User.updateMany(
+      { followRequests: userId },
+      { $pull: { followRequests: userId } }
+    );
+
+    // Remove likes from posts
+    await Post.updateMany(
+      { likes: userId },
+      { $pull: { likes: userId } }
+    );
+
+    // Finally, delete the user
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ message: 'Failed to delete account. Please try again.' });
+  }
+});
+
 module.exports = router;

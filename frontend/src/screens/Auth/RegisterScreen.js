@@ -27,6 +27,7 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const { register, googleSignIn, appleSignIn } = useAuth();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -106,6 +107,11 @@ const RegisterScreen = ({ navigation }) => {
 
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (!agreedToTerms) {
+      Alert.alert('Error', 'Please agree to the Terms of Service and Privacy Policy');
       return;
     }
 
@@ -198,9 +204,25 @@ const RegisterScreen = ({ navigation }) => {
             </View>
 
             <TouchableOpacity
-              style={[styles.registerButton, loading && styles.registerButtonDisabled]}
+              style={styles.termsContainer}
+              onPress={() => setAgreedToTerms(!agreedToTerms)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.checkbox, agreedToTerms && styles.checkboxChecked]}>
+                {agreedToTerms && <Ionicons name="checkmark" size={14} color={COLORS.white} />}
+              </View>
+              <Text style={styles.termsText}>
+                I agree to the{' '}
+                <Text style={styles.termsLink} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text>
+                {' '}and{' '}
+                <Text style={styles.termsLink} onPress={() => navigation.navigate('PrivacyPolicy')}>Privacy Policy</Text>
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.registerButton, (loading || !agreedToTerms) && styles.registerButtonDisabled]}
               onPress={handleRegister}
-              disabled={loading}
+              disabled={loading || !agreedToTerms}
             >
               {loading ? (
                 <ActivityIndicator color={COLORS.white} />
@@ -308,6 +330,37 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.md,
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
+  },
+  termsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.sm,
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  termsText: {
+    flex: 1,
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+  },
+  termsLink: {
+    color: COLORS.primary,
+    fontWeight: '500',
   },
   registerButton: {
     backgroundColor: COLORS.primary,

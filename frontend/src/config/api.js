@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
   UNFOLLOW_USER: `${API_BASE_URL}/user/unfollow`,
   GET_FOLLOWERS: (userId) => `${API_BASE_URL}/user/${userId}/followers`,
   GET_FOLLOWING: (userId) => `${API_BASE_URL}/user/${userId}/following`,
+  DELETE_ACCOUNT: `${API_BASE_URL}/user/delete-account`,
   
   // Posts
   GET_POSTS: `${API_BASE_URL}/post/posts`,
