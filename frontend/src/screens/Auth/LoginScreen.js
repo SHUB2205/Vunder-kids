@@ -253,6 +253,24 @@ const LoginScreen = ({ navigation }) => {
               <View style={styles.dividerLine} />
             </View>
 
+            {/* Apple Sign In - Required for App Store */}
+            {Platform.OS === 'ios' && (
+              <TouchableOpacity 
+                style={[styles.appleButton, appleLoading && styles.socialButtonDisabled]}
+                onPress={handleAppleSignIn}
+                disabled={appleLoading}
+              >
+                {appleLoading ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Ionicons name="logo-apple" size={20} color={COLORS.white} />
+                    <Text style={styles.appleButtonText}>Sign in with Apple</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
             {/* Google Sign In */}
             <TouchableOpacity 
               style={[styles.googleButton, googleLoading && styles.socialButtonDisabled]}
@@ -420,6 +438,21 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: FONTS.sizes.sm,
   },
+  appleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    borderRadius: BORDER_RADIUS.full,
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  appleButtonText: {
+    marginLeft: SPACING.md,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.white,
+    fontWeight: '500',
+  },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -436,6 +469,9 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
     fontWeight: '500',
+  },
+  socialButtonDisabled: {
+    opacity: 0.7,
   },
   signUpButton: {
     backgroundColor: COLORS.text,
