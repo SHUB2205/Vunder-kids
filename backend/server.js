@@ -20,6 +20,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const scoreRoutes = require('./routes/scoreRoutes');
+const newsRoutes = require('./routes/newsRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -68,6 +69,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/scores', scoreRoutes);
+app.use('/api/news', newsRoutes);
 
 // Socket.IO for real-time chat
 const socketAuth = require('./middleware/socketAuth');

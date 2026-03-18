@@ -78,6 +78,10 @@ export const API_ENDPOINTS = {
   AI_CHAT: `${API_BASE_URL}/ai/chat`,
   AI_ADVICE: `${API_BASE_URL}/ai/advice`,
   
+  // News
+  GET_NEWS: `${API_BASE_URL}/news`,
+  GET_NEWS_SCORES: `${API_BASE_URL}/news/scores`,
+  
   // Messages
   GET_MESSAGES: `${API_BASE_URL}/messages`,
   GET_CONVERSATIONS: `${API_BASE_URL}/messages/conversations`,

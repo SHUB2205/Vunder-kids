@@ -15,6 +15,8 @@ router.get('/', auth, async (req, res) => {
         { name: 'Football', icon: 'football' },
         { name: 'Basketball', icon: 'basketball' },
         { name: 'Tennis', icon: 'tennisball' },
+        { name: 'Pickleball', icon: 'tennisball' },
+        { name: 'Padel', icon: 'tennisball' },
         { name: 'Cricket', icon: 'baseball' },
         { name: 'Swimming', icon: 'water' },
         { name: 'Running', icon: 'walk' },
@@ -22,6 +24,14 @@ router.get('/', auth, async (req, res) => {
         { name: 'Volleyball', icon: 'basketball-outline' },
         { name: 'Badminton', icon: 'tennisball-outline' },
         { name: 'Gym', icon: 'barbell' },
+        { name: 'Soccer', icon: 'football-outline' },
+        { name: 'Golf', icon: 'golf' },
+        { name: 'Baseball', icon: 'baseball' },
+        { name: 'Hockey', icon: 'hockey-puck' },
+        { name: 'Table Tennis', icon: 'tennisball-outline' },
+        { name: 'Boxing', icon: 'fitness' },
+        { name: 'MMA', icon: 'fitness' },
+        { name: 'Yoga', icon: 'body' },
       ];
 
       await Sport.insertMany(defaultSports);

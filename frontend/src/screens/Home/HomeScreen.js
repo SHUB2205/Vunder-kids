@@ -25,6 +25,7 @@ import { useChat } from '../../context/ChatContext';
 import { useMatch } from '../../context/MatchContext';
 import StoriesBar from '../../components/Home/StoriesBar';
 import PostCard from '../../components/Home/PostCard';
+import SportsNews from '../../components/Home/SportsNews';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 const HomeScreen = ({ navigation }) => {
@@ -43,6 +44,7 @@ const HomeScreen = ({ navigation }) => {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [scoreModalType, setScoreModalType] = useState('fisiko');
+  const [showNewsModal, setShowNewsModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -487,16 +489,27 @@ const HomeScreen = ({ navigation }) => {
             )}
           </TouchableOpacity>
 
-          {/* LIVE Badge */}
+          {/* News/Scores Badge */}
           <TouchableOpacity
             style={styles.liveBadge}
-            onPress={() => navigation.navigate('Search', { tab: 'scores' })}
+            onPress={() => setShowNewsModal(true)}
           >
             <View style={styles.liveIndicator} />
-            <Text style={styles.liveText}>LIVE</Text>
+            <Text style={styles.liveText}>NEWS</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Sports News Modal */}
+      <Modal
+        visible={showNewsModal}
+        animationType="slide"
+        onRequestClose={() => setShowNewsModal(false)}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <SportsNews onClose={() => setShowNewsModal(false)} />
+        </SafeAreaView>
+      </Modal>
 
       {/* Create Post Bar - moved outside FlatList to prevent keyboard dismissal */}
       {renderCreatePostBar()}
