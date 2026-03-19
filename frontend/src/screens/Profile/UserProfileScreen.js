@@ -16,6 +16,7 @@ import api from '../../config/axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { getSportEmoji } from '../../utils/sportIcons';
 
 const { width } = Dimensions.get('window');
 const POST_SIZE = (width - SPACING.lg * 2 - 4) / 3;
@@ -230,10 +231,9 @@ const UserProfileScreen = ({ navigation, route }) => {
           {(user?.passions && user.passions.length > 0) ? (
             user.passions.map((passion, index) => (
               <View key={index} style={styles.passionCard}>
-                <Image 
-                  source={{ uri: passion.image || 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=100&h=80&fit=crop' }} 
-                  style={styles.passionImage}
-                />
+                <View style={styles.passionEmojiContainer}>
+                  <Text style={styles.passionEmoji}>{getSportEmoji(passion.name)}</Text>
+                </View>
                 <Text style={styles.passionName}>{passion.name}</Text>
                 <Text style={styles.passionLevel}>{passion.level || 'Foundation'}</Text>
                 <View style={styles.passionDots}>
@@ -252,10 +252,9 @@ const UserProfileScreen = ({ navigation, route }) => {
           ) : (
             <>
               <View style={styles.passionCard}>
-                <Image 
-                  source={{ uri: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=100&h=80&fit=crop' }} 
-                  style={styles.passionImage}
-                />
+                <View style={styles.passionEmojiContainer}>
+                  <Text style={styles.passionEmoji}>{getSportEmoji('Basketball')}</Text>
+                </View>
                 <Text style={styles.passionName}>Basketball</Text>
                 <Text style={styles.passionLevel}>Intermediate</Text>
                 <View style={styles.passionDots}>
@@ -265,10 +264,9 @@ const UserProfileScreen = ({ navigation, route }) => {
                 </View>
               </View>
               <View style={styles.passionCard}>
-                <Image 
-                  source={{ uri: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=100&h=80&fit=crop' }} 
-                  style={styles.passionImage}
-                />
+                <View style={styles.passionEmojiContainer}>
+                  <Text style={styles.passionEmoji}>{getSportEmoji('Football')}</Text>
+                </View>
                 <Text style={styles.passionName}>Football</Text>
                 <Text style={styles.passionLevel}>Foundation</Text>
                 <View style={styles.passionDots}>
@@ -529,6 +527,18 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: BORDER_RADIUS.md,
     marginBottom: SPACING.xs,
+  },
+  passionEmojiContainer: {
+    width: 80,
+    height: 60,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  passionEmoji: {
+    fontSize: 32,
   },
   passionName: {
     fontSize: FONTS.sizes.sm,

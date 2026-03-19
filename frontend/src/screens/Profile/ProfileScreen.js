@@ -18,6 +18,7 @@ import { useMatch } from '../../context/MatchContext';
 import api from '../../config/axios';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
+import { getSportIcon, getSportEmoji } from '../../utils/sportIcons';
 
 const { width } = Dimensions.get('window');
 const POST_SIZE = (width - SPACING.lg * 2 - 4) / 3;
@@ -295,13 +296,13 @@ const ProfileScreen = ({ navigation }) => {
             {(user?.passions || [{ name: 'Football', skillLevel: 'Intermediate' }, { name: 'Basketball', skillLevel: 'Pro' }]).map((passion, index) => (
               <View key={index} style={styles.passionCard}>
                 <View style={styles.passionImagePlaceholder}>
-                  <Ionicons name="football" size={32} color={COLORS.primary} />
+                  <Text style={styles.passionEmoji}>{getSportEmoji(passion.name)}</Text>
                 </View>
                 <Text style={styles.passionName}>{passion.name}</Text>
                 <Text style={styles.passionLevel}>{passion.skillLevel}</Text>
                 <View style={styles.passionDots}>
                   <View style={[styles.dot, styles.dotActive]} />
-                  <View style={[styles.dot, styles.dotActive]} />
+                  <View style={[styles.dot, passion.skillLevel !== 'Beginner' && styles.dotActive]} />
                   <View style={[styles.dot, passion.skillLevel === 'Pro' && styles.dotActive]} />
                 </View>
               </View>
@@ -604,6 +605,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: SPACING.sm,
+  },
+  passionEmoji: {
+    fontSize: 28,
   },
   passionName: {
     fontSize: FONTS.sizes.sm,

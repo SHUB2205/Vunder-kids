@@ -25,7 +25,10 @@ const CreateMatchScreen = ({ navigation }) => {
   const [matchType, setMatchType] = useState('fisiko'); // 'fisiko' or 'non-fisiko'
   const [name, setName] = useState('');
   const [selectedSport, setSelectedSport] = useState(null);
-  const [location, setLocation] = useState('');
+  const [venueName, setVenueName] = useState('');
+  const [venueCity, setVenueCity] = useState('');
+  const [venueState, setVenueState] = useState('');
+  const [venueCountry, setVenueCountry] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -97,7 +100,8 @@ const CreateMatchScreen = ({ navigation }) => {
 
   const handleCreate = async () => {
     // Validate common fields
-    if (!name || !selectedSport || !location) {
+    const location = [venueName, venueCity, venueState, venueCountry].filter(Boolean).join(', ');
+    if (!name || !selectedSport || !venueName) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
@@ -282,10 +286,41 @@ const CreateMatchScreen = ({ navigation }) => {
                   <Ionicons name="location" size={18} color={COLORS.error} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Enter a location"
+                    placeholder="Venue name"
                     placeholderTextColor={COLORS.textLight}
-                    value={location}
-                    onChangeText={setLocation}
+                    value={venueName}
+                    onChangeText={setVenueName}
+                  />
+                </View>
+                
+                <View style={styles.venueRow}>
+                  <View style={[styles.inputContainer, styles.venueInputHalf]}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="City"
+                      placeholderTextColor={COLORS.textLight}
+                      value={venueCity}
+                      onChangeText={setVenueCity}
+                    />
+                  </View>
+                  <View style={[styles.inputContainer, styles.venueInputHalf]}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="State"
+                      placeholderTextColor={COLORS.textLight}
+                      value={venueState}
+                      onChangeText={setVenueState}
+                    />
+                  </View>
+                </View>
+                
+                <View style={[styles.inputContainer, { marginTop: SPACING.sm }]}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Country"
+                    placeholderTextColor={COLORS.textLight}
+                    value={venueCountry}
+                    onChangeText={setVenueCountry}
                   />
                 </View>
               </View>
@@ -426,10 +461,41 @@ const CreateMatchScreen = ({ navigation }) => {
                 <Ionicons name="location" size={18} color={COLORS.error} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter a location"
+                  placeholder="Venue name (e.g., Central Park Courts)"
                   placeholderTextColor={COLORS.textLight}
-                  value={location}
-                  onChangeText={setLocation}
+                  value={venueName}
+                  onChangeText={setVenueName}
+                />
+              </View>
+              
+              <View style={styles.venueRow}>
+                <View style={[styles.inputContainer, styles.venueInputHalf]}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="City"
+                    placeholderTextColor={COLORS.textLight}
+                    value={venueCity}
+                    onChangeText={setVenueCity}
+                  />
+                </View>
+                <View style={[styles.inputContainer, styles.venueInputHalf]}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="State"
+                    placeholderTextColor={COLORS.textLight}
+                    value={venueState}
+                    onChangeText={setVenueState}
+                  />
+                </View>
+              </View>
+              
+              <View style={[styles.inputContainer, { marginTop: SPACING.sm }]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Country"
+                  placeholderTextColor={COLORS.textLight}
+                  value={venueCountry}
+                  onChangeText={setVenueCountry}
                 />
               </View>
             </View>
@@ -437,22 +503,95 @@ const CreateMatchScreen = ({ navigation }) => {
         </View>
 
         {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-            minimumDate={new Date()}
-          />
+          Platform.OS === 'ios' ? (
+            <Modal
+              visible={showDatePicker}
+              transparent={true}
+              animationType="slide"
+              onRequestClose={() => setShowDatePicker(false)}
+            >
+              <View style={styles.datePickerModalOverlay}>
+                <View style={styles.datePickerModalContent}>
+                  <View style={styles.datePickerHeader}>
+                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                      <Text style={styles.datePickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.datePickerTitle}>Select Date</Text>
+                    <TouchableOpacity onPress={() => {
+                      setShowDatePicker(false);
+                      setTimeout(() => setShowTimePicker(true), 300);
+                    }}>
+                      <Text style={styles.datePickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="spinner"
+                    onChange={(event, selectedDate) => {
+                      if (selectedDate) setDate(selectedDate);
+                    }}
+                    minimumDate={new Date()}
+                    style={{ height: 200 }}
+                  />
+                </View>
+              </View>
+            </Modal>
+          ) : (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+          )
         )}
 
         {showTimePicker && (
-          <DateTimePicker
-            value={date}
-            mode="time"
-            display="default"
-            onChange={handleTimeChange}
-          />
+          Platform.OS === 'ios' ? (
+            <Modal
+              visible={showTimePicker}
+              transparent={true}
+              animationType="slide"
+              onRequestClose={() => setShowTimePicker(false)}
+            >
+              <View style={styles.datePickerModalOverlay}>
+                <View style={styles.datePickerModalContent}>
+                  <View style={styles.datePickerHeader}>
+                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                      <Text style={styles.datePickerCancel}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.datePickerTitle}>Select Time</Text>
+                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                      <Text style={styles.datePickerDone}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={date}
+                    mode="time"
+                    display="spinner"
+                    onChange={(event, selectedTime) => {
+                      if (selectedTime) {
+                        const newDate = new Date(date);
+                        newDate.setHours(selectedTime.getHours());
+                        newDate.setMinutes(selectedTime.getMinutes());
+                        setDate(newDate);
+                      }
+                    }}
+                    style={{ height: 200 }}
+                  />
+                </View>
+              </View>
+            </Modal>
+          ) : (
+            <DateTimePicker
+              value={date}
+              mode="time"
+              display="default"
+              onChange={handleTimeChange}
+            />
+          )
         )}
 
         {/* Disclaimer */}
@@ -691,6 +830,15 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
   },
+  venueRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: SPACING.sm,
+    gap: SPACING.sm,
+  },
+  venueInputHalf: {
+    flex: 1,
+  },
   disclaimerContainer: {
     backgroundColor: COLORS.error + '15',
     borderRadius: BORDER_RADIUS.md,
@@ -727,6 +875,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
+  },
+  datePickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerModalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: BORDER_RADIUS.xl,
+    borderTopRightRadius: BORDER_RADIUS.xl,
+    paddingBottom: SPACING.xl,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  datePickerTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  datePickerCancel: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+  },
+  datePickerDone: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   modalContent: {
     backgroundColor: COLORS.white,
