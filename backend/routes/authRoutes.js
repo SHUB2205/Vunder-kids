@@ -238,34 +238,58 @@ router.post('/apple', async (req, res) => {
 
     const { email, sub: appleId } = applePayload;
     
-    // Build name from various sources
-    let name = 'Fisiko User';
-    if (appleUser?.name?.firstName) {
-      name = `${appleUser.name.firstName} ${appleUser.name.lastName || ''}`.trim();
-    } else if (email) {
-      name = email.split('@')[0];
-    } else if (appleId) {
-      name = `user_${appleId.slice(-6)}`;
+    // Build name from various sources - Apple only sends name on FIRST sign-in
+    let name = null;
+    
+    // Try to get name from appleUser object (only available on first sign-in)
+    if (appleUser?.name?.firstName && appleUser.name.firstName.trim()) {
+      const firstName = appleUser.name.firstName.trim();
+      const lastName = appleUser.name.lastName?.trim() || '';
+      name = `${firstName} ${lastName}`.trim();
     }
     
-    // Ensure name is not empty
-    if (!name || name.trim() === '') {
+    // Fallback to email prefix
+    if (!name && email) {
+      const emailPrefix = email.split('@')[0];
+      if (emailPrefix && emailPrefix.length > 0) {
+        name = emailPrefix;
+      }
+    }
+    
+    // Fallback to appleId-based name
+    if (!name && appleId) {
+      name = `User_${appleId.slice(-6)}`;
+    }
+    
+    // Final fallback
+    if (!name || name.trim().length === 0) {
       name = 'Fisiko User';
     }
     
-    console.log('Apple auth - parsed data:', { email, appleId: appleId?.slice(-6), name });
+    // Ensure name is a valid non-empty string
+    name = String(name).trim();
+    if (name.length === 0) {
+      name = 'Fisiko User';
+    }
+    
+    console.log('Apple auth - parsed data:', { email, appleId: appleId?.slice(-6), name, nameLength: name.length });
 
     let user = await User.findOne({ $or: [{ appleId }, ...(email ? [{ email }] : [])] });
 
     if (!user) {
       // Create new user with all required fields
       const userData = {
-        name: name.trim(),
+        name: name,
         email: email || `${appleId}@privaterelay.appleid.com`,
         appleId,
         isVerified: true,
         isAppleUser: true,
       };
+      
+      // Double-check name is valid before saving
+      if (!userData.name || userData.name.trim().length === 0) {
+        userData.name = 'Fisiko User';
+      }
       
       console.log('Creating new Apple user:', userData);
       
