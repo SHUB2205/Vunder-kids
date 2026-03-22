@@ -47,6 +47,7 @@ const CreateMatchScreen = ({ navigation }) => {
   
   // Dropdown states
   const [showSportPicker, setShowSportPicker] = useState(false);
+  const [customSport, setCustomSport] = useState('');
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -184,6 +185,16 @@ const CreateMatchScreen = ({ navigation }) => {
     { _id: '3', name: 'Tennis' },
     { _id: '4', name: 'Cricket' },
     { _id: '5', name: 'Badminton' },
+    { _id: '6', name: 'Pickleball' },
+    { _id: '7', name: 'Padel' },
+    { _id: '8', name: 'Golf' },
+    { _id: '9', name: 'Swimming' },
+    { _id: '10', name: 'Table Tennis' },
+    { _id: '11', name: 'Volleyball' },
+    { _id: '12', name: 'Baseball' },
+    { _id: '13', name: 'Hockey' },
+    { _id: '14', name: 'Rugby' },
+    { _id: '15', name: 'Boxing' },
   ];
 
   const displaySports = sports.length > 0 ? sports : defaultSports;
@@ -617,6 +628,33 @@ const CreateMatchScreen = ({ navigation }) => {
                 <Ionicons name="close" size={24} color={COLORS.text} />
               </TouchableOpacity>
             </View>
+            
+            {/* Custom Sport Input */}
+            <View style={styles.customSportContainer}>
+              <View style={styles.customSportInputRow}>
+                <TextInput
+                  style={styles.customSportInput}
+                  placeholder="Or enter custom sport..."
+                  placeholderTextColor={COLORS.textLight}
+                  value={customSport}
+                  onChangeText={setCustomSport}
+                />
+                <TouchableOpacity
+                  style={[styles.customSportBtn, !customSport.trim() && styles.customSportBtnDisabled]}
+                  disabled={!customSport.trim()}
+                  onPress={() => {
+                    if (customSport.trim()) {
+                      setSelectedSport({ _id: `custom_${Date.now()}`, name: customSport.trim() });
+                      setCustomSport('');
+                      setShowSportPicker(false);
+                    }
+                  }}
+                >
+                  <Text style={styles.customSportBtnText}>Add</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            
             <FlatList
               data={displaySports}
               keyExtractor={(item) => item._id || item.name}
@@ -625,6 +663,7 @@ const CreateMatchScreen = ({ navigation }) => {
                   style={styles.sportItem}
                   onPress={() => {
                     setSelectedSport(item);
+                    setCustomSport('');
                     setShowSportPicker(false);
                   }}
                 >
@@ -928,6 +967,43 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.lg,
     fontWeight: '600',
     color: COLORS.text,
+  },
+  customSportContainer: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
+  customSportInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  customSportInput: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  customSportBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  customSportBtnDisabled: {
+    backgroundColor: COLORS.border,
+  },
+  customSportBtnText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
   },
   sportItem: {
     flexDirection: 'row',
