@@ -2,27 +2,51 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Reel = require('../models/Reel');
+const Post = require('../models/Post');
 const Notification = require('../models/Notification');
 const { upload, uploadToCloudinary } = require('../middleware/upload');
 
 // @route   GET /api/reels
-// @desc    Get reels feed
+// @desc    Get reels feed (includes dedicated reels + video posts)
 router.get('/', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    // Get dedicated reels
     const reels = await Reel.find()
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
       .populate('creator', 'name userName avatar');
 
-    const total = await Reel.countDocuments();
+    // Get video posts and convert to reel format
+    const videoPosts = await Post.find({ mediaType: 'video' })
+      .sort({ createdAt: -1 })
+      .populate('creator', 'name userName avatar');
+
+    // Convert video posts to reel-like format
+    const videoPostsAsReels = videoPosts.map(post => ({
+      _id: post._id,
+      creator: post.creator,
+      mediaURL: post.mediaUrl,
+      caption: post.content || post.title || '',
+      likes: post.likes?.length || 0,
+      likedBy: post.likes || [],
+      comments: post.comments || [],
+      createdAt: post.createdAt,
+      isFromPost: true,
+    }));
+
+    // Combine and sort by date
+    const allReels = [...reels, ...videoPostsAsReels]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Paginate
+    const paginatedReels = allReels.slice(skip, skip + limit);
+    const total = allReels.length;
 
     res.json({
-      reels,
+      reels: paginatedReels,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       total,

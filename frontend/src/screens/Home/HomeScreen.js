@@ -26,6 +26,7 @@ import { useMatch } from '../../context/MatchContext';
 import StoriesBar from '../../components/Home/StoriesBar';
 import PostCard from '../../components/Home/PostCard';
 import SportsNews from '../../components/Home/SportsNews';
+import NewsStoryPreview from '../../components/Home/NewsStoryPreview';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 const HomeScreen = ({ navigation }) => {
@@ -433,12 +434,15 @@ const HomeScreen = ({ navigation }) => {
   );
 
   const renderStoriesOnly = () => (
-    <StoriesBar
-      stories={stories}
-      onStoryPress={(story) => navigation.navigate('StoryViewer', { story })}
-      onAddStory={() => navigation.navigate('CreateStory')}
-      currentUser={user}
-    />
+    <View>
+      <StoriesBar
+        stories={stories}
+        onStoryPress={(story) => navigation.navigate('StoryViewer', { story })}
+        onAddStory={() => navigation.navigate('CreateStory')}
+        currentUser={user}
+      />
+      <NewsStoryPreview onOpenFullNews={() => setShowNewsModal(true)} />
+    </View>
   );
 
   const renderPost = ({ item }) => {
