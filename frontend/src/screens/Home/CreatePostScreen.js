@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,39 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { usePost } from '../../context/PostContext';
 import { useAuth } from '../../context/AuthContext';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
+import { getSportEmoji } from '../../utils/sportIcons';
 
-const CreatePostScreen = ({ navigation }) => {
+const SPORTS_LIST = [
+  'Football', 'Basketball', 'Tennis', 'Cricket', 'Baseball',
+  'Soccer', 'Golf', 'Swimming', 'Running', 'Cycling',
+  'Boxing', 'MMA', 'Wrestling', 'Volleyball', 'Badminton',
+  'Table Tennis', 'Hockey', 'Rugby', 'Skiing', 'Snowboarding',
+  'Surfing', 'Skateboarding', 'Gymnastics', 'Athletics', 'Pickleball',
+  'Padel', 'Squash', 'Lacrosse', 'Handball', 'Archery',
+];
+
+const CreatePostScreen = ({ navigation, route }) => {
   const { user } = useAuth();
   const { createPost } = usePost();
   const [content, setContent] = useState('');
   const [media, setMedia] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedSport, setSelectedSport] = useState(route?.params?.sport || null);
+  const [showSportPicker, setShowSportPicker] = useState(false);
+  const [sportSearch, setSportSearch] = useState('');
+
+  const filteredSports = SPORTS_LIST.filter(sport =>
+    sport.toLowerCase().includes(sportSearch.toLowerCase())
+  );
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -71,7 +90,7 @@ const CreatePostScreen = ({ navigation }) => {
     }
 
     setLoading(true);
-    const result = await createPost({ content, media });
+    const result = await createPost({ content, media, sport: selectedSport });
     setLoading(false);
 
     if (result.success) {
@@ -129,6 +148,33 @@ const CreatePostScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Sport Tag Section */}
+        <View style={styles.sportTagSection}>
+          <Text style={styles.sportTagLabel}>Tag a Sport</Text>
+          <TouchableOpacity
+            style={styles.sportTagButton}
+            onPress={() => setShowSportPicker(true)}
+          >
+            {selectedSport ? (
+              <View style={styles.selectedSportTag}>
+                <Text style={styles.sportEmoji}>{getSportEmoji(selectedSport)}</Text>
+                <Text style={styles.selectedSportText}>{selectedSport}</Text>
+                <TouchableOpacity onPress={() => setSelectedSport(null)}>
+                  <Ionicons name="close-circle" size={20} color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.addSportTag}>
+                <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
+                <Text style={styles.addSportText}>Add sport tag</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <Text style={styles.sportTagHint}>
+            Tag your post with a sport to help others discover it
+          </Text>
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -141,6 +187,59 @@ const CreatePostScreen = ({ navigation }) => {
           <Text style={styles.mediaButtonText}>Camera</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Sport Picker Modal */}
+      <Modal
+        visible={showSportPicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSportPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Sport</Text>
+              <TouchableOpacity onPress={() => setShowSportPicker(false)}>
+                <Ionicons name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color={COLORS.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search sports..."
+                placeholderTextColor={COLORS.textSecondary}
+                value={sportSearch}
+                onChangeText={setSportSearch}
+              />
+            </View>
+
+            <FlatList
+              data={filteredSports}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.sportItem}
+                  onPress={() => {
+                    setSelectedSport(item);
+                    setShowSportPicker(false);
+                    setSportSearch('');
+                  }}
+                >
+                  <Text style={styles.sportItemEmoji}>{getSportEmoji(item)}</Text>
+                  <Text style={styles.sportItemText}>{item}</Text>
+                  {selectedSport === item && (
+                    <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.sportsList}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -236,6 +335,117 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.primary,
     fontWeight: '500',
+  },
+  
+  // Sport Tag styles
+  sportTagSection: {
+    marginTop: SPACING.xl,
+    paddingTop: SPACING.lg,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  sportTagLabel: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  sportTagButton: {
+    marginBottom: SPACING.xs,
+  },
+  selectedSportTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
+    alignSelf: 'flex-start',
+    gap: SPACING.sm,
+  },
+  sportEmoji: {
+    fontSize: 18,
+  },
+  selectedSportText: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '500',
+    color: COLORS.primary,
+  },
+  addSportTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  addSportText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.primary,
+  },
+  sportTagHint: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+  },
+  
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: BORDER_RADIUS.xl,
+    borderTopRightRadius: BORDER_RADIUS.xl,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    margin: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    height: 44,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.text,
+  },
+  sportsList: {
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.xl,
+  },
+  sportItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  sportItemEmoji: {
+    fontSize: 24,
+    marginRight: SPACING.md,
+  },
+  sportItemText: {
+    flex: 1,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.text,
   },
 });
 

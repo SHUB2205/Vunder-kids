@@ -62,6 +62,8 @@ router.post('/create', auth, upload.single('media'), async (req, res) => {
       mediaURL,
       mediaType,
       tags: tags ? JSON.parse(tags) : [],
+      sport: req.body.sport || null,
+      sportTags: req.body.sportTags ? JSON.parse(req.body.sportTags) : [],
     });
 
     await post.save();
@@ -204,6 +206,135 @@ router.get('/user/:userId', auth, async (req, res) => {
     res.json({ posts });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/post/sport/:sportName
+// @desc    Get posts by sport (Sport Profile)
+router.get('/sport/:sportName', auth, async (req, res) => {
+  try {
+    const sportName = decodeURIComponent(req.params.sportName);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({ 
+      sport: { $regex: new RegExp(`^${sportName}$`, 'i') },
+      isArchived: { $ne: true }
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('creator', 'name userName avatar')
+      .populate({
+        path: 'comments',
+        populate: { path: 'user', select: 'name userName avatar' }
+      });
+
+    const total = await Post.countDocuments({ 
+      sport: { $regex: new RegExp(`^${sportName}$`, 'i') },
+      isArchived: { $ne: true }
+    });
+
+    // Get sport stats
+    const stats = await Post.aggregate([
+      { $match: { sport: { $regex: new RegExp(`^${sportName}$`, 'i') }, isArchived: { $ne: true } } },
+      { $group: {
+        _id: null,
+        totalPosts: { $sum: 1 },
+        totalLikes: { $sum: '$likes' },
+        uniqueCreators: { $addToSet: '$creator' }
+      }}
+    ]);
+
+    const sportStats = stats[0] || { totalPosts: 0, totalLikes: 0, uniqueCreators: [] };
+
+    res.json({
+      posts,
+      sport: sportName,
+      stats: {
+        totalPosts: sportStats.totalPosts,
+        totalLikes: sportStats.totalLikes,
+        contributors: sportStats.uniqueCreators?.length || 0
+      },
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      total,
+    });
+  } catch (error) {
+    console.error('Get sport posts error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/post/sports/search
+// @desc    Search sports by name
+router.get('/sports/search', auth, async (req, res) => {
+  try {
+    const query = req.query.q || '';
+    
+    // Get distinct sports from posts
+    const sports = await Post.aggregate([
+      { $match: { sport: { $exists: true, $ne: null, $ne: '' }, isArchived: { $ne: true } } },
+      { $group: { 
+        _id: '$sport',
+        postCount: { $sum: 1 },
+        totalLikes: { $sum: '$likes' },
+        latestPost: { $max: '$createdAt' }
+      }},
+      { $match: query ? { _id: { $regex: query, $options: 'i' } } : {} },
+      { $sort: { postCount: -1 } },
+      { $limit: 20 },
+      { $project: {
+        name: '$_id',
+        postCount: 1,
+        totalLikes: 1,
+        latestPost: 1,
+        _id: 0
+      }}
+    ]);
+
+    res.json({ sports });
+  } catch (error) {
+    console.error('Search sports error:', error);
+    res.json({ sports: [] });
+  }
+});
+
+// @route   GET /api/post/sports/trending
+// @desc    Get trending sports
+router.get('/sports/trending', auth, async (req, res) => {
+  try {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const trending = await Post.aggregate([
+      { $match: { 
+        sport: { $exists: true, $ne: null, $ne: '' },
+        isArchived: { $ne: true },
+        createdAt: { $gte: oneWeekAgo }
+      }},
+      { $group: { 
+        _id: '$sport',
+        postCount: { $sum: 1 },
+        totalLikes: { $sum: '$likes' },
+        engagement: { $sum: { $add: ['$likes', { $size: { $ifNull: ['$comments', []] } }] } }
+      }},
+      { $sort: { engagement: -1, postCount: -1 } },
+      { $limit: 10 },
+      { $project: {
+        name: '$_id',
+        postCount: 1,
+        totalLikes: 1,
+        engagement: 1,
+        _id: 0
+      }}
+    ]);
+
+    res.json({ sports: trending });
+  } catch (error) {
+    console.error('Get trending sports error:', error);
+    res.json({ sports: [] });
   }
 });
 

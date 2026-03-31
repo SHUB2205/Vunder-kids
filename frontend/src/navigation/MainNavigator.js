@@ -40,6 +40,9 @@ import BookFacilityScreen from '../screens/Facilities/BookFacilityScreen';
 
 import AIAssistantScreen from '../screens/AI/AIAssistantScreen';
 
+import SportProfileScreen from '../screens/Sports/SportProfileScreen';
+import SportSearchScreen from '../screens/Sports/SportSearchScreen';
+
 import { TermsScreen, PrivacyPolicyScreen, EULAScreen } from '../screens/Legal';
 
 import { COLORS } from '../config/theme';
@@ -62,6 +65,8 @@ const HomeStack = () => (
     <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
+    <Stack.Screen name="SportProfile" component={SportProfileScreen} />
+    <Stack.Screen name="SportSearch" component={SportSearchScreen} />
   </Stack.Navigator>
 );
 
@@ -72,6 +77,8 @@ const SearchStack = () => (
     <Stack.Screen name="PostDetail" component={PostDetailScreen} />
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
+    <Stack.Screen name="SportProfile" component={SportProfileScreen} />
+    <Stack.Screen name="SportSearch" component={SportSearchScreen} />
   </Stack.Navigator>
 );
 

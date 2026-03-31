@@ -50,6 +50,7 @@ export const PostProvider = ({ children }) => {
       if (postData.content) formData.append('content', postData.content);
       if (postData.title) formData.append('title', postData.title);
       if (postData.tags) formData.append('tags', JSON.stringify(postData.tags));
+      if (postData.sport) formData.append('sport', postData.sport);
 
       const response = await api.post(API_ENDPOINTS.CREATE_POST, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

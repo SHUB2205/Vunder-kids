@@ -28,6 +28,9 @@ export const API_ENDPOINTS = {
   COMMENT_POST: (postId) => `${API_BASE_URL}/post/comment/${postId}`,
   DELETE_POST: (postId) => `${API_BASE_URL}/post/delete/${postId}`,
   GET_USER_POSTS: (userId) => `${API_BASE_URL}/post/user/${userId}`,
+  GET_SPORT_POSTS: (sportName) => `${API_BASE_URL}/post/sport/${encodeURIComponent(sportName)}`,
+  SEARCH_SPORTS_TAGS: `${API_BASE_URL}/post/sports/search`,
+  GET_TRENDING_SPORTS: `${API_BASE_URL}/post/sports/trending`,
   
   // Stories
   GET_STORIES: `${API_BASE_URL}/story`,

@@ -3,7 +3,7 @@
     "name": "Fisiko",
     "slug": "fisiko",
     "scheme": "fisiko",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/Fisiko logo.jpg",
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fisiko.io",
-      "buildNumber": "15",
+      "buildNumber": "16",
       "icon": "./assets/Fisiko logo.jpg",
       "usesAppleSignIn": true,
       "infoPlist": {
