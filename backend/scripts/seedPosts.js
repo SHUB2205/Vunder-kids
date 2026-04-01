@@ -3,6 +3,7 @@
  * Creates 150+ posts with images/videos, profiles, and sport tags
  * 
  * Run: node scripts/seedPosts.js
+ * Run with force reset: node scripts/seedPosts.js --force
  */
 
 require('dotenv').config();
@@ -10,6 +11,9 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const Post = require('../models/Post');
 const bcrypt = require('bcryptjs');
+
+// Check for force flag
+const FORCE_RESET = process.argv.includes('--force');
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/vunderkids';
@@ -102,7 +106,7 @@ const SPORTS_IMAGES = {
   Running: [
     'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800',
     'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=800',
-    'https://images.unsplash.com/photo-1461896836934- voices-of-the-city?w=800',
+    'https://images.unsplash.com/photo-1486218119243-13883505764c?w=800',
   ],
   Cycling: [
     'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800',
@@ -293,10 +297,19 @@ async function seedDatabase() {
     const existingPosts = await Post.countDocuments();
     console.log(`  📊 Existing posts: ${existingPosts}`);
 
-    if (existingPosts >= targetPosts) {
+    // Force reset if flag is set
+    if (FORCE_RESET) {
+      console.log('  🗑️ Force reset enabled - deleting seeded posts...');
+      await Post.deleteMany({ creator: { $in: createdUsers.map(u => u._id) } });
+      console.log('  ✅ Seeded posts deleted');
+    }
+
+    const currentPosts = FORCE_RESET ? 0 : existingPosts;
+    
+    if (currentPosts >= targetPosts) {
       console.log('  ⏭️ Sufficient posts already exist. Skipping post creation.');
     } else {
-      const postsToCreate = targetPosts - existingPosts;
+      const postsToCreate = targetPosts - currentPosts;
       console.log(`  🎯 Creating ${postsToCreate} new posts...`);
 
       for (let i = 0; i < postsToCreate; i++) {
@@ -311,6 +324,10 @@ async function seedDatabase() {
           mediaType: isVideo ? 'video' : 'image',
           mediaURL: isVideo ? getRandomItem(VIDEO_URLS) : getImageForSport(sport),
           likes: getRandomNumber(0, 150),
+          likedBy: [],
+          comments: [],
+          tags: [sport.toLowerCase()],
+          isArchived: false,
           createdAt: new Date(Date.now() - getRandomNumber(0, 30 * 24 * 60 * 60 * 1000)), // Random date within last 30 days
         };
 

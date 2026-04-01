@@ -36,8 +36,18 @@ const SetScoreScreen = ({ navigation, route }) => {
   const { match } = route.params;
   const { updateScore } = useMatch();
   
-  const sportName = match?.sport?.name || match?.sportName || 'default';
+  // Extract sport name from various possible locations in match object
+  const getSportName = () => {
+    if (match?.sport?.name) return match.sport.name;
+    if (match?.sportName) return match.sportName;
+    if (typeof match?.sport === 'string') return match.sport;
+    return 'default';
+  };
+  
+  const sportName = getSportName();
   const config = SPORT_CONFIGS[sportName] || SPORT_CONFIGS.default;
+  
+  console.log('Match sport data:', { sport: match?.sport, sportName: match?.sportName, resolved: sportName, config: config.type });
   
   const player1 = match?.creator || match?.players?.[0] || { name: 'Player 1' };
   const player2 = match?.opponent || match?.players?.[1] || { name: 'Player 2' };

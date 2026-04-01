@@ -345,13 +345,28 @@ const SearchScreen = ({ navigation }) => {
   // Render default content (Top Search) - matching PWA Search.js with image cards
   const renderDefaultContent = () => (
     <ScrollView style={styles.defaultContent} showsVerticalScrollIndicator={false}>
+      {/* Browse Sports Button */}
+      <TouchableOpacity
+        style={styles.browseSportsBtn}
+        onPress={() => navigation.navigate('SportSearch')}
+      >
+        <View style={styles.browseSportsContent}>
+          <Ionicons name="football-outline" size={24} color={COLORS.primary} />
+          <View style={styles.browseSportsText}>
+            <Text style={styles.browseSportsTitle}>Browse Sports</Text>
+            <Text style={styles.browseSportsSubtitle}>Explore posts by sport category</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+      </TouchableOpacity>
+
       <Text style={styles.heading}>Top Search</Text>
       <View style={styles.gridContainer}>
         {TOP_SEARCH_ITEMS.map((item, index) => (
           <TouchableOpacity
             key={index}
             style={styles.sportCard}
-            onPress={() => handleSearchItemClick(item.label)}
+            onPress={() => navigation.navigate('SportProfile', { sportName: item.label })}
           >
             <Image 
               source={{ uri: item.image }} 
@@ -723,6 +738,34 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.lg,
     fontWeight: 'bold',
     color: COLORS.text,
+  },
+  // Browse Sports Button
+  browseSportsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    padding: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.small,
+  },
+  browseSportsContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  browseSportsText: {
+    gap: 2,
+  },
+  browseSportsTitle: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  browseSportsSubtitle: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
   },
   // User Card - matching PWA design
   userCard: {

@@ -12,12 +12,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
 import { usePost } from '../../context/PostContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { getSportEmoji } from '../../utils/sportIcons';
 
 const { width } = Dimensions.get('window');
 
 const PostCard = ({ post, onPress, onProfilePress, onCommentPress }) => {
+  const navigation = useNavigation();
   const { likePost, deletePost } = usePost();
   const [liked, setLiked] = useState(post.isLiked || false);
   const [likesCount, setLikesCount] = useState(post.likes || 0);
@@ -171,6 +174,16 @@ const PostCard = ({ post, onPress, onProfilePress, onCommentPress }) => {
           </TouchableOpacity>
         )}
 
+        {post.sport && (
+          <TouchableOpacity 
+            style={styles.sportTag}
+            onPress={() => navigation.navigate('SportProfile', { sportName: post.sport })}
+          >
+            <Text style={styles.sportTagEmoji}>{getSportEmoji(post.sport)}</Text>
+            <Text style={styles.sportTagText}>{post.sport}</Text>
+          </TouchableOpacity>
+        )}
+
         <Text style={styles.timestamp}>{formatTime(post.createdAt)}</Text>
       </View>
 
@@ -288,6 +301,25 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.textSecondary,
     marginTop: SPACING.xs,
+  },
+  sportTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.full,
+    alignSelf: 'flex-start',
+    marginTop: SPACING.sm,
+    gap: 4,
+  },
+  sportTagEmoji: {
+    fontSize: 12,
+  },
+  sportTagText: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.primary,
+    fontWeight: '500',
   },
   timestamp: {
     fontSize: FONTS.sizes.xs,

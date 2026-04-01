@@ -73,7 +73,7 @@ const MatchDetailScreen = ({ navigation, route }) => {
         <View style={styles.matchHeader}>
           <View style={styles.sportBadge}>
             <Ionicons name="trophy" size={16} color={COLORS.primary} />
-            <Text style={styles.sportName}>{match.sport?.name || 'Sport'}</Text>
+            <Text style={styles.sportName}>{match.sport?.name || match.sportName || 'Sport'}</Text>
           </View>
           {match.status === 'in-progress' && (
             <View style={styles.liveBadge}>
