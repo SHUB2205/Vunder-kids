@@ -151,7 +151,10 @@ const CreatePostScreen = ({ navigation, route }) => {
 
         {/* Sport Tag Section */}
         <View style={styles.sportTagSection}>
-          <Text style={styles.sportTagLabel}>Tag a Sport</Text>
+          <View style={styles.sportTagHeader}>
+            <Ionicons name="football-outline" size={20} color={COLORS.primary} />
+            <Text style={styles.sportTagLabel}>Tag a Sport</Text>
+          </View>
           <TouchableOpacity
             style={styles.sportTagButton}
             onPress={() => setShowSportPicker(true)}
@@ -166,13 +169,13 @@ const CreatePostScreen = ({ navigation, route }) => {
               </View>
             ) : (
               <View style={styles.addSportTag}>
-                <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.addSportText}>Add sport tag</Text>
+                <Ionicons name="add-circle-outline" size={24} color={COLORS.primary} />
+                <Text style={styles.addSportText}>Tap to select a sport</Text>
               </View>
             )}
           </TouchableOpacity>
           <Text style={styles.sportTagHint}>
-            Tag your post with a sport to help others discover it
+            Your post will appear on the sport's profile page
           </Text>
         </View>
       </ScrollView>
@@ -339,19 +342,25 @@ const styles = StyleSheet.create({
   
   // Sport Tag styles
   sportTagSection: {
-    marginTop: SPACING.xl,
-    paddingTop: SPACING.lg,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    marginTop: SPACING.lg,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    marginHorizontal: SPACING.md,
+  },
+  sportTagHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   sportTagLabel: {
     fontSize: FONTS.sizes.md,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
-    marginBottom: SPACING.sm,
   },
   sportTagButton: {
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   selectedSportTag: {
     flexDirection: 'row',

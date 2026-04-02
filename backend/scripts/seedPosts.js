@@ -6,7 +6,8 @@
  * Run with force reset: node scripts/seedPosts.js --force
  */
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Post = require('../models/Post');
@@ -17,6 +18,7 @@ const FORCE_RESET = process.argv.includes('--force');
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/vunderkids';
+console.log('Using MongoDB URI:', MONGODB_URI ? 'Found in env' : 'Using default');
 
 // Sports list with emojis
 const SPORTS = [

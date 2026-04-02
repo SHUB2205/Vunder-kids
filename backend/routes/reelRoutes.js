@@ -28,10 +28,10 @@ router.get('/', auth, async (req, res) => {
     const videoPostsAsReels = videoPosts.map(post => ({
       _id: post._id,
       creator: post.creator,
-      mediaURL: post.mediaUrl,
+      mediaURL: post.mediaURL,
       caption: post.content || post.title || '',
-      likes: post.likes?.length || 0,
-      likedBy: post.likes || [],
+      likes: post.likes || 0,
+      likedBy: post.likedBy || [],
       comments: post.comments || [],
       createdAt: post.createdAt,
       isFromPost: true,
