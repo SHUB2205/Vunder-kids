@@ -5,17 +5,34 @@ const Facility = require('../models/Facility');
 const Booking = require('../models/Booking');
 const Notification = require('../models/Notification');
 
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // @route   GET /api/facilities
-// @desc    Get all facilities
+// @desc    Get all facilities (optional: sport, city, state, location — location is legacy single substring)
 router.get('/', auth, async (req, res) => {
   try {
-    const { sport, location } = req.query;
-    const filter = { isActive: true };
+    const { sport, location, city, state } = req.query;
+    const conditions = [{ isActive: true }];
 
-    if (sport) filter.sports = sport;
-    if (location) filter.location = new RegExp(location, 'i');
+    if (sport) {
+      conditions.push({
+        sports: new RegExp(`^${escapeRegex(sport)}$`, 'i'),
+      });
+    }
+    if (city) {
+      conditions.push({ location: new RegExp(escapeRegex(city), 'i') });
+    }
+    if (state) {
+      conditions.push({ location: new RegExp(escapeRegex(state), 'i') });
+    }
+    if (location && !city && !state) {
+      conditions.push({ location: new RegExp(escapeRegex(location), 'i') });
+    }
 
-    const facilities = await Facility.find(filter).sort({ rating: -1 });
+    const mongoFilter = conditions.length === 1 ? conditions[0] : { $and: conditions };
+    const facilities = await Facility.find(mongoFilter).sort({ rating: -1 });
     res.json({ facilities });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

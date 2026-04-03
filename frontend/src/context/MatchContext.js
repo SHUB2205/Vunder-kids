@@ -92,6 +92,24 @@ export const MatchProvider = ({ children }) => {
     }
   };
 
+  /** Filter facilities by sport name and area without mutating context `facilities` (for create-match picker). */
+  const searchFacilities = async ({ sport, city, state, location } = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (sport) params.append('sport', sport);
+      if (city) params.append('city', city);
+      if (state) params.append('state', state);
+      if (location) params.append('location', location);
+      const qs = params.toString();
+      const url = qs ? `${API_ENDPOINTS.GET_FACILITIES}?${qs}` : API_ENDPOINTS.GET_FACILITIES;
+      const response = await api.get(url);
+      return response.data.facilities || [];
+    } catch (error) {
+      console.error('Error searching facilities:', error);
+      return [];
+    }
+  };
+
   const bookFacility = async (bookingData) => {
     try {
       const response = await api.post(API_ENDPOINTS.BOOK_FACILITY, bookingData);
@@ -151,6 +169,7 @@ export const MatchProvider = ({ children }) => {
         joinMatch,
         fetchSports,
         fetchFacilities,
+        searchFacilities,
         bookFacility,
         toggleLike,
         commentOnMatch,

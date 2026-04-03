@@ -63,6 +63,7 @@ const HomeStack = () => (
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
     <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
+    <Stack.Screen name="BookFacility" component={BookFacilityScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SportProfile" component={SportProfileScreen} />

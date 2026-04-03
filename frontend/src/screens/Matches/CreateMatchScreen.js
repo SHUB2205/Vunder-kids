@@ -21,7 +21,7 @@ import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 const CreateMatchScreen = ({ navigation }) => {
-  const { createMatch, sports, fetchSports } = useMatch();
+  const { createMatch, sports, fetchSports, searchFacilities } = useMatch();
   const [matchType, setMatchType] = useState('fisiko'); // 'fisiko' or 'non-fisiko'
   const [name, setName] = useState('');
   const [selectedSport, setSelectedSport] = useState(null);
@@ -53,9 +53,52 @@ const CreateMatchScreen = ({ navigation }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  const [selectedFacility, setSelectedFacility] = useState(null);
+  const [facilityOptions, setFacilityOptions] = useState([]);
+  const [facilitiesLoading, setFacilitiesLoading] = useState(false);
+  const [showFacilityPicker, setShowFacilityPicker] = useState(false);
+
+  const sportNameForFilter = (selectedSport?.name || '').trim();
+
   useEffect(() => {
     fetchSports();
   }, []);
+
+  useEffect(() => {
+    if (matchType !== 'fisiko') {
+      setSelectedFacility(null);
+      setFacilityOptions([]);
+    }
+  }, [matchType]);
+
+  useEffect(() => {
+    if (matchType !== 'fisiko' || !sportNameForFilter) {
+      setFacilityOptions([]);
+      return;
+    }
+    const city = venueCity.trim();
+    if (!city) {
+      setFacilityOptions([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setFacilitiesLoading(true);
+      const list = await searchFacilities({
+        sport: sportNameForFilter,
+        city,
+        ...(venueState.trim() ? { state: venueState.trim() } : {}),
+      });
+      setFacilityOptions(list);
+      setFacilitiesLoading(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [sportNameForFilter, venueCity, venueState, matchType]);
+
+  useEffect(() => {
+    if (!selectedFacility || facilityOptions.length === 0) return;
+    const stillThere = facilityOptions.some((f) => f._id === selectedFacility._id);
+    if (!stillThere) setSelectedFacility(null);
+  }, [facilityOptions]);
   
   // Search users for opponent selection
   const searchUsers = async (query) => {
@@ -155,9 +198,27 @@ const CreateMatchScreen = ({ navigation }) => {
     setLoading(false);
 
     if (result.success) {
-      Alert.alert('Success', 'Match created successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      if (matchType === 'fisiko' && selectedFacility?._id) {
+        Alert.alert(
+          'Match created',
+          'Book this facility for your match time, or open directions in Google Maps from the booking screen.',
+          [
+            { text: 'Later', style: 'cancel', onPress: () => navigation.goBack() },
+            {
+              text: 'Book facility',
+              onPress: () =>
+                navigation.navigate('BookFacility', {
+                  facility: selectedFacility,
+                  initialDate: date.toISOString(),
+                }),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Success', 'Match created successfully!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      }
     } else {
       Alert.alert('Error', result.error || 'Failed to create match');
     }
@@ -277,7 +338,10 @@ const CreateMatchScreen = ({ navigation }) => {
                     placeholder="Tennis"
                     placeholderTextColor={COLORS.textLight}
                     value={selectedSport?.name || ''}
-                    onChangeText={(text) => setSelectedSport({ name: text })}
+                    onChangeText={(text) => {
+                      setSelectedSport({ name: text });
+                      setSelectedFacility(null);
+                    }}
                   />
                 </View>
 
@@ -311,7 +375,10 @@ const CreateMatchScreen = ({ navigation }) => {
                       placeholder="City"
                       placeholderTextColor={COLORS.textLight}
                       value={venueCity}
-                      onChangeText={setVenueCity}
+                      onChangeText={(t) => {
+                        setVenueCity(t);
+                        setSelectedFacility(null);
+                      }}
                     />
                   </View>
                   <View style={[styles.inputContainer, styles.venueInputHalf]}>
@@ -320,10 +387,52 @@ const CreateMatchScreen = ({ navigation }) => {
                       placeholder="State"
                       placeholderTextColor={COLORS.textLight}
                       value={venueState}
-                      onChangeText={setVenueState}
+                      onChangeText={(t) => {
+                        setVenueState(t);
+                        setSelectedFacility(null);
+                      }}
                     />
                   </View>
                 </View>
+
+                {matchType === 'fisiko' && (
+                  <>
+                    <Text style={styles.label}>Facility (optional)</Text>
+                    <Text style={styles.facilityHint}>
+                      Lists venues that offer this sport in the city you entered. Pick one to autofill the venue name.
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.inputContainer}
+                      onPress={() => setShowFacilityPicker(true)}
+                      disabled={!sportNameForFilter || !venueCity.trim()}
+                    >
+                      <Ionicons name="business" size={18} color={COLORS.primary} />
+                      <Text
+                        style={[
+                          styles.inputText,
+                          (!selectedFacility && { color: COLORS.textLight }),
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {!sportNameForFilter || !venueCity.trim()
+                          ? 'Select sport and city first'
+                          : selectedFacility
+                            ? selectedFacility.name
+                            : 'Choose a facility or enter venue manually'}
+                      </Text>
+                      <Ionicons name="chevron-down" size={18} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
+                    {facilitiesLoading ? (
+                      <ActivityIndicator style={{ marginVertical: SPACING.sm }} color={COLORS.primary} />
+                    ) : null}
+                    {!facilitiesLoading &&
+                    sportNameForFilter &&
+                    venueCity.trim() &&
+                    facilityOptions.length === 0 ? (
+                      <Text style={styles.facilityEmpty}>No facilities found for this sport and area.</Text>
+                    ) : null}
+                  </>
+                )}
                 
                 <View style={[styles.inputContainer, { marginTop: SPACING.sm }]}>
                   <TextInput
@@ -486,7 +595,10 @@ const CreateMatchScreen = ({ navigation }) => {
                     placeholder="City"
                     placeholderTextColor={COLORS.textLight}
                     value={venueCity}
-                    onChangeText={setVenueCity}
+                    onChangeText={(t) => {
+                      setVenueCity(t);
+                      setSelectedFacility(null);
+                    }}
                   />
                 </View>
                 <View style={[styles.inputContainer, styles.venueInputHalf]}>
@@ -495,10 +607,52 @@ const CreateMatchScreen = ({ navigation }) => {
                     placeholder="State"
                     placeholderTextColor={COLORS.textLight}
                     value={venueState}
-                    onChangeText={setVenueState}
+                    onChangeText={(t) => {
+                      setVenueState(t);
+                      setSelectedFacility(null);
+                    }}
                   />
                 </View>
               </View>
+
+              {matchType === 'fisiko' && (
+                <>
+                  <Text style={styles.label}>Facility (optional)</Text>
+                  <Text style={styles.facilityHint}>
+                    Lists venues that offer this sport in the city you entered. Pick one to autofill the venue name.
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.inputContainer}
+                    onPress={() => setShowFacilityPicker(true)}
+                    disabled={!sportNameForFilter || !venueCity.trim()}
+                  >
+                    <Ionicons name="business" size={18} color={COLORS.primary} />
+                    <Text
+                      style={[
+                        styles.inputText,
+                        (!selectedFacility && { color: COLORS.textLight }),
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {!sportNameForFilter || !venueCity.trim()
+                        ? 'Select sport and city first'
+                        : selectedFacility
+                          ? selectedFacility.name
+                          : 'Choose a facility or enter venue manually'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={18} color={COLORS.textSecondary} />
+                  </TouchableOpacity>
+                  {facilitiesLoading ? (
+                    <ActivityIndicator style={{ marginVertical: SPACING.sm }} color={COLORS.primary} />
+                  ) : null}
+                  {!facilitiesLoading &&
+                  sportNameForFilter &&
+                  venueCity.trim() &&
+                  facilityOptions.length === 0 ? (
+                    <Text style={styles.facilityEmpty}>No facilities found for this sport and area.</Text>
+                  ) : null}
+                </>
+              )}
               
               <View style={[styles.inputContainer, { marginTop: SPACING.sm }]}>
                 <TextInput
@@ -645,6 +799,7 @@ const CreateMatchScreen = ({ navigation }) => {
                   onPress={() => {
                     if (customSport.trim()) {
                       setSelectedSport({ _id: `custom_${Date.now()}`, name: customSport.trim() });
+                      setSelectedFacility(null);
                       setCustomSport('');
                       setShowSportPicker(false);
                     }
@@ -663,6 +818,7 @@ const CreateMatchScreen = ({ navigation }) => {
                   style={styles.sportItem}
                   onPress={() => {
                     setSelectedSport(item);
+                    setSelectedFacility(null);
                     setCustomSport('');
                     setShowSportPicker(false);
                   }}
@@ -674,6 +830,58 @@ const CreateMatchScreen = ({ navigation }) => {
                 </TouchableOpacity>
               )}
             />
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showFacilityPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowFacilityPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select facility</Text>
+              <TouchableOpacity onPress={() => setShowFacilityPicker(false)}>
+                <Ionicons name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+            {!sportNameForFilter || !venueCity.trim() ? (
+              <Text style={styles.emptyText}>Choose a sport and enter a city first.</Text>
+            ) : facilitiesLoading ? (
+              <ActivityIndicator style={{ marginTop: SPACING.lg }} color={COLORS.primary} />
+            ) : (
+              <FlatList
+                data={facilityOptions}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.sportItem}
+                    onPress={() => {
+                      setSelectedFacility(item);
+                      setVenueName(item.name);
+                      setShowFacilityPicker(false);
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.sportItemText}>{item.name}</Text>
+                      <Text style={styles.facilityListSub} numberOfLines={2}>
+                        {item.location}
+                        {item.rating != null ? ` · ★ ${item.rating}` : ''}
+                      </Text>
+                    </View>
+                    {selectedFacility?._id === item._id ? (
+                      <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                    ) : null}
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>No facilities match this sport and city.</Text>
+                }
+              />
+            )}
           </View>
         </View>
       </Modal>
@@ -1067,6 +1275,23 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginTop: SPACING.xl,
     fontSize: FONTS.sizes.md,
+  },
+  facilityHint: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.sm,
+    lineHeight: 20,
+  },
+  facilityEmpty: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+    fontStyle: 'italic',
+  },
+  facilityListSub: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   opponentContainer: {
     position: 'relative',

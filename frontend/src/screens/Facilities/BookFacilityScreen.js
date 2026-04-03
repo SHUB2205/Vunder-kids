@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,11 +22,35 @@ const TIME_SLOTS = [
 ];
 
 const BookFacilityScreen = ({ navigation, route }) => {
-  const { facility } = route.params;
+  const { facility, initialDate } = route.params || {};
   const { bookFacility } = useMatch();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (initialDate) {
+      const d = new Date(initialDate);
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+    return new Date();
+  });
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!initialDate) return;
+    const d = new Date(initialDate);
+    if (!Number.isNaN(d.getTime())) setSelectedDate(d);
+  }, [initialDate]);
+
+  const openInMaps = () => {
+    if (!facility?.location) return;
+    const q = encodeURIComponent(facility.location);
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${q}`);
+  };
+
+  const directionsInMaps = () => {
+    if (!facility?.location) return;
+    const dest = encodeURIComponent(facility.location);
+    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${dest}`);
+  };
 
   const generateDates = () => {
     const dates = [];
@@ -110,6 +135,18 @@ const BookFacilityScreen = ({ navigation, route }) => {
               <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
               <Text style={styles.locationText}>{facility.location}</Text>
             </View>
+            {facility?.location ? (
+              <View style={styles.mapsRow}>
+                <TouchableOpacity style={styles.mapsBtn} onPress={openInMaps}>
+                  <Ionicons name="map-outline" size={16} color={COLORS.primary} />
+                  <Text style={styles.mapsBtnText}>Open in Maps</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.mapsBtn} onPress={directionsInMaps}>
+                  <Ionicons name="navigate-outline" size={16} color={COLORS.primary} />
+                  <Text style={styles.mapsBtnText}>Directions</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
         </View>
 
@@ -274,6 +311,29 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
     marginLeft: SPACING.xs,
+    flex: 1,
+  },
+  mapsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    marginTop: SPACING.sm,
+  },
+  mapsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
+  mapsBtnText: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '500',
+    color: COLORS.primary,
   },
   sectionTitle: {
     fontSize: FONTS.sizes.md,
