@@ -8,11 +8,14 @@ import {
   Dimensions,
   Image,
   ActivityIndicator,
+  Share,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { usePost } from '../../context/PostContext';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, FONTS } from '../../config/theme';
 
 const { width, height } = Dimensions.get('window');
@@ -125,6 +128,7 @@ const ReelsScreen = ({ navigation }) => {
 
 const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
   const videoRef = useRef(null);
+  const navigation = useNavigation();
   const [liked, setLiked] = useState(reel.isLiked || false);
   const [likesCount, setLikesCount] = useState(reel.likes || 0);
   const [paused, setPaused] = useState(false);
@@ -152,6 +156,24 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
 
   const toggleMute = () => {
     setMuted(!muted);
+  };
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: `Check out this reel by ${reel.creator?.userName || reel.creator?.name}: ${reel.caption || ''}`,
+        url: reel.mediaURL || '',
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share reel');
+    }
+  };
+
+  const handleComment = () => {
+    navigation.navigate('Comments', { 
+      postId: reel._id,
+      postType: 'reel'
+    });
   };
 
   const formatCount = (count) => {
@@ -205,13 +227,13 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
         </TouchableOpacity>
 
         {/* Comment Button */}
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={handleComment}>
           <Ionicons name="chatbox-outline" size={26} color={COLORS.white} />
           <Text style={styles.actionText}>{formatCount(reel.comments?.length || 0)}</Text>
         </TouchableOpacity>
 
         {/* Share Button */}
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
           <Ionicons name="arrow-redo-outline" size={26} color={COLORS.white} />
           <Text style={styles.actionText}>Share</Text>
         </TouchableOpacity>

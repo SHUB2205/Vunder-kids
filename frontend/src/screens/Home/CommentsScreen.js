@@ -19,9 +19,9 @@ import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
 
 const CommentsScreen = ({ navigation, route }) => {
-  const { postId } = route.params;
+  const { postId, postType = 'post' } = route.params;
   const { user } = useAuth();
-  const { commentOnPost } = usePost();
+  const { commentOnPost, commentOnReel } = usePost();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,13 @@ const CommentsScreen = ({ navigation, route }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await api.get(`${API_ENDPOINTS.GET_POSTS}/${postId}/comments`);
+      let endpoint;
+      if (postType === 'reel') {
+        endpoint = `${API_ENDPOINTS.GET_REEL}/${postId}`;
+      } else {
+        endpoint = `${API_ENDPOINTS.GET_POSTS}/${postId}`;
+      }
+      const response = await api.get(endpoint);
       setComments(response.data.comments || []);
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -46,7 +52,12 @@ const CommentsScreen = ({ navigation, route }) => {
     if (!newComment.trim()) return;
 
     setSending(true);
-    const result = await commentOnPost(postId, newComment);
+    let result;
+    if (postType === 'reel') {
+      result = await commentOnReel(postId, newComment);
+    } else {
+      result = await commentOnPost(postId, newComment);
+    }
     
     if (result.success) {
       setComments([...comments, result.comment]);

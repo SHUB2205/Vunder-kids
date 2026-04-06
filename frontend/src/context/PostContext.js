@@ -199,6 +199,29 @@ export const PostProvider = ({ children }) => {
     }
   };
 
+  const commentOnReel = async (reelId, content) => {
+    try {
+      const response = await api.post(API_ENDPOINTS.COMMENT_REEL(reelId), {
+        content: content.trim(),
+      });
+      
+      setReels(prev =>
+        prev.map(reel =>
+          reel._id === reelId
+            ? { 
+                ...reel, 
+                comments: [...(reel.comments || []), response.data.comment._id] 
+              }
+            : reel
+        )
+      );
+      
+      return { success: true, comment: response.data.comment };
+    } catch (error) {
+      return { success: false };
+    }
+  };
+
   return (
     <PostContext.Provider
       value={{
@@ -218,6 +241,7 @@ export const PostProvider = ({ children }) => {
         fetchReels,
         createReel,
         likeReel,
+        commentOnReel,
         setPosts,
         setRefreshing,
       }}
