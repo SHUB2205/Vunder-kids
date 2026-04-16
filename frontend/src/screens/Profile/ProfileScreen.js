@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Dimensions,
   RefreshControl,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,37 +24,25 @@ import { getSportIcon, getSportEmoji } from '../../utils/sportIcons';
 const { width } = Dimensions.get('window');
 const POST_SIZE = (width - SPACING.lg * 2 - 4) / 3;
 
-const PROFILE_TABS = ['Overview', 'Photos', 'Post', 'Reels', 'Matches'];
+const PROFILE_TABS = ['Overview', 'Photos', 'Posts', 'Reels', 'Matches'];
 
-// Badges with ranges - matching PWA Badges.js
-const BADGES = [
-  { range: [0, 20], name: 'Learner', icon: '📚', color: '#8B5CF6' },
-  { range: [21, 40], name: 'Hunter', icon: '🎯', color: '#F59E0B' },
-  { range: [41, 70], name: 'Rising Star', icon: '⭐', color: '#EAB308' },
-  { range: [71, 100], name: 'Professional', icon: '💼', color: '#3B82F6' },
-  { range: [101, 150], name: 'Winner', icon: '🏆', color: '#10B981' },
-  { range: [151, 200], name: 'Achievers', icon: '🎖️', color: '#6366F1' },
-  { range: [201, 250], name: 'Conqueror', icon: '👑', color: '#EC4899' },
-  { range: [251, 350], name: 'Legend', icon: '🌟', color: '#F97316' },
-  { range: [351, 500], name: 'Top Gun', icon: '🔥', color: '#EF4444' },
-  { range: [501, 1000], name: 'GOAT', icon: '🐐', color: '#14B8A6' },
+const LEVELS = [
+  { min: 0,   max: 20,   name: 'Learner',      icon: '📚', color: '#8B5CF6', next: 20 },
+  { min: 21,  max: 40,   name: 'Hunter',       icon: '🎯', color: '#F59E0B', next: 40 },
+  { min: 41,  max: 70,   name: 'Rising Star',  icon: '⭐', color: '#EAB308', next: 70 },
+  { min: 71,  max: 100,  name: 'Professional', icon: '💼', color: '#3B82F6', next: 100 },
+  { min: 101, max: 150,  name: 'Winner',       icon: '🏆', color: '#10B981', next: 150 },
+  { min: 151, max: 200,  name: 'Achiever',     icon: '🎖️', color: '#6366F1', next: 200 },
+  { min: 201, max: 250,  name: 'Conqueror',    icon: '👑', color: '#EC4899', next: 250 },
+  { min: 251, max: 350,  name: 'Legend',       icon: '🌟', color: '#F97316', next: 350 },
+  { min: 351, max: 500,  name: 'Top Gun',      icon: '🔥', color: '#EF4444', next: 500 },
+  { min: 501, max: 99999,name: 'G.O.A.T',      icon: '🐐', color: '#14B8A6', next: 99999 },
 ];
 
-// Get current badge based on score - matching PWA ProfileBadges.js
-const getCurrentBadge = (score) => {
-  const sortedBadges = [...BADGES].reverse();
-  return sortedBadges.find(badge => score >= badge.range[0] && score <= badge.range[1]) || BADGES[0];
-};
-
-// Get badges to display (earned + current)
-const getDisplayBadges = (score) => {
-  const sortedBadges = [...BADGES].reverse();
-  const currentIndex = sortedBadges.findIndex(badge => score >= badge.range[0] && score <= badge.range[1]);
-  if (currentIndex === -1) return [{ ...BADGES[0], isCurrent: true }];
-  
-  const earned = sortedBadges.slice(0, currentIndex).map(b => ({ ...b, isCurrent: false }));
-  const current = { ...sortedBadges[currentIndex], isCurrent: true };
-  return [...earned, current];
+const getCurrentLevel = (score) => LEVELS.find(l => score >= l.min && score <= l.max) || LEVELS[0];
+const getNextLevel = (score) => {
+  const idx = LEVELS.findIndex(l => score >= l.min && score <= l.max);
+  return idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null;
 };
 
 const ProfileScreen = ({ navigation }) => {
@@ -64,33 +53,32 @@ const ProfileScreen = ({ navigation }) => {
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
-  // Stats - matching PWA ProfileStats.js getStats function
+  const xpAnim = useRef(new Animated.Value(0)).current;
+
   const progress = user?.progress || {};
   const stats = {
     coins: progress.overallScore || 0,
     matchesPlayed: progress.totalMatches || 0,
     matchesWon: progress.matchesWon || 0,
     matchesLost: (progress.totalMatches || 0) - (progress.matchesWon || 0),
-    winPercent: progress.totalMatches > 0 
-      ? Math.ceil((progress.matchesWon * 100) / progress.totalMatches) 
-      : 0,
+    winPercent: progress.totalMatches > 0 ? Math.ceil((progress.matchesWon * 100) / progress.totalMatches) : 0,
+    streak: progress.currentStreak || 0,
   };
-  
-  // Get badges based on user's overall score
-  const userBadges = getDisplayBadges(stats.coins);
-  const currentBadge = getCurrentBadge(stats.coins);
+
+  const currentLevel = getCurrentLevel(stats.coins);
+  const nextLevel = getNextLevel(stats.coins);
+  const xpInLevel = stats.coins - currentLevel.min;
+  const xpNeeded = currentLevel.max - currentLevel.min;
+  const xpPercent = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
 
   useEffect(() => {
     fetchUserData();
+    Animated.timing(xpAnim, { toValue: xpPercent, duration: 1200, useNativeDriver: false }).start();
   }, []);
 
   const fetchUserData = async () => {
     setLoading(true);
-    await Promise.all([
-      fetchUserPosts(),
-      fetchMatches(),
-    ]);
+    await Promise.all([fetchUserPosts(), fetchMatches()]);
     setLoading(false);
   };
 
@@ -100,9 +88,7 @@ const ProfileScreen = ({ navigation }) => {
       const allPosts = response.data.posts || [];
       setPosts(allPosts.filter(p => p.mediaType !== 'video'));
       setReels(allPosts.filter(p => p.mediaType === 'video'));
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
+    } catch (error) { console.error('Error fetching posts:', error); }
   };
 
   const onRefresh = async () => {
@@ -112,206 +98,227 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: logout },
-      ]
-    );
+    Alert.alert('Logout', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Logout', style: 'destructive', onPress: logout },
+    ]);
   };
 
-  const getUserMatches = () => {
-    return (matches || []).filter(m => 
-      m.creator?._id === user?._id || 
-      m.players?.some(p => p._id === user?._id)
-    );
-  };
+  const getUserMatches = () => (matches || []).filter(m =>
+    m.creator?._id === user?._id || m.players?.some(p => p._id === user?._id)
+  );
 
   const getTabContent = () => {
     switch (activeTab) {
-      case 'Photos':
-        return posts.filter(p => p.mediaType === 'image');
-      case 'Post':
-        return posts;
-      case 'Reels':
-        return reels;
-      case 'Matches':
-        return getUserMatches();
-      default:
-        return posts;
+      case 'Photos': return posts.filter(p => p.mediaType === 'image');
+      case 'Posts': return posts;
+      case 'Reels': return reels;
+      case 'Matches': return getUserMatches();
+      default: return posts;
     }
   };
 
-  const renderPostItem = ({ item }) => {
-    // For Matches tab, render match cards
-    if (activeTab === 'Matches') {
-      return (
-        <TouchableOpacity
-          style={styles.matchItem}
-          onPress={() => navigation.navigate('MatchDetail', { match: item })}
-        >
-          <View style={styles.matchItemIcon}>
-            <Ionicons name="trophy" size={20} color={COLORS.primary} />
-          </View>
-          <View style={styles.matchItemInfo}>
-            <Text style={styles.matchItemName}>{item.name || 'Match'}</Text>
-            <Text style={styles.matchItemMeta}>
-              {item.sport?.name} • {new Date(item.date).toLocaleDateString()}
-            </Text>
-          </View>
-          <Text style={[styles.matchItemStatus, 
-            item.status === 'completed' && { color: COLORS.success },
-            item.status === 'in-progress' && { color: COLORS.error }
-          ]}>
-            {item.status === 'completed' ? 'Completed' : item.status === 'in-progress' ? 'Live' : 'Upcoming'}
-          </Text>
-        </TouchableOpacity>
-      );
-    }
-    
-    // For Posts/Photos/Reels tabs, render grid items
+  const renderMatchItem = (item) => {
+    const isPast = new Date(item.date) < new Date();
     return (
       <TouchableOpacity
-        style={styles.postItem}
-        onPress={() => navigation.navigate('PostDetail', { post: item })}
+        style={styles.matchItem}
+        onPress={() => navigation.navigate('MatchDetail', { match: item })}
       >
+        <View style={[styles.matchItemIconWrap, { backgroundColor: item.status === 'completed' ? COLORS.success + '20' : item.status === 'in-progress' ? COLORS.error + '20' : COLORS.primary + '20' }]}>
+          <Text style={{ fontSize: 20 }}>{getSportEmoji(item.sport?.name)}</Text>
+        </View>
+        <View style={styles.matchItemInfo}>
+          <Text style={styles.matchItemName}>{item.name || 'Match'}</Text>
+          <Text style={styles.matchItemMeta}>{item.sport?.name} • {new Date(item.date).toLocaleDateString()}</Text>
+        </View>
+        <View style={[styles.matchStatusBadge, {
+          backgroundColor: item.status === 'completed' ? COLORS.success + '20' :
+            item.status === 'in-progress' ? COLORS.error + '20' : COLORS.primary + '15'
+        }]}>
+          <Text style={[styles.matchStatusText, {
+            color: item.status === 'completed' ? COLORS.success :
+              item.status === 'in-progress' ? COLORS.error : isPast ? COLORS.textSecondary : COLORS.primary
+          }]}>
+            {item.status === 'completed' ? '✅ Done' : item.status === 'in-progress' ? '🔴 Live' : isPast ? 'Past' : '📅 Soon'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderPostItem = ({ item }) => {
+    if (activeTab === 'Matches') return renderMatchItem(item);
+    return (
+      <TouchableOpacity style={styles.postItem} onPress={() => navigation.navigate('PostDetail', { post: item })}>
         <Image source={{ uri: item.mediaURL }} style={styles.postImage} />
         {item.mediaType === 'video' && (
           <View style={styles.videoIndicator}>
-            <Ionicons name="play" size={16} color={COLORS.white} />
+            <Ionicons name="play" size={14} color={COLORS.white} />
           </View>
         )}
       </TouchableOpacity>
     );
   };
 
-  const renderStatsCard = (icon, label, value, color) => (
-    <View style={styles.statsCard}>
-      <Text style={styles.statsCardLabel}>{label}</Text>
-      <View style={styles.statsCardContent}>
-        <Text style={styles.statsCardIcon}>{icon}</Text>
-        <Text style={styles.statsCardValue}>{value}</Text>
-      </View>
-    </View>
-  );
+  const xpBarWidth = xpAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
 
   const renderHeader = () => (
     <View style={styles.headerContent}>
-      {/* Profile Info Card */}
+      {/* Profile Card */}
       <View style={styles.profileCard}>
         <View style={styles.profileTopRow}>
-          <Image 
-            source={{ uri: user?.avatar || 'https://via.placeholder.com/80' }} 
-            style={styles.avatar} 
-          />
+          <View style={styles.avatarContainer}>
+            <Image source={{ uri: user?.avatar || 'https://via.placeholder.com/80' }} style={styles.avatar} />
+            <View style={[styles.levelBadgeOnAvatar, { backgroundColor: currentLevel.color }]}>
+              <Text style={styles.levelBadgeText}>{currentLevel.icon}</Text>
+            </View>
+          </View>
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{user?.name}</Text>
+            <Text style={styles.username}>@{user?.userName}</Text>
             <View style={styles.statsRow}>
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{posts.length}</Text> posts
-              </Text>
+              <Text style={styles.statText}><Text style={styles.statNumber}>{posts.length}</Text> posts</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Followers')}>
-                <Text style={styles.statText}>
-                  <Text style={styles.statNumber}>{user?.followers?.length || 0}</Text> followers
-                </Text>
+                <Text style={styles.statText}><Text style={styles.statNumber}>{user?.followers?.length || 0}</Text> followers</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('Following')}>
-                <Text style={styles.statText}>
-                  <Text style={styles.statNumber}>{user?.following?.length || 0}</Text> following
-                </Text>
+                <Text style={styles.statText}><Text style={styles.statNumber}>{user?.following?.length || 0}</Text> following</Text>
               </TouchableOpacity>
             </View>
             {user?.bio && <Text style={styles.bio}>{user.bio}</Text>}
-            <View style={styles.metaRow}>
-              {user?.location && (
-                <View style={styles.metaItem}>
-                  <Ionicons name="location" size={14} color={COLORS.error} />
-                  <Text style={styles.metaText}>{user.location}</Text>
-                </View>
-              )}
-              {user?.occupation && (
-                <View style={styles.metaItem}>
-                  <Ionicons name="briefcase" size={14} color={COLORS.textSecondary} />
-                  <Text style={styles.metaText}>{user.occupation}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.editProfileBtn} onPress={() => navigation.navigate('EditProfile')}>
+          <Ionicons name="create-outline" size={14} color={COLORS.white} />
+          <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Level & XP Card */}
+      <View style={styles.levelCard}>
+        <View style={styles.levelCardTop}>
+          <View style={styles.levelBadgeLarge}>
+            <Text style={styles.levelBadgeLargeIcon}>{currentLevel.icon}</Text>
+          </View>
+          <View style={styles.levelInfo}>
+            <View style={styles.levelNameRow}>
+              <Text style={[styles.levelName, { color: currentLevel.color }]}>{currentLevel.name}</Text>
+              {stats.streak > 0 && (
+                <View style={styles.streakBadge}>
+                  <Text style={styles.streakIcon}>🔥</Text>
+                  <Text style={styles.streakText}>{stats.streak} day streak</Text>
                 </View>
               )}
             </View>
-            <View style={styles.accountTypeRow}>
-              <Ionicons name="lock-open" size={12} color={COLORS.textSecondary} />
-              <Text style={styles.accountTypeText}>Public Account</Text>
+            <View style={styles.xpRow}>
+              <Text style={styles.xpLabel}>
+                {stats.coins} / {currentLevel.max} XP
+              </Text>
+              {nextLevel && <Text style={styles.nextLevelText}>→ {nextLevel.icon} {nextLevel.name}</Text>}
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.editProfileBtn}
-            onPress={() => navigation.navigate('EditProfile')}
-          >
-            <Text style={styles.editProfileBtnText}>Edit Profile</Text>
-          </TouchableOpacity>
+          <View style={styles.coinBadge}>
+            <Text style={styles.coinIcon}>🪙</Text>
+            <Text style={styles.coinCount}>{stats.coins}</Text>
+          </View>
         </View>
 
-        {/* Badges Section - matching PWA ProfileBadges.js */}
-        <View style={styles.badgesSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Badges</Text>
-            <TouchableOpacity onPress={() => Alert.alert('All Badges', BADGES.map(b => `${b.icon} ${b.name} (${b.range[0]}-${b.range[1]} coins)`).join('\n'))}>
-              <Text style={styles.viewMoreText}>View More ▾</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {userBadges.map((badge, index) => (
-              <View key={index} style={styles.badgeItem}>
-                <View style={[styles.badgeCircle, { backgroundColor: badge.color + '30' }]}>
-                  <Text style={styles.badgeIcon}>{badge.icon}</Text>
-                </View>
-                <Text style={styles.badgeName}>{badge.name}</Text>
-                {badge.isCurrent && (
-                  <View style={styles.currentBadge}>
-                    <Text style={styles.currentBadgeText}>Current</Text>
-                  </View>
-                )}
-                {badge.isCurrent && (
-                  <View style={styles.progressBar}>
-                    <View style={[
-                      styles.progressFill, 
-                      { width: `${((stats.coins - badge.range[0]) / (badge.range[1] - badge.range[0])) * 100}%` }
-                    ]} />
-                  </View>
-                )}
-              </View>
-            ))}
-          </ScrollView>
+        {/* XP Progress Bar */}
+        <View style={styles.xpBarBg}>
+          <Animated.View style={[styles.xpBarFill, { width: xpBarWidth, backgroundColor: currentLevel.color }]} />
         </View>
+        <Text style={styles.xpPercent}>{xpPercent}% to next level</Text>
+      </View>
 
-        {/* Passions Section */}
-        <View style={styles.passionsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Passions</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('EditPassions')}>
-              <Text style={styles.editPassionsText}>✏️ Edit Passions</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {(user?.passions || [{ name: 'Football', skillLevel: 'Intermediate' }, { name: 'Basketball', skillLevel: 'Pro' }]).map((passion, index) => (
-              <View key={index} style={styles.passionCard}>
-                <View style={styles.passionImagePlaceholder}>
-                  <Text style={styles.passionEmoji}>{getSportEmoji(passion.name)}</Text>
-                </View>
-                <Text style={styles.passionName}>{passion.name}</Text>
-                <Text style={styles.passionLevel}>{passion.skillLevel}</Text>
-                <View style={styles.passionDots}>
-                  <View style={[styles.dot, styles.dotActive]} />
-                  <View style={[styles.dot, passion.skillLevel !== 'Beginner' && styles.dotActive]} />
-                  <View style={[styles.dot, passion.skillLevel === 'Pro' && styles.dotActive]} />
-                </View>
-              </View>
-            ))}
-          </ScrollView>
+      {/* Quick Stats Row */}
+      <View style={styles.quickStatsRow}>
+        <View style={[styles.quickStatCard, { borderTopColor: COLORS.primary }]}>
+          <Text style={styles.quickStatIcon}>🎾</Text>
+          <Text style={styles.quickStatValue}>{stats.matchesPlayed}</Text>
+          <Text style={styles.quickStatLabel}>Played</Text>
+        </View>
+        <View style={[styles.quickStatCard, { borderTopColor: COLORS.success }]}>
+          <Text style={styles.quickStatIcon}>🥇</Text>
+          <Text style={styles.quickStatValue}>{stats.matchesWon}</Text>
+          <Text style={styles.quickStatLabel}>Won</Text>
+        </View>
+        <View style={[styles.quickStatCard, { borderTopColor: COLORS.error }]}>
+          <Text style={styles.quickStatIcon}>😤</Text>
+          <Text style={styles.quickStatValue}>{stats.matchesLost}</Text>
+          <Text style={styles.quickStatLabel}>Lost</Text>
+        </View>
+        <View style={[styles.quickStatCard, { borderTopColor: '#F59E0B' }]}>
+          <Text style={styles.quickStatIcon}>🎯</Text>
+          <Text style={styles.quickStatValue}>{stats.winPercent}%</Text>
+          <Text style={styles.quickStatLabel}>Win Rate</Text>
         </View>
       </View>
 
-      {/* Profile Tabs */}
+      {/* Badges Section */}
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>🏅 Achievement Badges</Text>
+          <TouchableOpacity onPress={() => Alert.alert('All Badges', LEVELS.map(l => `${l.icon} ${l.name}: ${l.min}-${l.max} XP`).join('\n'))}>
+            <Text style={styles.viewMoreText}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {LEVELS.map((level, idx) => {
+            const earned = stats.coins >= level.min;
+            const isCurrent = stats.coins >= level.min && stats.coins <= level.max;
+            return (
+              <View key={idx} style={[styles.badgeItem, !earned && styles.badgeItemLocked]}>
+                <View style={[styles.badgeCircle, { backgroundColor: earned ? level.color + '25' : '#E5E7EB' }, isCurrent && styles.badgeCircleCurrent]}>
+                  <Text style={[styles.badgeIcon, !earned && styles.badgeIconLocked]}>{level.icon}</Text>
+                  {isCurrent && <View style={[styles.badgeGlow, { backgroundColor: level.color + '30' }]} />}
+                </View>
+                <Text style={[styles.badgeName, earned && { color: level.color }]}>{level.name}</Text>
+                {isCurrent && <View style={[styles.currentChip, { backgroundColor: level.color }]}><Text style={styles.currentChipText}>NOW</Text></View>}
+                {!earned && <Text style={styles.badgeLockIcon}>🔒</Text>}
+              </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Passions Section */}
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>⚽ My Sports</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('EditPassions')}>
+            <Text style={styles.viewMoreText}>✏️ Edit</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {(user?.passions || []).length === 0 ? (
+            <TouchableOpacity style={styles.addPassionCard} onPress={() => navigation.navigate('EditPassions')}>
+              <Ionicons name="add-circle-outline" size={28} color={COLORS.primary} />
+              <Text style={styles.addPassionText}>Add Sports</Text>
+            </TouchableOpacity>
+          ) : (user?.passions || []).map((passion, idx) => (
+            <View key={idx} style={styles.passionCard}>
+              <View style={styles.passionEmojiWrap}>
+                <Text style={styles.passionEmoji}>{getSportEmoji(passion.name)}</Text>
+              </View>
+              <Text style={styles.passionName}>{passion.name}</Text>
+              <View style={[styles.skillBadge, {
+                backgroundColor:
+                  passion.skillLevel === 'Pro' ? COLORS.primary + '20' :
+                  passion.skillLevel === 'Intermediate' ? COLORS.warning + '20' : COLORS.secondary + '20'
+              }]}>
+                <Text style={[styles.skillText, {
+                  color: passion.skillLevel === 'Pro' ? COLORS.primary :
+                    passion.skillLevel === 'Intermediate' ? '#B45309' : COLORS.secondary
+                }]}>{passion.skillLevel || 'Beginner'}</Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Tabs */}
       <View style={styles.tabsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {PROFILE_TABS.map((tab) => (
@@ -320,34 +327,33 @@ const ProfileScreen = ({ navigation }) => {
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab}
-              </Text>
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      {/* Stats Grid - Only show on Overview tab - 2 cards per row */}
-      {activeTab === 'Overview' && (
-        <View style={styles.statsGrid}>
-          <View style={styles.statsRow}>
-            {renderStatsCard('🏆', 'Coins', stats.coins)}
-            {renderStatsCard('🎾', 'Matches played', stats.matchesPlayed)}
-          </View>
-          <View style={styles.statsRow}>
-            {renderStatsCard('🥇', 'Matches won', stats.matchesWon)}
-            {renderStatsCard('😢', 'Matches lost', stats.matchesLost)}
-          </View>
-          <View style={styles.statsRow}>
-            <View style={[styles.statsCard, styles.statsCardWide]}>
-              <Text style={styles.statsCardLabel}>Win/loss %</Text>
-              <View style={styles.statsCardContent}>
-                <Text style={styles.statsCardIcon}>🎯</Text>
-                <Text style={styles.statsCardValue}>{stats.winPercent}%</Text>
-              </View>
-            </View>
-          </View>
+      {/* Create Post / Match shortcut bar below tabs */}
+      {activeTab !== 'Matches' && (
+        <View style={styles.createBar}>
+          <TouchableOpacity
+            style={styles.createBarBtn}
+            onPress={() => navigation.navigate('CreatePost')}
+          >
+            <Ionicons name="add-circle" size={18} color={COLORS.white} />
+            <Text style={styles.createBarBtnText}>Add Post</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {activeTab === 'Matches' && (
+        <View style={styles.createBar}>
+          <TouchableOpacity
+            style={styles.createBarBtn}
+            onPress={() => navigation.navigate('Matches', { screen: 'CreateMatch' })}
+          >
+            <Ionicons name="add-circle" size={18} color={COLORS.white} />
+            <Text style={styles.createBarBtnText}>New Match</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -355,13 +361,10 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.topHeader}>
         <Text style={styles.headerUsername}>{user?.userName}</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('CreatePost')}
-          >
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('CreatePost')}>
             <Ionicons name="add-circle-outline" size={28} color={COLORS.text} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Settings')}>
@@ -379,23 +382,16 @@ const ProfileScreen = ({ navigation }) => {
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.primary}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons 
-              name={activeTab === 'Matches' ? 'trophy-outline' : 'images-outline'} 
-              size={48} 
-              color={COLORS.textLight} 
-            />
-            <Text style={styles.emptyText}>
-              {activeTab === 'Matches' ? 'No matches yet' : 'No posts yet'}
-            </Text>
+            <Ionicons name={activeTab === 'Matches' ? 'trophy-outline' : 'images-outline'} size={48} color={COLORS.textLight} />
+            <Text style={styles.emptyText}>{activeTab === 'Matches' ? 'No matches yet' : 'No posts yet'}</Text>
+            {activeTab === 'Matches' && (
+              <TouchableOpacity style={styles.emptyAction} onPress={() => navigation.navigate('Matches', { screen: 'CreateMatch' })}>
+                <Text style={styles.emptyActionText}>Set a Match →</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
       />
@@ -404,361 +400,119 @@ const ProfileScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.surface,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.white,
-  },
-  headerUsername: {
-    fontSize: FONTS.sizes.xl,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerButton: {
-    marginLeft: SPACING.md,
-  },
-  listContent: {
-    paddingBottom: 100,
-  },
-  headerContent: {
-    paddingBottom: SPACING.md,
-  },
-  profileCard: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    ...SHADOWS.small,
-  },
-  profileTopRow: {
-    flexDirection: 'row',
-    marginBottom: SPACING.lg,
-  },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: COLORS.surface,
-  },
-  profileInfo: {
-    flex: 1,
-    marginLeft: SPACING.md,
-  },
-  name: {
-    fontSize: FONTS.sizes.xl,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    marginBottom: SPACING.sm,
-  },
-  statText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-    marginRight: SPACING.lg,
-  },
-  statNumber: {
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  bio: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: SPACING.xs,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: SPACING.md,
-  },
-  metaText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-    marginLeft: SPACING.xs,
-  },
-  accountTypeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  accountTypeText: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-    marginLeft: SPACING.xs,
-  },
-  editProfileBtn: {
-    backgroundColor: COLORS.text,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.md,
-    alignSelf: 'flex-start',
-  },
-  editProfileBtnText: {
-    color: COLORS.white,
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
-  },
-  badgesSection: {
-    marginBottom: SPACING.lg,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  viewMoreText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-  },
-  badgeItem: {
-    alignItems: 'center',
-    marginRight: SPACING.lg,
-    width: 80,
-  },
-  badgeCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.xs,
-  },
-  badgeIcon: {
-    fontSize: 28,
-  },
-  badgeName: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.primary,
-    textAlign: 'center',
-  },
-  currentBadge: {
-    backgroundColor: COLORS.secondary,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: BORDER_RADIUS.sm,
-    marginTop: SPACING.xs,
-  },
-  currentBadgeText: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.white,
-    fontWeight: '600',
-  },
-  progressBar: {
-    width: 60,
-    height: 4,
-    backgroundColor: COLORS.border,
-    borderRadius: 2,
-    marginTop: SPACING.xs,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: 2,
-  },
-  passionsSection: {
-    marginBottom: SPACING.sm,
-  },
-  editPassionsText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-  },
-  passionCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
-    marginRight: SPACING.md,
-    alignItems: 'center',
-    width: 100,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  passionImagePlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  passionEmoji: {
-    fontSize: 28,
-  },
-  passionName: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  passionLevel: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
-  },
-  passionDots: {
-    flexDirection: 'row',
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 2,
-  },
-  dotActive: {
-    backgroundColor: COLORS.text,
-  },
-  tabsContainer: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    ...SHADOWS.small,
-  },
-  tab: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    marginRight: SPACING.sm,
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.text,
-  },
-  tabText: {
-    fontSize: FONTS.sizes.md,
-    color: COLORS.textSecondary,
-  },
-  tabTextActive: {
-    color: COLORS.text,
-    fontWeight: '600',
-  },
-  statsGrid: {
-    paddingHorizontal: SPACING.md,
-    marginTop: SPACING.md,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
-  },
-  statsCard: {
-    width: '48%',
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
-    ...SHADOWS.small,
-  },
-  statsCardWide: {
-    width: '100%',
-  },
-  statsCardLabel: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
-    textAlign: 'center',
-  },
-  statsCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statsCardIcon: {
-    fontSize: 24,
-    marginRight: SPACING.sm,
-  },
-  statsCardValue: {
-    fontSize: FONTS.sizes.xxl,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  postItem: {
-    width: POST_SIZE,
-    height: POST_SIZE,
-    margin: 1,
-    position: 'relative',
-  },
-  postImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: COLORS.surface,
-  },
-  videoIndicator: {
-    position: 'absolute',
-    top: SPACING.xs,
-    right: SPACING.xs,
-  },
-  matchItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.md,
-    marginBottom: SPACING.sm,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    ...SHADOWS.small,
-  },
-  matchItemIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  matchItemInfo: {
-    flex: 1,
-    marginLeft: SPACING.md,
-  },
-  matchItemName: {
-    fontSize: FONTS.sizes.md,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  matchItemMeta: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.textSecondary,
-  },
-  matchItemStatus: {
-    fontSize: FONTS.sizes.sm,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: SPACING.xxxl,
-  },
-  emptyText: {
-    fontSize: FONTS.sizes.md,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.md,
-  },
+  container: { flex: 1, backgroundColor: COLORS.surface },
+  topHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, backgroundColor: COLORS.white },
+  headerUsername: { fontSize: FONTS.sizes.xl, fontWeight: 'bold', color: COLORS.text },
+  headerActions: { flexDirection: 'row', alignItems: 'center' },
+  headerButton: { marginLeft: SPACING.md },
+  listContent: { paddingBottom: 100 },
+  headerContent: { paddingBottom: SPACING.sm },
+
+  // Profile Card
+  profileCard: { backgroundColor: COLORS.white, marginHorizontal: SPACING.md, marginTop: SPACING.md, borderRadius: BORDER_RADIUS.xl, padding: SPACING.lg, ...SHADOWS.small },
+  profileTopRow: { flexDirection: 'row', marginBottom: SPACING.md },
+  avatarContainer: { position: 'relative', marginRight: SPACING.md },
+  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: COLORS.surface, borderWidth: 2, borderColor: COLORS.border },
+  levelBadgeOnAvatar: { position: 'absolute', bottom: -4, right: -4, width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: COLORS.white },
+  levelBadgeText: { fontSize: 12 },
+  profileInfo: { flex: 1 },
+  name: { fontSize: FONTS.sizes.lg, fontWeight: '700', color: COLORS.text },
+  username: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, marginBottom: SPACING.xs },
+  statsRow: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.xs },
+  statText: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary },
+  statNumber: { fontWeight: '700', color: COLORS.text },
+  bio: { fontSize: FONTS.sizes.sm, color: COLORS.text, lineHeight: 18 },
+  editProfileBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.text, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.full, alignSelf: 'flex-start', gap: SPACING.xs },
+  editProfileBtnText: { color: COLORS.white, fontSize: FONTS.sizes.sm, fontWeight: '600' },
+
+  // Level Card
+  levelCard: { backgroundColor: COLORS.white, marginHorizontal: SPACING.md, marginTop: SPACING.sm, borderRadius: BORDER_RADIUS.xl, padding: SPACING.lg, ...SHADOWS.small },
+  levelCardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.md },
+  levelBadgeLarge: { width: 52, height: 52, borderRadius: 26, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center', marginRight: SPACING.md, borderWidth: 2, borderColor: COLORS.border },
+  levelBadgeLargeIcon: { fontSize: 26 },
+  levelInfo: { flex: 1 },
+  levelNameRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: 4 },
+  levelName: { fontSize: FONTS.sizes.lg, fontWeight: '800' },
+  streakBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: SPACING.sm, paddingVertical: 3, borderRadius: BORDER_RADIUS.full, gap: 3 },
+  streakIcon: { fontSize: 12 },
+  streakText: { fontSize: FONTS.sizes.xs, color: '#EA580C', fontWeight: '700' },
+  xpRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  xpLabel: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, fontWeight: '500' },
+  nextLevelText: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary },
+  coinBadge: { alignItems: 'center' },
+  coinIcon: { fontSize: 20 },
+  coinCount: { fontSize: FONTS.sizes.lg, fontWeight: '800', color: COLORS.text },
+  xpBarBg: { height: 8, backgroundColor: COLORS.border, borderRadius: 4, overflow: 'hidden', marginBottom: 6 },
+  xpBarFill: { height: '100%', borderRadius: 4 },
+  xpPercent: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, textAlign: 'right' },
+
+  // Quick Stats
+  quickStatsRow: { flexDirection: 'row', paddingHorizontal: SPACING.md, marginTop: SPACING.sm, gap: SPACING.sm },
+  quickStatCard: { flex: 1, backgroundColor: COLORS.white, borderRadius: BORDER_RADIUS.lg, padding: SPACING.md, alignItems: 'center', borderTopWidth: 3, ...SHADOWS.small },
+  quickStatIcon: { fontSize: 20, marginBottom: 4 },
+  quickStatValue: { fontSize: FONTS.sizes.xl, fontWeight: '800', color: COLORS.text },
+  quickStatLabel: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, marginTop: 2 },
+
+  // Section Card
+  sectionCard: { backgroundColor: COLORS.white, marginHorizontal: SPACING.md, marginTop: SPACING.sm, borderRadius: BORDER_RADIUS.xl, padding: SPACING.lg, ...SHADOWS.small },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.md },
+  sectionTitle: { fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.text },
+  viewMoreText: { fontSize: FONTS.sizes.sm, color: COLORS.primary, fontWeight: '600' },
+
+  // Badges
+  badgeItem: { alignItems: 'center', marginRight: SPACING.lg, width: 72, position: 'relative' },
+  badgeItemLocked: { opacity: 0.5 },
+  badgeCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginBottom: SPACING.xs, position: 'relative' },
+  badgeCircleCurrent: { borderWidth: 2.5, borderColor: 'transparent' },
+  badgeGlow: { position: 'absolute', top: -4, left: -4, right: -4, bottom: -4, borderRadius: 32 },
+  badgeIcon: { fontSize: 26, zIndex: 1 },
+  badgeIconLocked: { opacity: 0.5 },
+  badgeName: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, textAlign: 'center', fontWeight: '600' },
+  currentChip: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: BORDER_RADIUS.full, marginTop: 3 },
+  currentChipText: { fontSize: 8, color: COLORS.white, fontWeight: '800' },
+  badgeLockIcon: { fontSize: 10, marginTop: 2 },
+
+  // Passions
+  addPassionCard: { width: 90, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface, borderRadius: BORDER_RADIUS.lg, padding: SPACING.md, marginRight: SPACING.md, borderWidth: 1, borderColor: COLORS.border, borderStyle: 'dashed', height: 100 },
+  addPassionText: { fontSize: FONTS.sizes.xs, color: COLORS.primary, marginTop: SPACING.xs, fontWeight: '600' },
+  passionCard: { backgroundColor: COLORS.surface, borderRadius: BORDER_RADIUS.lg, padding: SPACING.md, marginRight: SPACING.sm, alignItems: 'center', width: 90, borderWidth: 1, borderColor: COLORS.border },
+  passionEmojiWrap: { width: 46, height: 46, borderRadius: 23, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', marginBottom: SPACING.xs, ...SHADOWS.small },
+  passionEmoji: { fontSize: 24 },
+  passionName: { fontSize: FONTS.sizes.xs, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
+  skillBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: BORDER_RADIUS.full },
+  skillText: { fontSize: 9, fontWeight: '700' },
+
+  // Tabs
+  tabsContainer: { backgroundColor: COLORS.white, marginHorizontal: SPACING.md, marginTop: SPACING.sm, borderRadius: BORDER_RADIUS.lg, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, ...SHADOWS.small },
+  tab: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, marginRight: SPACING.xs },
+  tabActive: { borderBottomWidth: 2.5, borderBottomColor: COLORS.primary },
+  tabText: { fontSize: FONTS.sizes.md, color: COLORS.textSecondary },
+  tabTextActive: { color: COLORS.primary, fontWeight: '700' },
+
+  // Create bar below tabs
+  createBar: { marginHorizontal: SPACING.md, marginTop: SPACING.xs, marginBottom: SPACING.xs },
+  createBarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.lg, gap: SPACING.xs },
+  createBarBtnText: { color: COLORS.white, fontSize: FONTS.sizes.md, fontWeight: '700' },
+
+  // Posts grid
+  postItem: { width: POST_SIZE, height: POST_SIZE, margin: 1, position: 'relative' },
+  postImage: { width: '100%', height: '100%', backgroundColor: COLORS.surface },
+  videoIndicator: { position: 'absolute', top: SPACING.xs, right: SPACING.xs },
+
+  // Matches
+  matchItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, marginHorizontal: SPACING.md, marginBottom: SPACING.sm, padding: SPACING.md, borderRadius: BORDER_RADIUS.lg, ...SHADOWS.small },
+  matchItemIconWrap: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  matchItemInfo: { flex: 1, marginLeft: SPACING.md },
+  matchItemName: { fontSize: FONTS.sizes.md, fontWeight: '600', color: COLORS.text },
+  matchItemMeta: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary },
+  matchStatusBadge: { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: BORDER_RADIUS.full },
+  matchStatusText: { fontSize: FONTS.sizes.xs, fontWeight: '700' },
+
+  // Empty
+  emptyContainer: { alignItems: 'center', paddingVertical: SPACING.xxxl },
+  emptyText: { fontSize: FONTS.sizes.md, color: COLORS.textSecondary, marginTop: SPACING.md },
+  emptyAction: { marginTop: SPACING.md, backgroundColor: COLORS.primary + '15', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.full },
+  emptyActionText: { color: COLORS.primary, fontWeight: '700', fontSize: FONTS.sizes.md },
 });
 
 export default ProfileScreen;

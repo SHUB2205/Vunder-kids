@@ -140,7 +140,9 @@ const MatchesScreen = ({ navigation }) => {
           />
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{player1?.userName || player1?.name || 'Player'}</Text>
-            <Text style={styles.postTime}>Upcoming Match</Text>
+            <Text style={[styles.postTime, item.status === 'completed' && { color: COLORS.success }, item.status === 'in-progress' && { color: COLORS.error }, new Date(item.date) < new Date() && item.status !== 'completed' && item.status !== 'in-progress' && { color: COLORS.textSecondary }]}>
+              {item.status === 'completed' ? '✅ Completed' : item.status === 'in-progress' ? '🔴 Live Now' : new Date(item.date) < new Date() ? 'Past Match' : '📅 Upcoming'}
+            </Text>
           </View>
         </View>
 

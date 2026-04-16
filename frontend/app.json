@@ -3,7 +3,7 @@
     "name": "Fisiko",
     "slug": "fisiko",
     "scheme": "fisiko",
-    "version": "1.0.9",
+    "version": "1.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/Fisiko logo.jpg",
@@ -18,14 +18,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fisiko.io",
-      "buildNumber": "20",
+      "buildNumber": "21",
       "icon": "./assets/Fisiko logo.jpg",
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Fisiko needs camera access to take photos and videos for posts and stories.",
         "NSPhotoLibraryUsageDescription": "Fisiko needs photo library access to share photos and videos.",
-        "NSMicrophoneUsageDescription": "Fisiko needs microphone access to record videos with audio."
+        "NSMicrophoneUsageDescription": "Fisiko needs microphone access to record videos with audio.",
+        "NSLocationWhenInUseUsageDescription": "Fisiko uses your location to auto-fill the venue city and country when setting up a match."
       }
     },
     "android": {
@@ -36,7 +37,9 @@
       "package": "com.fisiko.app",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {
@@ -47,7 +50,13 @@
       "expo-image-picker",
       "expo-notifications",
       "expo-web-browser",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Fisiko uses your location to auto-fill the venue city and country when setting up a match."
+        }
+      ]
     ],
     "extra": {
       "eas": {
