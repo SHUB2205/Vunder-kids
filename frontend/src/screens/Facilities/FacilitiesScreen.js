@@ -296,6 +296,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: SPACING.xxxl,
+    paddingHorizontal: SPACING.xl,
   },
   emptyText: {
     fontSize: FONTS.sizes.lg,

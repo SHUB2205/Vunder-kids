@@ -20,6 +20,12 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import {
+  GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_WEB_CLIENT_ID,
+  isGoogleConfigured,
+} from '../../config/oauth';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,15 +37,8 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  const [formError, setFormError] = useState('');
   const { login, googleSignIn, appleSignIn } = useAuth();
-
-  // Google OAuth Client IDs - Replace with your actual credentials from Google Cloud Console
-  // 1. Go to https://console.cloud.google.com/
-  // 2. Create OAuth 2.0 credentials for iOS, Android, and Web
-  // 3. Replace the placeholders below
-  const GOOGLE_IOS_CLIENT_ID = '1030504227545-8rln86bm79abnphcgm906ft3cmm84eck.apps.googleusercontent.com'; // Your iOS client ID
-  const GOOGLE_ANDROID_CLIENT_ID = ''; // Your Android client ID  
-  const GOOGLE_WEB_CLIENT_ID = '1030504227545-7ngrdrgj665me1kgmuepp5cp8f4fg5mp.apps.googleusercontent.com'; // Your Web client ID (also used as expoClientId)
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: GOOGLE_WEB_CLIENT_ID,
@@ -67,18 +66,14 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleGoogleSignIn = async () => {
-    // Check if Google OAuth is configured
-    if (!GOOGLE_WEB_CLIENT_ID || GOOGLE_WEB_CLIENT_ID === '') {
-      Alert.alert(
-        'Google Sign In Not Configured',
-        'Google OAuth credentials have not been set up yet. Please use email/password login or contact support.'
-      );
+    if (!isGoogleConfigured()) {
+      setFormError('Google Sign In is not configured on this build. Please use email/password.');
       return;
     }
     try {
       await promptAsync();
     } catch (error) {
-      Alert.alert('Error', 'Google sign in failed. Please try again.');
+      setFormError('Google sign in failed. Please try again.');
     }
   };
 
@@ -135,17 +130,23 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    setFormError('');
+    if (!email.trim() || !password) {
+      setFormError('Please enter your email and password.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setFormError('Please enter a valid email address.');
       return;
     }
 
     setLoading(true);
-    const result = await login(email, password);
+    const result = await login(email.trim(), password);
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Login Failed', result.error);
+      setFormError(result.error || 'Login failed. Please try again.');
     }
   };
 
@@ -179,6 +180,13 @@ const LoginScreen = ({ navigation }) => {
           <View style={styles.formCard}>
             <Text style={styles.welcomeTitle}>Welcome Back</Text>
             <Text style={styles.welcomeSubtitle}>Log in to your account</Text>
+
+            {formError ? (
+              <View style={styles.errorBanner}>
+                <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+                <Text style={styles.errorBannerText}>{formError}</Text>
+              </View>
+            ) : null}
 
             {/* Email Input */}
             <Text style={styles.inputLabel}>Email</Text>
@@ -392,16 +400,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: COLORS.text,
-    borderColor: COLORS.text,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   rememberMeText: {
     fontSize: FONTS.sizes.md,
     color: COLORS.text,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.error + '12',
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.error,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    marginBottom: SPACING.md,
+    gap: SPACING.sm,
+  },
+  errorBannerText: { flex: 1, color: COLORS.error, fontSize: FONTS.sizes.sm, fontWeight: '500' },
   loginButton: {
-    backgroundColor: COLORS.text,
-    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.lg,
     paddingVertical: SPACING.lg,
     alignItems: 'center',
     marginBottom: SPACING.md,
@@ -419,9 +440,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   forgotPasswordText: {
-    color: COLORS.text,
+    color: COLORS.primary,
     fontSize: FONTS.sizes.md,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   divider: {
     flexDirection: 'row',
@@ -474,13 +495,15 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   signUpButton: {
-    backgroundColor: COLORS.text,
-    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.lg,
     paddingVertical: SPACING.lg,
     alignItems: 'center',
   },
   signUpButtonText: {
-    color: COLORS.white,
+    color: COLORS.primary,
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
   },

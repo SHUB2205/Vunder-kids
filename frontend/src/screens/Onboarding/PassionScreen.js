@@ -38,6 +38,7 @@ const PassionScreen = ({ navigation }) => {
   const { sports, fetchSports } = useMatch();
   const [selectedPassions, setSelectedPassions] = useState(user?.passions || []);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [currentSport, setCurrentSport] = useState(null);
   const [showSkillModal, setShowSkillModal] = useState(false);
 
@@ -71,8 +72,9 @@ const PassionScreen = ({ navigation }) => {
 
   const handleNext = async () => {
     if (selectedPassions.length === 0) return;
-
+    setSubmitting(true);
     await updateUser({ passions: selectedPassions });
+    setSubmitting(false);
     navigation.navigate('UploadPicture');
   };
 
@@ -174,20 +176,28 @@ const PassionScreen = ({ navigation }) => {
 
         <View style={styles.selectedCount}>
           <Text style={styles.selectedCountText}>
-            {selectedPassions.length} sport{selectedPassions.length !== 1 ? 's' : ''} selected
+            {selectedPassions.length === 0
+              ? 'Tap at least one sport to continue'
+              : `${selectedPassions.length} sport${selectedPassions.length !== 1 ? 's' : ''} selected · You can edit these later`}
           </Text>
         </View>
 
         <TouchableOpacity
           style={[
             styles.nextButton,
-            selectedPassions.length === 0 && styles.nextButtonDisabled,
+            (selectedPassions.length === 0 || submitting) && styles.nextButtonDisabled,
           ]}
           onPress={handleNext}
-          disabled={selectedPassions.length === 0}
+          disabled={selectedPassions.length === 0 || submitting}
         >
-          <Text style={styles.nextButtonText}>Continue</Text>
-          <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+          {submitting ? (
+            <ActivityIndicator color={COLORS.white} />
+          ) : (
+            <>
+              <Text style={styles.nextButtonText}>Continue</Text>
+              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
 

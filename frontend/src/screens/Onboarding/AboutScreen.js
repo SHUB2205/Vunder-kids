@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,24 +24,51 @@ const AboutScreen = ({ navigation }) => {
   const [gender, setGender] = useState(user?.gender || '');
   const [location, setLocation] = useState(user?.location || '');
   const [bio, setBio] = useState(user?.bio || '');
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleNext = async () => {
-    if (!userName || !age || !gender) {
+    setFormError('');
+    if (!userName.trim()) {
+      setFormError('Please choose a username.');
+      return;
+    }
+    if (userName.trim().length < 3) {
+      setFormError('Username must be at least 3 characters.');
+      return;
+    }
+    if (!/^[a-zA-Z0-9_.]+$/.test(userName.trim())) {
+      setFormError('Username can only contain letters, numbers, underscores and dots.');
+      return;
+    }
+    const ageNum = parseInt(age, 10);
+    if (!age || isNaN(ageNum) || ageNum < 5 || ageNum > 100) {
+      setFormError('Please enter a valid age between 5 and 100.');
+      return;
+    }
+    if (!gender) {
+      setFormError('Please select your gender.');
       return;
     }
 
-    await updateUser({
-      userName,
-      age: parseInt(age),
+    setSubmitting(true);
+    const result = await updateUser({
+      userName: userName.trim(),
+      age: ageNum,
       gender,
-      location,
-      bio,
+      location: location.trim(),
+      bio: bio.trim(),
     });
+    setSubmitting(false);
 
+    if (result?.success === false) {
+      setFormError(result.error || 'Failed to save. Please try again.');
+      return;
+    }
     navigation.navigate('Passion');
   };
 
-  const isValid = userName && age && gender;
+  const isValid = userName.trim() && age && gender;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -62,6 +90,13 @@ const AboutScreen = ({ navigation }) => {
               This helps us personalize your experience
             </Text>
           </View>
+
+          {formError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+              <Text style={styles.errorBannerText}>{formError}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.form}>
             <Text style={styles.label}>Username</Text>
@@ -142,12 +177,18 @@ const AboutScreen = ({ navigation }) => {
           </View>
 
           <TouchableOpacity
-            style={[styles.nextButton, !isValid && styles.nextButtonDisabled]}
+            style={[styles.nextButton, (!isValid || submitting) && styles.nextButtonDisabled]}
             onPress={handleNext}
-            disabled={!isValid}
+            disabled={submitting}
           >
-            <Text style={styles.nextButtonText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+            {submitting ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <>
+                <Text style={styles.nextButtonText}>Continue</Text>
+                <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+              </>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -202,6 +243,19 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.error + '12',
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.error,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    marginBottom: SPACING.md,
+    gap: SPACING.sm,
+  },
+  errorBannerText: { flex: 1, color: COLORS.error, fontSize: FONTS.sizes.sm, fontWeight: '500' },
   label: {
     fontSize: FONTS.sizes.sm,
     fontWeight: '600',

@@ -385,13 +385,42 @@ const ProfileScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name={activeTab === 'Matches' ? 'trophy-outline' : 'images-outline'} size={48} color={COLORS.textLight} />
-            <Text style={styles.emptyText}>{activeTab === 'Matches' ? 'No matches yet' : 'No posts yet'}</Text>
-            {activeTab === 'Matches' && (
-              <TouchableOpacity style={styles.emptyAction} onPress={() => navigation.navigate('Matches', { screen: 'CreateMatch' })}>
-                <Text style={styles.emptyActionText}>Set a Match →</Text>
-              </TouchableOpacity>
-            )}
+            <Ionicons
+              name={
+                activeTab === 'Matches' ? 'trophy-outline' :
+                activeTab === 'Reels' ? 'videocam-outline' :
+                activeTab === 'Photos' ? 'images-outline' :
+                'newspaper-outline'
+              }
+              size={56}
+              color={COLORS.textLight}
+            />
+            <Text style={styles.emptyText}>
+              {activeTab === 'Matches' ? 'No matches yet' :
+               activeTab === 'Reels' ? 'No reels yet' :
+               activeTab === 'Photos' ? 'No photos yet' :
+               'No posts yet'}
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {activeTab === 'Matches'
+                ? 'Create a match to track your games and scores.'
+                : activeTab === 'Reels'
+                ? 'Share a short video of your best moments.'
+                : 'Share your first post with the community.'}
+            </Text>
+            <TouchableOpacity
+              style={styles.emptyAction}
+              onPress={() =>
+                activeTab === 'Matches'
+                  ? navigation.navigate('Matches', { screen: 'CreateMatch' })
+                  : navigation.navigate('CreatePost')
+              }
+            >
+              <Ionicons name="add-circle" size={16} color={COLORS.white} />
+              <Text style={styles.emptyActionText}>
+                {activeTab === 'Matches' ? 'Set a Match' : activeTab === 'Reels' ? 'Create Reel' : 'Create Post'}
+              </Text>
+            </TouchableOpacity>
           </View>
         }
       />
@@ -509,10 +538,11 @@ const styles = StyleSheet.create({
   matchStatusText: { fontSize: FONTS.sizes.xs, fontWeight: '700' },
 
   // Empty
-  emptyContainer: { alignItems: 'center', paddingVertical: SPACING.xxxl },
-  emptyText: { fontSize: FONTS.sizes.md, color: COLORS.textSecondary, marginTop: SPACING.md },
-  emptyAction: { marginTop: SPACING.md, backgroundColor: COLORS.primary + '15', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.full },
-  emptyActionText: { color: COLORS.primary, fontWeight: '700', fontSize: FONTS.sizes.md },
+  emptyContainer: { alignItems: 'center', paddingVertical: SPACING.xxxl, paddingHorizontal: SPACING.xl },
+  emptyText: { fontSize: FONTS.sizes.lg, fontWeight: '700', color: COLORS.text, marginTop: SPACING.md },
+  emptySubtext: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, marginTop: SPACING.xs, textAlign: 'center' },
+  emptyAction: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginTop: SPACING.lg, backgroundColor: COLORS.primary, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.full },
+  emptyActionText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.md },
 });
 
 export default ProfileScreen;

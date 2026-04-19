@@ -20,19 +20,26 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const handleResetPassword = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email');
+    setFormError('');
+    if (!email.trim()) {
+      setFormError('Please enter your email.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setFormError('Please enter a valid email address.');
       return;
     }
 
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/forgot-password`, { email });
+      await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email: email.trim() });
       setSent(true);
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to send reset email');
+      setFormError(error.response?.data?.message || 'Failed to send reset email. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -80,6 +87,13 @@ const ForgotPasswordScreen = ({ navigation }) => {
               Enter your email address and we'll send you a link to reset your password.
             </Text>
           </View>
+
+          {formError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+              <Text style={styles.errorBannerText}>{formError}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
@@ -145,6 +159,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   form: {},
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.error + '12',
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.error,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    marginBottom: SPACING.md,
+    gap: SPACING.sm,
+  },
+  errorBannerText: { flex: 1, color: COLORS.error, fontSize: FONTS.sizes.sm, fontWeight: '500' },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',

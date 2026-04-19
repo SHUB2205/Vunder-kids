@@ -11,6 +11,8 @@ import {
   Alert,
   Modal,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +21,8 @@ import { usePost } from '../../context/PostContext';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 import { getSportEmoji } from '../../utils/sportIcons';
+
+const MAX_CHARS = 500;
 
 const SPORTS_LIST = [
   'Football', 'Basketball', 'Tennis', 'Cricket', 'Baseball',
@@ -83,14 +87,16 @@ const CreatePostScreen = ({ navigation, route }) => {
     }
   };
 
+  const canSubmit = (content.trim().length > 0 || !!media) && content.length <= MAX_CHARS;
+
   const handlePost = async () => {
-    if (!content && !media) {
-      Alert.alert('Error', 'Please add some content or media');
+    if (!canSubmit) {
+      Alert.alert('Add something first', 'Write a caption or add a photo/video to share.');
       return;
     }
 
     setLoading(true);
-    const result = await createPost({ content, media, sport: selectedSport });
+    const result = await createPost({ content: content.trim(), media, sport: selectedSport });
     setLoading(false);
 
     if (result.success) {
@@ -112,9 +118,9 @@ const CreatePostScreen = ({ navigation, route }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Post</Text>
         <TouchableOpacity
-          style={[styles.postButton, (!content && !media) && styles.postButtonDisabled]}
+          style={[styles.postButton, !canSubmit && styles.postButtonDisabled]}
           onPress={handlePost}
-          disabled={loading || (!content && !media)}
+          disabled={loading || !canSubmit}
         >
           {loading ? (
             <ActivityIndicator size="small" color={COLORS.white} />
@@ -124,7 +130,12 @@ const CreatePostScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      >
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.userInfo}>
           <Image source={{ uri: user?.avatar }} style={styles.avatar} />
           <Text style={styles.username}>{user?.userName || user?.name}</Text>
@@ -135,14 +146,23 @@ const CreatePostScreen = ({ navigation, route }) => {
           placeholder="What's on your mind?"
           placeholderTextColor={COLORS.textLight}
           value={content}
-          onChangeText={setContent}
+          onChangeText={(t) => setContent(t.slice(0, MAX_CHARS))}
           multiline
           textAlignVertical="top"
+          maxLength={MAX_CHARS}
         />
+        <Text style={[styles.charCounter, content.length >= MAX_CHARS - 20 && { color: COLORS.error }]}>
+          {content.length}/{MAX_CHARS}
+        </Text>
 
         {media && (
           <View style={styles.mediaPreview}>
             <Image source={{ uri: media.uri }} style={styles.previewImage} />
+            {media.type?.startsWith('video') && (
+              <View style={styles.videoPlayBadge}>
+                <Ionicons name="play" size={22} color={COLORS.white} />
+              </View>
+            )}
             <TouchableOpacity style={styles.removeMedia} onPress={removeMedia}>
               <Ionicons name="close-circle" size={28} color={COLORS.white} />
             </TouchableOpacity>
@@ -179,6 +199,7 @@ const CreatePostScreen = ({ navigation, route }) => {
           </Text>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.mediaButton} onPress={pickImage}>
@@ -305,6 +326,26 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.lg,
     color: COLORS.text,
     minHeight: 120,
+  },
+  charCounter: {
+    alignSelf: 'flex-end',
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textLight,
+    fontWeight: '500',
+    marginTop: SPACING.xs,
+  },
+  videoPlayBadge: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -22,
+    marginTop: -22,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   mediaPreview: {
     marginTop: SPACING.lg,

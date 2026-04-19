@@ -105,7 +105,10 @@ const MessagesScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Search')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Ionicons name="create-outline" size={24} color={COLORS.text} />
         </TouchableOpacity>
       </View>
@@ -138,8 +141,15 @@ const MessagesScreen = ({ navigation }) => {
             <Ionicons name="chatbubbles-outline" size={60} color={COLORS.textLight} />
             <Text style={styles.emptyText}>No messages yet</Text>
             <Text style={styles.emptySubtext}>
-              Start a conversation with someone
+              Find someone to start your first conversation.
             </Text>
+            <TouchableOpacity
+              style={styles.emptyCta}
+              onPress={() => navigation.navigate('Search')}
+            >
+              <Ionicons name="person-add-outline" size={16} color={COLORS.white} />
+              <Text style={styles.emptyCtaText}>Find people</Text>
+            </TouchableOpacity>
           </View>
         }
       />
@@ -260,7 +270,19 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: SPACING.xxxl,
+    paddingHorizontal: SPACING.xl,
   },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    marginTop: SPACING.lg,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  emptyCtaText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.md },
   emptyText: {
     fontSize: FONTS.sizes.lg,
     fontWeight: '600',

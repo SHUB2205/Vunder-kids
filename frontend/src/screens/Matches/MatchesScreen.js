@@ -649,7 +649,19 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: SPACING.xxxl,
+    paddingHorizontal: SPACING.xl,
   },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    marginTop: SPACING.lg,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  emptyCtaText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.md },
   emptyText: {
     fontSize: FONTS.sizes.lg,
     fontWeight: '600',

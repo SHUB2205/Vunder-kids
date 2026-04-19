@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../config/axios';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
@@ -68,14 +69,20 @@ const TOP_SEARCH_ITEMS = [
   },
   { 
     label: 'Padel', 
-    emoji: '�',
+    emoji: '🎾',
     image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=300&fit=crop'
   },
 ];
 
+const RECENT_SEARCHES_KEY = '@fisiko:recent_searches';
+const MAX_RECENT = 6;
+
 const SearchScreen = ({ navigation }) => {
   const { user } = useAuth();
-  
+
+  // Recent searches (persisted)
+  const [recentSearches, setRecentSearches] = useState([]);
+
   // Main tabs: search, foryou, news, scores - matching PWA Search.js
   const [activeTab, setActiveTab] = useState('search');
   const [scoreTab, setScoreTab] = useState('cricket');
@@ -196,10 +203,42 @@ const SearchScreen = ({ navigation }) => {
     }
   }, [activeTab]);
 
-  // Fetch suggestions on mount
+  // Fetch suggestions on mount + load recent searches
   useEffect(() => {
     fetchSuggestions();
+    loadRecentSearches();
   }, []);
+
+  const loadRecentSearches = async () => {
+    try {
+      const raw = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+      if (raw) setRecentSearches(JSON.parse(raw));
+    } catch {}
+  };
+
+  const persistRecent = async (next) => {
+    setRecentSearches(next);
+    try { await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next)); } catch {}
+  };
+
+  const addRecentSearch = (query) => {
+    const q = query.trim();
+    if (!q) return;
+    const next = [q, ...recentSearches.filter(r => r.toLowerCase() !== q.toLowerCase())].slice(0, MAX_RECENT);
+    persistRecent(next);
+  };
+
+  const removeRecentSearch = (query) => {
+    persistRecent(recentSearches.filter(r => r !== query));
+  };
+
+  const clearAllRecent = () => persistRecent([]);
+
+  const submitSearch = () => {
+    if (!searchQuery.trim()) return;
+    addRecentSearch(searchQuery);
+    performSearch(searchQuery);
+  };
 
   const fetchSuggestions = async () => {
     try {
@@ -345,6 +384,29 @@ const SearchScreen = ({ navigation }) => {
   // Render default content (Top Search) - matching PWA Search.js with image cards
   const renderDefaultContent = () => (
     <ScrollView style={styles.defaultContent} showsVerticalScrollIndicator={false}>
+      {recentSearches.length > 0 && (
+        <View style={styles.recentSection}>
+          <View style={styles.recentHeader}>
+            <Text style={styles.heading}>Recent</Text>
+            <TouchableOpacity onPress={clearAllRecent}>
+              <Text style={styles.clearAllText}>Clear all</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.recentChipsRow}>
+            {recentSearches.map((q) => (
+              <View key={q} style={styles.recentChip}>
+                <TouchableOpacity onPress={() => handleSearchItemClick(q)}>
+                  <Text style={styles.recentChipText}>{q}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => removeRecentSearch(q)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                  <Ionicons name="close" size={14} color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
       {/* Browse Sports Button */}
       <TouchableOpacity
         style={styles.browseSportsBtn}
@@ -430,7 +492,16 @@ const SearchScreen = ({ navigation }) => {
 
       {searchResults.users.length === 0 && searchResults.posts.length === 0 && (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No results found for "{searchQuery}"</Text>
+          <Ionicons name="search-outline" size={48} color={COLORS.textLight} />
+          <Text style={styles.emptyTitle}>No results for “{searchQuery}”</Text>
+          <Text style={styles.emptyText}>Try a different name or a sport like Tennis or Football.</Text>
+          <TouchableOpacity
+            style={styles.browseBtnInline}
+            onPress={() => navigation.navigate('SportSearch')}
+          >
+            <Ionicons name="compass-outline" size={16} color={COLORS.primary} />
+            <Text style={styles.browseBtnInlineText}>Browse all sports</Text>
+          </TouchableOpacity>
         </View>
       )}
     </ScrollView>
@@ -551,10 +622,13 @@ const SearchScreen = ({ navigation }) => {
           <Ionicons name="search" size={20} color={COLORS.textSecondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search"
+            placeholder="Search people, sports, news"
             placeholderTextColor={COLORS.textLight}
             value={searchQuery}
             onChangeText={handleSearchInput}
+            returnKeyType="search"
+            onSubmitEditing={submitSearch}
+            autoCorrect={false}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => handleSearchInput('')}>
@@ -673,11 +747,38 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: SPACING.xxxl,
+    paddingHorizontal: SPACING.xl,
+  },
+  emptyTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginTop: SPACING.md,
+    textAlign: 'center',
   },
   emptyText: {
-    fontSize: FONTS.sizes.md,
+    fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
+    textAlign: 'center',
   },
+  browseBtnInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  browseBtnInlineText: { color: COLORS.primary, fontWeight: '700', fontSize: FONTS.sizes.sm },
+  recentSection: { marginBottom: SPACING.lg },
+  recentHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.sm, paddingHorizontal: SPACING.xs },
+  clearAllText: { fontSize: FONTS.sizes.sm, color: COLORS.primary, fontWeight: '600' },
+  recentChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+  recentChip: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: BORDER_RADIUS.full },
+  recentChipText: { fontSize: FONTS.sizes.sm, color: COLORS.text },
   // Default Content - Sport Cards Grid
   defaultContent: {
     flex: 1,

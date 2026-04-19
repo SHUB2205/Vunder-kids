@@ -17,6 +17,24 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import {
+  GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_WEB_CLIENT_ID,
+  isGoogleConfigured,
+} from '../../config/oauth';
+
+const getPasswordStrength = (pwd) => {
+  if (!pwd) return { score: 0, label: '', color: COLORS.border };
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  const labels = ['Too weak', 'Weak', 'Okay', 'Good', 'Strong'];
+  const colors = [COLORS.error, COLORS.error, COLORS.warning, '#6DB33F', COLORS.success];
+  return { score, label: labels[score], color: colors[score] };
+};
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -24,17 +42,21 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [formError, setFormError] = useState('');
   const { register, googleSignIn, appleSignIn } = useAuth();
 
+  const pwdStrength = getPasswordStrength(password);
+
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: 'YOUR_EXPO_CLIENT_ID',
-    iosClientId: 'YOUR_IOS_CLIENT_ID',
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID',
-    webClientId: 'YOUR_WEB_CLIENT_ID',
+    expoClientId: GOOGLE_WEB_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
   });
 
   useEffect(() => {
@@ -56,14 +78,24 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!isGoogleConfigured()) {
+      setFormError('Google Sign In is not configured on this build. Please register with email.');
+      return;
+    }
     try {
       await promptAsync();
     } catch (error) {
-      Alert.alert('Error', 'Google sign in failed. Please try again.');
+      setFormError('Google sign in failed. Please try again.');
     }
   };
 
   const handleAppleSignIn = async () => {
+    if (Platform.OS !== 'ios') return;
+    const isAvailable = await AppleAuthentication.isAvailableAsync();
+    if (!isAvailable) {
+      setFormError('Apple Sign In is not available on this device.');
+      return;
+    }
     try {
       setAppleLoading(true);
       const credential = await AppleAuthentication.signInAsync({
@@ -72,7 +104,7 @@ const RegisterScreen = ({ navigation }) => {
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
-      
+
       const result = await appleSignIn(credential.identityToken, {
         name: {
           firstName: credential.fullName?.givenName,
@@ -80,47 +112,50 @@ const RegisterScreen = ({ navigation }) => {
         },
         email: credential.email,
       });
-      
+
       setAppleLoading(false);
-      
+
       if (!result.success) {
-        Alert.alert('Apple Sign In Failed', result.error);
+        setFormError(result.error || 'Apple sign in failed.');
       }
     } catch (error) {
       setAppleLoading(false);
-      if (error.code !== 'ERR_CANCELED') {
-        Alert.alert('Error', 'Apple sign in failed. Please try again.');
+      if (error.code !== 'ERR_CANCELED' && error.code !== 'ERR_REQUEST_CANCELED') {
+        setFormError('Apple sign in failed. Please try again.');
       }
     }
   };
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+    setFormError('');
+    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
+      setFormError('Please fill in all fields.');
       return;
     }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setFormError('Please enter a valid email address.');
       return;
     }
-
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      setFormError('Password must be at least 6 characters.');
       return;
     }
-
+    if (password !== confirmPassword) {
+      setFormError('Passwords do not match.');
+      return;
+    }
     if (!agreedToTerms) {
-      Alert.alert('Error', 'Please agree to the Terms of Service and Privacy Policy');
+      setFormError('Please agree to the Terms of Service and Privacy Policy.');
       return;
     }
 
     setLoading(true);
-    const result = await register({ name, email, password });
+    const result = await register({ name: name.trim(), email: email.trim(), password });
     setLoading(false);
 
     if (!result.success) {
-      Alert.alert('Registration Failed', result.error);
+      setFormError(result.error || 'Registration failed. Please try again.');
     }
   };
 
@@ -145,6 +180,13 @@ const RegisterScreen = ({ navigation }) => {
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Join the sports community</Text>
           </View>
+
+          {formError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+              <Text style={styles.errorBannerText}>{formError}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
@@ -191,6 +233,15 @@ const RegisterScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
+            {password.length > 0 && (
+              <View style={styles.strengthWrap}>
+                <View style={styles.strengthTrack}>
+                  <View style={[styles.strengthFill, { width: `${(pwdStrength.score / 4) * 100}%`, backgroundColor: pwdStrength.color }]} />
+                </View>
+                <Text style={[styles.strengthLabel, { color: pwdStrength.color }]}>{pwdStrength.label}</Text>
+              </View>
+            )}
+
             <View style={styles.inputContainer}>
               <Ionicons name="lock-closed-outline" size={20} color={COLORS.textSecondary} />
               <TextInput
@@ -199,9 +250,19 @@ const RegisterScreen = ({ navigation }) => {
                 placeholderTextColor={COLORS.textLight}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                secureTextEntry={!showPassword}
+                secureTextEntry={!showConfirm}
               />
+              <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
+                <Ionicons
+                  name={showConfirm ? 'eye-outline' : 'eye-off-outline'}
+                  size={20}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
             </View>
+            {confirmPassword.length > 0 && password !== confirmPassword && (
+              <Text style={styles.fieldErrorText}>Passwords don't match</Text>
+            )}
 
             <TouchableOpacity
               style={styles.termsContainer}
@@ -314,6 +375,24 @@ const styles = StyleSheet.create({
   form: {
     marginBottom: SPACING.xl,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.error + '12',
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.error,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    marginBottom: SPACING.md,
+    gap: SPACING.sm,
+  },
+  errorBannerText: { flex: 1, color: COLORS.error, fontSize: FONTS.sizes.sm, fontWeight: '500' },
+  strengthWrap: { marginTop: -SPACING.sm, marginBottom: SPACING.md, paddingHorizontal: SPACING.xs },
+  strengthTrack: { height: 4, backgroundColor: COLORS.border, borderRadius: 2, overflow: 'hidden' },
+  strengthFill: { height: '100%', borderRadius: 2 },
+  strengthLabel: { fontSize: FONTS.sizes.xs, fontWeight: '600', marginTop: 4 },
+  fieldErrorText: { fontSize: FONTS.sizes.xs, color: COLORS.error, marginTop: -SPACING.sm, marginBottom: SPACING.sm, paddingHorizontal: SPACING.xs, fontWeight: '500' },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',

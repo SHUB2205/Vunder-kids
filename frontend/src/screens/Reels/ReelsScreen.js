@@ -16,7 +16,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { usePost } from '../../context/PostContext';
+import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
 
@@ -25,8 +27,10 @@ const REEL_HEIGHT = height;
 
 const ReelsScreen = ({ navigation }) => {
   const { reels, fetchReels, likeReel } = usePost();
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [globalMuted, setGlobalMuted] = useState(false);
   const flatListRef = useRef(null);
 
   useEffect(() => {
@@ -69,6 +73,9 @@ const ReelsScreen = ({ navigation }) => {
       isActive={index === currentIndex}
       onLike={() => handleLike(item._id)}
       onProfilePress={() => navigation.navigate('UserProfile', { userId: item.creator?._id })}
+      muted={globalMuted}
+      onToggleMute={() => setGlobalMuted((m) => !m)}
+      isOwnReel={item.creator?._id === user?._id}
     />
   );
 
@@ -127,13 +134,12 @@ const ReelsScreen = ({ navigation }) => {
   );
 };
 
-const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
+const ReelItem = ({ reel, isActive, onLike, onProfilePress, muted, onToggleMute, isOwnReel }) => {
   const videoRef = useRef(null);
   const navigation = useNavigation();
   const [liked, setLiked] = useState(reel.isLiked || false);
   const [likesCount, setLikesCount] = useState(reel.likes || 0);
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [captionExpanded, setCaptionExpanded] = useState(false);
@@ -178,7 +184,6 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
   };
 
   const togglePlayPause = () => setPaused(!paused);
-  const toggleMute = () => setMuted(!muted);
 
   const handleShare = async () => {
     try {
@@ -241,7 +246,7 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
         <TouchableOpacity style={styles.topBtn} onPress={togglePlayPause}>
           <Ionicons name={paused ? 'play' : 'pause'} size={20} color={COLORS.white} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.topBtn} onPress={toggleMute}>
+        <TouchableOpacity style={styles.topBtn} onPress={onToggleMute}>
           <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={20} color={COLORS.white} />
         </TouchableOpacity>
       </View>
@@ -267,9 +272,16 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
         </TouchableOpacity>
       </View>
 
+      {/* Bottom gradient for caption legibility */}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.6)']}
+        style={styles.bottomGradient}
+        pointerEvents="none"
+      />
+
       {/* Bottom Info */}
       <View style={styles.bottomInfo}>
-        <TouchableOpacity style={styles.creatorRow} onPress={onProfilePress}>
+        <TouchableOpacity style={styles.creatorRow} onPress={onProfilePress} activeOpacity={0.8}>
           <Image
             source={{ uri: reel.creator?.avatar || 'https://via.placeholder.com/40' }}
             style={styles.creatorAvatar}
@@ -277,9 +289,11 @@ const ReelItem = ({ reel, isActive, onLike, onProfilePress }) => {
           <View style={styles.creatorTextWrap}>
             <Text style={styles.creatorName}>@{reel.creator?.userName || reel.creator?.name}</Text>
           </View>
-          <TouchableOpacity style={styles.followBtn} onPress={onProfilePress}>
-            <Text style={styles.followBtnText}>Follow</Text>
-          </TouchableOpacity>
+          {!isOwnReel && (
+            <View style={styles.followBtn}>
+              <Text style={styles.followBtnText}>View</Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         {reel.caption && (
@@ -400,6 +414,7 @@ const styles = StyleSheet.create({
   // Progress bar
   progressBarContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, backgroundColor: 'rgba(255,255,255,0.3)', zIndex: 20 },
   progressBarFill: { height: '100%', backgroundColor: COLORS.primary },
+  bottomGradient: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 220 },
 });
 
 export default ReelsScreen;

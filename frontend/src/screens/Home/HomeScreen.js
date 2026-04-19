@@ -12,6 +12,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +25,7 @@ import { useMatch } from '../../context/MatchContext';
 import StoriesBar from '../../components/Home/StoriesBar';
 import PostCard from '../../components/Home/PostCard';
 import SportsNews from '../../components/Home/SportsNews';
+import PostSkeleton from '../../components/Home/PostSkeleton';
 import api from '../../config/axios';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
@@ -106,6 +108,8 @@ const HomeScreen = ({ navigation }) => {
   const [selectedPostSport, setSelectedPostSport] = useState(null);
   const [showSportPicker, setShowSportPicker] = useState(false);
   const [availableSports, setAvailableSports] = useState([]);
+  const [postSuccess, setPostSuccess] = useState(false);
+  const postSuccessAnim = useRef(new Animated.Value(0)).current;
 
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
@@ -168,6 +172,15 @@ const HomeScreen = ({ navigation }) => {
     if (!result.canceled) setMediaFile(result.assets[0]);
   };
 
+  const showPostSuccess = () => {
+    setPostSuccess(true);
+    Animated.sequence([
+      Animated.timing(postSuccessAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+      Animated.delay(1600),
+      Animated.timing(postSuccessAnim, { toValue: 0, duration: 220, useNativeDriver: true }),
+    ]).start(() => setPostSuccess(false));
+  };
+
   const handlePostSubmit = async () => {
     if (!postContent.trim() && !mediaFile) return;
     setPosting(true);
@@ -177,8 +190,14 @@ const HomeScreen = ({ navigation }) => {
         ...(mediaFile ? { media: mediaFile } : {}),
         ...(selectedPostSport ? { sport: selectedPostSport } : {}),
       });
-      if (result.success) { setPostContent(''); setMediaFile(null); setSelectedPostSport(null); }
-      else Alert.alert('Error', result.error || 'Failed to create post');
+      if (result.success) {
+        setPostContent('');
+        setMediaFile(null);
+        setSelectedPostSport(null);
+        showPostSuccess();
+      } else {
+        Alert.alert('Error', result.error || 'Failed to create post');
+      }
     } catch { Alert.alert('Error', 'Failed to create post'); }
     setPosting(false);
   };
@@ -419,7 +438,7 @@ const HomeScreen = ({ navigation }) => {
         post={item}
         onPress={() => navigation.navigate('PostDetail', { post: item })}
         onProfilePress={() => navigation.navigate('UserProfile', { userId: item.creator?._id })}
-        onCommentPress={() => navigation.navigate('Comments', { postId: item._id })}
+        onCommentPress={() => navigation.navigate('Comments', { postId: item._id, postType: 'post' })}
       />
     );
   };
@@ -565,11 +584,24 @@ const HomeScreen = ({ navigation }) => {
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         ListEmptyComponent={
-          !loading && (
+          loading ? (
+            <View>
+              <PostSkeleton />
+              <PostSkeleton />
+              <PostSkeleton />
+            </View>
+          ) : (
             <View style={styles.emptyContainer}>
-              <Ionicons name="newspaper-outline" size={48} color={COLORS.textLight} />
+              <Ionicons name="newspaper-outline" size={56} color={COLORS.textLight} />
               <Text style={styles.emptyText}>No posts yet</Text>
-              <Text style={styles.emptySubtext}>Be the first to share something!</Text>
+              <Text style={styles.emptySubtext}>Be the first to share a moment from your game.</Text>
+              <TouchableOpacity
+                style={styles.emptyCta}
+                onPress={() => navigation.navigate('CreatePost')}
+              >
+                <Ionicons name="add-circle" size={18} color={COLORS.white} />
+                <Text style={styles.emptyCtaText}>Create a post</Text>
+              </TouchableOpacity>
             </View>
           )
         }
@@ -578,6 +610,24 @@ const HomeScreen = ({ navigation }) => {
 
       {renderMatchModal()}
       {renderScoreModal()}
+
+      {postSuccess && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.successToast,
+            {
+              opacity: postSuccessAnim,
+              transform: [{
+                translateY: postSuccessAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }),
+              }],
+            },
+          ]}
+        >
+          <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+          <Text style={styles.successToastText}>Posted!</Text>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 };
@@ -687,9 +737,13 @@ const styles = StyleSheet.create({
   // List
   listContent: { paddingBottom: 100 },
   emptyListContent: { flexGrow: 1, paddingBottom: 100 },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 100 },
-  emptyText: { fontSize: FONTS.sizes.lg, fontWeight: '600', color: COLORS.text, marginTop: SPACING.md },
-  emptySubtext: { fontSize: FONTS.sizes.md, color: COLORS.textSecondary, marginTop: SPACING.xs },
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80, paddingHorizontal: SPACING.xl },
+  emptyText: { fontSize: FONTS.sizes.lg, fontWeight: '700', color: COLORS.text, marginTop: SPACING.md },
+  emptySubtext: { fontSize: FONTS.sizes.md, color: COLORS.textSecondary, marginTop: SPACING.xs, textAlign: 'center' },
+  emptyCta: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.primary, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.full, marginTop: SPACING.lg },
+  emptyCtaText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.md },
+  successToast: { position: 'absolute', bottom: 110, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.success, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.full, ...SHADOWS.medium },
+  successToastText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.md },
 
   // Modals
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },

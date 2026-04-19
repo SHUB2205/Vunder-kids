@@ -37,7 +37,6 @@ const NotificationsScreen = ({ navigation }) => {
     try {
       await api.post(API_ENDPOINTS.FOLLOW_USER, { userId });
       setFollowingUsers(prev => ({ ...prev, [userId]: true }));
-      Alert.alert('Success', 'You are now following this user!');
     } catch (error) {
       Alert.alert('Error', error.response?.data?.message || 'Failed to follow user');
     } finally {
@@ -150,19 +149,26 @@ const NotificationsScreen = ({ navigation }) => {
       </TouchableOpacity>
       
       {/* Action buttons for follow requests */}
-      {(item.type === 'follow_request' || item.type === 'follow') && !followingUsers[item.sender?._id] && (
+      {(item.type === 'follow_request' || item.type === 'follow') && (
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={[styles.followBackBtn, loadingFollow[item.sender?._id] && styles.followBackBtnDisabled]}
-            onPress={() => handleFollowUser(item.sender?._id)}
-            disabled={loadingFollow[item.sender?._id]}
-          >
-            {loadingFollow[item.sender?._id] ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : (
-              <Text style={styles.followBackText}>Follow</Text>
-            )}
-          </TouchableOpacity>
+          {followingUsers[item.sender?._id] ? (
+            <View style={[styles.followBackBtn, styles.followingBtn]}>
+              <Ionicons name="checkmark" size={14} color={COLORS.primary} />
+              <Text style={styles.followingBtnText}>Following</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.followBackBtn, loadingFollow[item.sender?._id] && styles.followBackBtnDisabled]}
+              onPress={() => handleFollowUser(item.sender?._id)}
+              disabled={loadingFollow[item.sender?._id]}
+            >
+              {loadingFollow[item.sender?._id] ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <Text style={styles.followBackText}>Follow back</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -209,8 +215,13 @@ const NotificationsScreen = ({ navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Notification</Text>
+          <Text style={styles.headerTitle}>Notifications</Text>
         </View>
+        {notifications.some(n => !n.read) && (
+          <TouchableOpacity onPress={markAllAsRead} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={styles.markAllReadText}>Mark all read</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {renderTabs()}
@@ -229,10 +240,20 @@ const NotificationsScreen = ({ navigation }) => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="notifications-outline" size={60} color={COLORS.textLight} />
-            <Text style={styles.emptyText}>No notifications yet</Text>
+            <Ionicons
+              name={activeTab === 'Matches' ? 'trophy-outline' : activeTab === 'Requests' ? 'person-add-outline' : 'notifications-outline'}
+              size={60}
+              color={COLORS.textLight}
+            />
+            <Text style={styles.emptyText}>
+              {activeTab === 'Matches' ? 'No match notifications' :
+               activeTab === 'Requests' ? 'No pending requests' :
+               'No notifications yet'}
+            </Text>
             <Text style={styles.emptySubtext}>
-              When you get notifications, they'll show up here
+              {activeTab === 'Matches' ? 'Match invites and score updates appear here.' :
+               activeTab === 'Requests' ? 'Follow & match requests will show up here.' :
+               "When you get notifications, they'll show up here."}
             </Text>
           </View>
         }
@@ -267,6 +288,11 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.lg,
     fontWeight: '600',
     color: COLORS.text,
+  },
+  markAllReadText: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -353,6 +379,17 @@ const styles = StyleSheet.create({
   },
   followBackText: {
     color: COLORS.white,
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
+  },
+  followingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.primary + '15',
+  },
+  followingBtnText: {
+    color: COLORS.primary,
     fontSize: FONTS.sizes.sm,
     fontWeight: '600',
   },
