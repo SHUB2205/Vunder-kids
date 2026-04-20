@@ -26,6 +26,7 @@ import StoriesBar from '../../components/Home/StoriesBar';
 import PostCard from '../../components/Home/PostCard';
 import SportsNews from '../../components/Home/SportsNews';
 import PostSkeleton from '../../components/Home/PostSkeleton';
+import { getSportEmoji } from '../../utils/sportIcons';
 import api from '../../config/axios';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
@@ -397,7 +398,7 @@ const HomeScreen = ({ navigation }) => {
           style={styles.selectedSportChip}
           onPress={() => setSelectedPostSport(null)}
         >
-          <Text style={styles.selectedSportChipText}>⚽ {selectedPostSport}</Text>
+          <Text style={styles.selectedSportChipText}>{getSportEmoji(selectedPostSport)} {selectedPostSport}</Text>
           <Ionicons name="close-circle" size={14} color={COLORS.primary} />
         </TouchableOpacity>
       )}
@@ -408,8 +409,8 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.actionButtonText}>Photo</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={() => setShowSportPicker(true)}>
-          <Text style={{ fontSize: 14 }}>⚽</Text>
-          <Text style={styles.actionButtonText}>Sport</Text>
+          <Text style={{ fontSize: 14 }}>{selectedPostSport ? getSportEmoji(selectedPostSport) : '⚽'}</Text>
+          <Text style={styles.actionButtonText}>{selectedPostSport || 'Sport'}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={() => setShowMatchModal(true)}>
           <Text style={{ fontSize: 14 }}>🏆</Text>
@@ -451,19 +452,6 @@ const HomeScreen = ({ navigation }) => {
         onAddStory={() => navigation.navigate('CreateStory')}
         currentUser={user}
       />
-      {/* News Header Card */}
-      <TouchableOpacity style={styles.newsHeaderCard} onPress={() => setShowNewsModal(true)}>
-        <View style={styles.newsHeaderLeft}>
-          <View style={styles.newsHeaderIcon}>
-            <Ionicons name="newspaper" size={20} color={COLORS.white} />
-          </View>
-          <View>
-            <Text style={styles.newsHeaderTitle}>Sports News & Live Scores</Text>
-            <Text style={styles.newsHeaderSub}>Tap to explore all news</Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
-      </TouchableOpacity>
     </View>
   );
 
@@ -485,10 +473,6 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.badgeText}>{notifCount > 9 ? '9+' : notifCount}</Text>
               </View>
             )}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.liveBadge} onPress={() => setShowNewsModal(true)}>
-            <View style={styles.liveIndicator} />
-            <Text style={styles.liveText}>NEWS</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -557,15 +541,24 @@ const HomeScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
             <ScrollView style={{ padding: SPACING.md }}>
+              {selectedPostSport && (
+                <TouchableOpacity
+                  style={[styles.matchItem, { borderBottomWidth: 1, borderBottomColor: COLORS.border }]}
+                  onPress={() => { setSelectedPostSport(null); setShowSportPicker(false); }}
+                >
+                  <Ionicons name="close-circle-outline" size={22} color={COLORS.error} style={{ marginRight: SPACING.md }} />
+                  <Text style={[styles.matchItemName, { color: COLORS.error }]}>Clear selection</Text>
+                </TouchableOpacity>
+              )}
               {availableSports.map((sport, i) => (
                 <TouchableOpacity
                   key={sport._id || i}
                   style={[styles.matchItem, selectedPostSport === sport.name && { backgroundColor: COLORS.primary + '10' }]}
                   onPress={() => { setSelectedPostSport(sport.name); setShowSportPicker(false); }}
                 >
-                  <Text style={{ fontSize: 22, marginRight: SPACING.md }}>⚽</Text>
+                  <Text style={{ fontSize: 22, marginRight: SPACING.md }}>{getSportEmoji(sport.name)}</Text>
                   <Text style={[styles.matchItemName, selectedPostSport === sport.name && { color: COLORS.primary }]}>{sport.name}</Text>
-                  {selectedPostSport === sport.name && <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />}
+                  {selectedPostSport === sport.name && <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} style={{ marginLeft: 'auto' }} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -581,8 +574,8 @@ const HomeScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={mixedFeed.length === 0 ? styles.emptyListContent : styles.listContent}
-        keyboardShouldPersistTaps="always"
-        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         ListEmptyComponent={
           loading ? (
             <View>

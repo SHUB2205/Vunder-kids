@@ -67,6 +67,7 @@ export const API_ENDPOINTS = {
   GET_FACILITIES: `${API_BASE_URL}/facilities`,
   GET_FACILITY: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}`,
   BOOK_FACILITY: `${API_BASE_URL}/facilities/book`,
+  CREATE_FACILITY: `${API_BASE_URL}/facilities`,
   
   // Sports
   GET_SPORTS: `${API_BASE_URL}/sport`,

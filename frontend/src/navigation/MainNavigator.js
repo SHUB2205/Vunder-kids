@@ -37,6 +37,7 @@ import SetScoreScreen from '../screens/Matches/SetScoreScreen';
 
 import FacilitiesScreen from '../screens/Facilities/FacilitiesScreen';
 import BookFacilityScreen from '../screens/Facilities/BookFacilityScreen';
+import AddFacilityScreen from '../screens/Facilities/AddFacilityScreen';
 
 import AIAssistantScreen from '../screens/AI/AIAssistantScreen';
 
@@ -64,6 +65,7 @@ const HomeStack = () => (
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
     <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
     <Stack.Screen name="BookFacility" component={BookFacilityScreen} />
+    <Stack.Screen name="AddFacility" component={AddFacilityScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SportProfile" component={SportProfileScreen} />
@@ -98,6 +100,7 @@ const MatchesStack = () => (
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="Facilities" component={FacilitiesScreen} />
     <Stack.Screen name="BookFacility" component={BookFacilityScreen} />
+    <Stack.Screen name="AddFacility" component={AddFacilityScreen} />
   </Stack.Navigator>
 );
 

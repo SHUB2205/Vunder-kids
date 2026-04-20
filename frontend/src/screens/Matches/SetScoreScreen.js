@@ -9,6 +9,8 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,18 +20,55 @@ import { getSportEmoji } from '../../utils/sportIcons';
 
 // Sport-specific scoring configurations
 const SPORT_CONFIGS = {
-  Tennis: { type: 'sets', maxSets: 5, setLabels: ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'Set 5'] },
-  Badminton: { type: 'sets', maxSets: 3, setLabels: ['Game 1', 'Game 2', 'Game 3'] },
-  'Table Tennis': { type: 'sets', maxSets: 5, setLabels: ['Game 1', 'Game 2', 'Game 3', 'Game 4', 'Game 5'] },
-  Pickleball: { type: 'sets', maxSets: 3, setLabels: ['Game 1', 'Game 2', 'Game 3'] },
-  Padel: { type: 'sets', maxSets: 3, setLabels: ['Set 1', 'Set 2', 'Set 3'] },
-  Volleyball: { type: 'sets', maxSets: 5, setLabels: ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'Set 5'] },
-  Basketball: { type: 'quarters', periods: ['Q1', 'Q2', 'Q3', 'Q4'] },
+  Tennis: { type: 'sets', maxSets: 5, setLabels: ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'Set 5'], unit: 'Sets' },
+  Badminton: { type: 'sets', maxSets: 3, setLabels: ['Game 1', 'Game 2', 'Game 3'], unit: 'Games' },
+  'Table Tennis': { type: 'sets', maxSets: 5, setLabels: ['Game 1', 'Game 2', 'Game 3', 'Game 4', 'Game 5'], unit: 'Games' },
+  Pickleball: { type: 'sets', maxSets: 3, setLabels: ['Game 1', 'Game 2', 'Game 3'], unit: 'Games' },
+  Squash: { type: 'sets', maxSets: 5, setLabels: ['G1', 'G2', 'G3', 'G4', 'G5'], unit: 'Games' },
+  Padel: { type: 'sets', maxSets: 3, setLabels: ['Set 1', 'Set 2', 'Set 3'], unit: 'Sets' },
+  Volleyball: { type: 'sets', maxSets: 5, setLabels: ['Set 1', 'Set 2', 'Set 3', 'Set 4', 'Set 5'], unit: 'Sets' },
+  Basketball: { type: 'periods', periods: ['Q1', 'Q2', 'Q3', 'Q4'], unit: 'Total' },
   Football: { type: 'simple', label: 'Goals' },
+  Rugby: { type: 'periods', periods: ['H1', 'H2'], unit: 'Total' },
+  'American Football': { type: 'periods', periods: ['Q1', 'Q2', 'Q3', 'Q4'], unit: 'Total' },
   Cricket: { type: 'cricket' },
-  Hockey: { type: 'periods', periods: ['P1', 'P2', 'P3'] },
-  Baseball: { type: 'innings', maxInnings: 9 },
+  Hockey: { type: 'periods', periods: ['P1', 'P2', 'P3'], unit: 'Total' },
+  Baseball: { type: 'periods', periods: ['1', '2', '3', '4', '5', '6', '7', '8', '9'], unit: 'Runs' },
+  Golf: { type: 'simple', label: 'Strokes' },
   default: { type: 'simple', label: 'Score' },
+};
+
+// Common aliases (lowercase) -> canonical key
+const SPORT_ALIASES = {
+  soccer: 'Football',
+  'futbol': 'Football',
+  'ping pong': 'Table Tennis',
+  'pingpong': 'Table Tennis',
+  'table-tennis': 'Table Tennis',
+  'american-football': 'American Football',
+  'nfl': 'American Football',
+  'ice hockey': 'Hockey',
+  'field hockey': 'Hockey',
+};
+
+const resolveSportConfig = (rawName) => {
+  const name = String(rawName || '').trim();
+  if (!name) return { key: 'default', config: SPORT_CONFIGS.default };
+  const lower = name.toLowerCase();
+  // 1. Alias match
+  if (SPORT_ALIASES[lower]) {
+    const aliasKey = SPORT_ALIASES[lower];
+    return { key: aliasKey, config: SPORT_CONFIGS[aliasKey] };
+  }
+  // 2. Case-insensitive exact match
+  const exactKey = Object.keys(SPORT_CONFIGS).find((k) => k.toLowerCase() === lower);
+  if (exactKey) return { key: exactKey, config: SPORT_CONFIGS[exactKey] };
+  // 3. Loose contains match (e.g. "Men's Tennis" -> Tennis)
+  const looseKey = Object.keys(SPORT_CONFIGS).find(
+    (k) => k !== 'default' && (lower.includes(k.toLowerCase()) || k.toLowerCase().includes(lower))
+  );
+  if (looseKey) return { key: looseKey, config: SPORT_CONFIGS[looseKey] };
+  return { key: 'default', config: SPORT_CONFIGS.default };
 };
 
 const SetScoreScreen = ({ navigation, route }) => {
@@ -45,9 +84,7 @@ const SetScoreScreen = ({ navigation, route }) => {
   };
   
   const sportName = getSportName();
-  const config = SPORT_CONFIGS[sportName] || SPORT_CONFIGS.default;
-  
-  console.log('Match sport data:', { sport: match?.sport, sportName: match?.sportName, resolved: sportName, config: config.type });
+  const { key: resolvedSportKey, config } = resolveSportConfig(sportName);
   
   const player1 = match?.creator || match?.players?.[0] || { name: 'Player 1' };
   const player2 = match?.opponent || match?.players?.[1] || { name: 'Player 2' };
@@ -192,141 +229,130 @@ const SetScoreScreen = ({ navigation, route }) => {
     });
   };
 
-  // Render sets-based scoring (Tennis, Badminton, etc.)
-  const renderSetsScoring = () => (
-    <View style={styles.setsContainer}>
-      <View style={styles.setsHeader}>
-        <View style={styles.playerHeaderColumn}>
-          <Text style={styles.playerHeaderText}>Player</Text>
-        </View>
-        {config.setLabels.slice(0, 3).map((label, idx) => (
-          <View key={idx} style={styles.setHeaderColumn}>
-            <Text style={styles.setHeaderText}>{label.replace('Set ', 'S').replace('Game ', 'G')}</Text>
-          </View>
-        ))}
-        <View style={styles.totalHeaderColumn}>
-          <Text style={styles.totalHeaderText}>Sets</Text>
-        </View>
-      </View>
+  // Render sets-based scoring (Tennis, Badminton, etc.) - dynamic over config.maxSets
+  const renderSetsScoring = () => {
+    const numSets = config.maxSets || 3;
+    const setIndices = Array.from({ length: numSets }, (_, i) => i);
+    const unitLabel = config.unit || 'Sets';
 
-      {/* Player 1 Row */}
+    const renderPlayerSets = (playerKey, name, avatar, placeholderColor, total) => (
       <View style={styles.playerScoreRow}>
         <View style={styles.playerInfoColumn}>
-          {!match?.isTeamMatch && player1?.avatar ? (
-            <Image source={{ uri: player1.avatar }} style={styles.miniAvatar} />
+          {!match?.isTeamMatch && avatar ? (
+            <Image source={{ uri: avatar }} style={styles.miniAvatar} />
           ) : (
-            <View style={styles.miniAvatarPlaceholder}>
-              <Ionicons name="person" size={14} color={COLORS.primary} />
+            <View style={[styles.miniAvatarPlaceholder, placeholderColor && { backgroundColor: placeholderColor + '20' }]}>
+              <Ionicons name="person" size={14} color={placeholderColor || COLORS.primary} />
             </View>
           )}
-          <Text style={styles.playerNameText} numberOfLines={1}>{team1Name}</Text>
+          <Text style={styles.playerNameText} numberOfLines={1}>{name}</Text>
         </View>
-        {[0, 1, 2].map(setIdx => (
-          <View key={setIdx} style={styles.setInputColumn}>
-            <TouchableOpacity 
-              style={styles.miniScoreBtn}
-              onPress={() => updateSetScore(setIdx, 'p1', (scores.setDetails?.[setIdx]?.p1 || 0) + 1)}
-            >
-              <Text style={styles.miniScoreText}>{scores.setDetails?.[setIdx]?.p1 || 0}</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-        <View style={styles.totalScoreColumn}>
-          <Text style={styles.totalScoreText}>{calculateSetTotals().p1}</Text>
-        </View>
-      </View>
-
-      {/* Player 2 Row */}
-      <View style={styles.playerScoreRow}>
-        <View style={styles.playerInfoColumn}>
-          {!match?.isTeamMatch && player2?.avatar ? (
-            <Image source={{ uri: player2.avatar }} style={styles.miniAvatar} />
-          ) : (
-            <View style={[styles.miniAvatarPlaceholder, { backgroundColor: COLORS.secondary + '20' }]}>
-              <Ionicons name="person" size={14} color={COLORS.secondary} />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.setsScrollContent} style={styles.setsScrollFlex}>
+          {setIndices.map((setIdx) => (
+            <View key={setIdx} style={styles.setInputColumn}>
+              <TouchableOpacity
+                style={styles.miniScoreBtn}
+                onPress={() => updateSetScore(setIdx, playerKey, (scores.setDetails?.[setIdx]?.[playerKey] || 0) + 1)}
+                onLongPress={() => updateSetScore(setIdx, playerKey, Math.max(0, (scores.setDetails?.[setIdx]?.[playerKey] || 0) - 1))}
+              >
+                <Text style={styles.miniScoreText}>{scores.setDetails?.[setIdx]?.[playerKey] || 0}</Text>
+              </TouchableOpacity>
             </View>
-          )}
-          <Text style={styles.playerNameText} numberOfLines={1}>{team2Name}</Text>
-        </View>
-        {[0, 1, 2].map(setIdx => (
-          <View key={setIdx} style={styles.setInputColumn}>
-            <TouchableOpacity 
-              style={styles.miniScoreBtn}
-              onPress={() => updateSetScore(setIdx, 'p2', (scores.setDetails?.[setIdx]?.p2 || 0) + 1)}
-            >
-              <Text style={styles.miniScoreText}>{scores.setDetails?.[setIdx]?.p2 || 0}</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+          ))}
+        </ScrollView>
         <View style={styles.totalScoreColumn}>
-          <Text style={styles.totalScoreText}>{calculateSetTotals().p2}</Text>
+          <Text style={styles.totalScoreText}>{total}</Text>
         </View>
       </View>
+    );
 
-      <Text style={styles.tapHint}>Tap scores to increment, long press to decrease</Text>
-    </View>
-  );
+    const totals = calculateSetTotals();
 
-  // Render quarters/periods scoring (Basketball, Hockey)
-  const renderQuartersScoring = () => (
-    <View style={styles.quartersContainer}>
-      <View style={styles.quartersHeader}>
-        <View style={styles.teamHeaderColumn}>
-          <Text style={styles.teamHeaderText}>Team</Text>
-        </View>
-        {config.periods.map((period, idx) => (
-          <View key={idx} style={styles.quarterHeaderColumn}>
-            <Text style={styles.quarterHeaderText}>{period}</Text>
+    return (
+      <View style={styles.setsContainer}>
+        <View style={styles.setsHeader}>
+          <View style={styles.playerHeaderColumn}>
+            <Text style={styles.playerHeaderText}>Player</Text>
           </View>
-        ))}
-        <View style={styles.totalHeaderColumn}>
-          <Text style={styles.totalHeaderText}>Total</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.setsScrollContent} style={styles.setsScrollFlex}>
+            {setIndices.map((idx) => (
+              <View key={idx} style={styles.setHeaderColumn}>
+                <Text style={styles.setHeaderText}>
+                  {config.setLabels?.[idx]?.replace('Set ', 'S').replace('Game ', 'G') || `#${idx + 1}`}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+          <View style={styles.totalHeaderColumn}>
+            <Text style={styles.totalHeaderText}>{unitLabel}</Text>
+          </View>
         </View>
-      </View>
 
-      {/* Team 1 Row */}
+        {renderPlayerSets('p1', team1Name, player1?.avatar, COLORS.primary, totals.p1)}
+        {renderPlayerSets('p2', team2Name, player2?.avatar, COLORS.secondary, totals.p2)}
+
+        <Text style={styles.tapHint}>Tap to increment • Long press to decrease{numSets > 3 ? ' • swipe to see more sets' : ''}</Text>
+      </View>
+    );
+  };
+
+  // Render quarters/periods scoring (Basketball, Hockey, Baseball innings, Rugby halves)
+  const renderQuartersScoring = () => {
+    const periods = config.periods || [];
+    const unitLabel = config.unit || 'Total';
+    const totals = calculatePeriodTotals();
+
+    const renderTeamPeriods = (teamKey, name, total) => (
       <View style={styles.teamScoreRow}>
         <View style={styles.teamInfoColumn}>
-          <Text style={styles.teamNameSmall} numberOfLines={1}>{team1Name}</Text>
+          <Text style={styles.teamNameSmall} numberOfLines={1}>{name}</Text>
         </View>
-        {config.periods.map((_, idx) => (
-          <View key={idx} style={styles.quarterInputColumn}>
-            <TextInput
-              style={styles.quarterInput}
-              value={String(scores.periodDetails?.[idx]?.t1 || 0)}
-              onChangeText={(val) => updatePeriodScore(idx, 't1', val)}
-              keyboardType="number-pad"
-              textAlign="center"
-            />
-          </View>
-        ))}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.periodsScrollContent} style={styles.periodsScrollFlex}>
+          {periods.map((_, idx) => (
+            <View key={idx} style={styles.quarterInputColumn}>
+              <TextInput
+                style={styles.quarterInput}
+                value={String(scores.periodDetails?.[idx]?.[teamKey] || 0)}
+                onChangeText={(val) => updatePeriodScore(idx, teamKey, val)}
+                keyboardType="number-pad"
+                textAlign="center"
+                selectTextOnFocus
+              />
+            </View>
+          ))}
+        </ScrollView>
         <View style={styles.totalScoreColumn}>
-          <Text style={styles.totalScoreLarge}>{calculatePeriodTotals().t1}</Text>
+          <Text style={styles.totalScoreLarge}>{total}</Text>
         </View>
       </View>
+    );
 
-      {/* Team 2 Row */}
-      <View style={styles.teamScoreRow}>
-        <View style={styles.teamInfoColumn}>
-          <Text style={styles.teamNameSmall} numberOfLines={1}>{team2Name}</Text>
-        </View>
-        {config.periods.map((_, idx) => (
-          <View key={idx} style={styles.quarterInputColumn}>
-            <TextInput
-              style={styles.quarterInput}
-              value={String(scores.periodDetails?.[idx]?.t2 || 0)}
-              onChangeText={(val) => updatePeriodScore(idx, 't2', val)}
-              keyboardType="number-pad"
-              textAlign="center"
-            />
+    return (
+      <View style={styles.quartersContainer}>
+        <View style={styles.quartersHeader}>
+          <View style={styles.teamHeaderColumn}>
+            <Text style={styles.teamHeaderText}>Team</Text>
           </View>
-        ))}
-        <View style={styles.totalScoreColumn}>
-          <Text style={styles.totalScoreLarge}>{calculatePeriodTotals().t2}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.periodsScrollContent} style={styles.periodsScrollFlex}>
+            {periods.map((period, idx) => (
+              <View key={idx} style={styles.quarterHeaderColumn}>
+                <Text style={styles.quarterHeaderText}>{period}</Text>
+              </View>
+            ))}
+          </ScrollView>
+          <View style={styles.totalHeaderColumn}>
+            <Text style={styles.totalHeaderText}>{unitLabel}</Text>
+          </View>
         </View>
+
+        {renderTeamPeriods('t1', team1Name, totals.t1)}
+        {renderTeamPeriods('t2', team2Name, totals.t2)}
+        {periods.length > 4 && (
+          <Text style={styles.tapHint}>Swipe horizontally to see all periods</Text>
+        )}
       </View>
-    </View>
-  );
+    );
+  };
 
   // Render cricket scoring
   const renderCricketScoring = () => (
@@ -449,6 +475,7 @@ const SetScoreScreen = ({ navigation, route }) => {
         return renderSetsScoring();
       case 'quarters':
       case 'periods':
+      case 'innings':
         return renderQuartersScoring();
       case 'cricket':
         return renderCricketScoring();
@@ -467,22 +494,33 @@ const SetScoreScreen = ({ navigation, route }) => {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.matchHeader}>
-          <Text style={styles.sportEmoji}>{getSportEmoji(sportName)}</Text>
-          <Text style={styles.matchName}>{match.name}</Text>
-          <Text style={styles.sportLabel}>{sportName}</Text>
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={80}
+      >
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View style={styles.matchHeader}>
+            <Text style={styles.sportEmoji}>{getSportEmoji(sportName)}</Text>
+            <Text style={styles.matchName}>{match.name}</Text>
+            <Text style={styles.sportLabel}>{resolvedSportKey !== 'default' ? resolvedSportKey : sportName}</Text>
+          </View>
 
-        {renderScoringUI()}
+          {renderScoringUI()}
 
-        <View style={styles.infoBox}>
-          <Ionicons name="information-circle-outline" size={20} color={COLORS.info} />
-          <Text style={styles.infoText}>
-            Once you submit the score, other admins will need to confirm it before it becomes final.
-          </Text>
-        </View>
-      </ScrollView>
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle-outline" size={20} color={COLORS.info} />
+            <Text style={styles.infoText}>
+              Once you submit the score, other admins will need to confirm it before it becomes final.
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -716,6 +754,18 @@ const styles = StyleSheet.create({
   setInputColumn: {
     width: 44,
     alignItems: 'center',
+  },
+  setsScrollContent: {
+    alignItems: 'center',
+  },
+  setsScrollFlex: {
+    flex: 1,
+  },
+  periodsScrollContent: {
+    alignItems: 'center',
+  },
+  periodsScrollFlex: {
+    flex: 1,
   },
   miniScoreBtn: {
     width: 36,

@@ -13,9 +13,12 @@ function escapeRegex(s) {
 // @desc    Get all facilities (optional: sport, city, state, location — location is legacy single substring)
 router.get('/', auth, async (req, res) => {
   try {
-    const { sport, location, city, state } = req.query;
+    const { sport, location, city, state, name, limit } = req.query;
     const conditions = [{ isActive: true }];
 
+    if (name) {
+      conditions.push({ name: new RegExp(escapeRegex(name), 'i') });
+    }
     if (sport) {
       conditions.push({
         sports: new RegExp(`^${escapeRegex(sport)}$`, 'i'),
@@ -32,7 +35,9 @@ router.get('/', auth, async (req, res) => {
     }
 
     const mongoFilter = conditions.length === 1 ? conditions[0] : { $and: conditions };
-    const facilities = await Facility.find(mongoFilter).sort({ rating: -1 });
+    let query = Facility.find(mongoFilter).sort({ rating: -1 });
+    if (limit) query = query.limit(parseInt(limit, 10));
+    const facilities = await query;
     res.json({ facilities });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -114,6 +119,37 @@ router.get('/bookings/my', auth, async (req, res) => {
 
     res.json({ bookings });
   } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/facilities
+// @desc    Create a custom facility
+router.post('/', auth, async (req, res) => {
+  try {
+    const { name, location, description, sports, pricePerHour, amenities, openingHours, image } = req.body;
+
+    if (!name || !location || pricePerHour == null) {
+      return res.status(400).json({ message: 'Name, location and price per hour are required' });
+    }
+
+    const facility = new Facility({
+      name: name.trim(),
+      location: location.trim(),
+      description: description?.trim() || '',
+      sports: Array.isArray(sports) ? sports : [],
+      pricePerHour: Number(pricePerHour),
+      amenities: Array.isArray(amenities) ? amenities : [],
+      openingHours: openingHours || { open: '06:00', close: '22:00' },
+      image: image || '',
+      owner: req.user._id,
+      isActive: true,
+    });
+
+    await facility.save();
+    res.status(201).json({ facility });
+  } catch (error) {
+    console.error('Create facility error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

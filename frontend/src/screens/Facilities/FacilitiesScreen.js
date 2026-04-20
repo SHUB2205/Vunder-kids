@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMatch } from '../../context/MatchContext';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 const FacilitiesScreen = ({ navigation }) => {
   const { facilities, fetchFacilities } = useMatch();
@@ -90,8 +90,8 @@ const FacilitiesScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Facilities</Text>
-        <TouchableOpacity>
-          <Ionicons name="filter-outline" size={24} color={COLORS.text} />
+        <TouchableOpacity onPress={() => navigation.navigate('AddFacility')}>
+          <Ionicons name="add-circle-outline" size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
@@ -143,6 +143,15 @@ const FacilitiesScreen = ({ navigation }) => {
           </View>
         }
       />
+
+      {/* Floating Add Facility button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('AddFacility')}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="add" size={28} color={COLORS.white} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -308,6 +317,18 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     color: COLORS.textSecondary,
     marginTop: SPACING.xs,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: SPACING.xxl,
+    right: SPACING.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.medium,
   },
 });
 

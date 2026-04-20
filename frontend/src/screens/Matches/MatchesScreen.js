@@ -61,11 +61,21 @@ const MatchesScreen = ({ navigation }) => {
         if (!isMyMatch) return false;
       }
 
+      // Treat past-dated non-completed matches as completed so they don't linger in "Upcoming"
+      const matchDate = match.date ? new Date(match.date) : null;
+      const isPastDate = matchDate && matchDate.getTime() < Date.now();
+      const effectiveStatus =
+        match.status === 'completed'
+          ? 'completed'
+          : isPastDate && match.status !== 'in-progress'
+            ? 'completed'
+            : match.status;
+
       // Status filter
       if (activeStatusTab === 'Upcoming') {
-        if (match.status !== 'scheduled' && match.status !== 'in-progress') return false;
+        if (effectiveStatus !== 'scheduled' && effectiveStatus !== 'in-progress') return false;
       } else if (activeStatusTab === 'Completed') {
-        if (match.status !== 'completed') return false;
+        if (effectiveStatus !== 'completed') return false;
       }
 
       // Match type filter (1 on 1 vs Team)

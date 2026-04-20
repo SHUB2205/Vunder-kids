@@ -110,6 +110,31 @@ export const MatchProvider = ({ children }) => {
     }
   };
 
+  const createFacility = async (facilityData) => {
+    try {
+      const response = await api.post(API_ENDPOINTS.CREATE_FACILITY, facilityData);
+      setFacilities(prev => [response.data.facility, ...prev]);
+      return { success: true, facility: response.data.facility };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to create facility',
+      };
+    }
+  };
+
+  const suggestFacilities = async (nameQuery) => {
+    if (!nameQuery || nameQuery.length < 2) return [];
+    try {
+      const url = `${API_ENDPOINTS.GET_FACILITIES}?name=${encodeURIComponent(nameQuery)}&limit=10`;
+      const response = await api.get(url);
+      return response.data.facilities || [];
+    } catch (error) {
+      console.error('Error suggesting facilities:', error);
+      return [];
+    }
+  };
+
   const bookFacility = async (bookingData) => {
     try {
       const response = await api.post(API_ENDPOINTS.BOOK_FACILITY, bookingData);
@@ -170,6 +195,8 @@ export const MatchProvider = ({ children }) => {
         fetchSports,
         fetchFacilities,
         searchFacilities,
+        createFacility,
+        suggestFacilities,
         bookFacility,
         toggleLike,
         commentOnMatch,
