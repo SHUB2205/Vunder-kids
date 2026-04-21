@@ -13,6 +13,7 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,26 +33,37 @@ import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 // News card injected every N posts
-const NEWS_INJECT_EVERY = 4;
+const NEWS_INJECT_EVERY = 2;
+
+const timeAgo = (dateStr) => {
+  if (!dateStr) return 'Today';
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+};
 
 const NewsCard = ({ item, onPress }) => {
-  const timeAgo = (dateStr) => {
-    const diff = (Date.now() - new Date(dateStr)) / 1000;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  };
-
   if (item.itemType === 'score') {
     return (
       <TouchableOpacity style={styles.scoreCard} onPress={onPress} activeOpacity={0.85}>
-        {item.isLive && (
-          <View style={styles.liveChip}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveChipText}>LIVE</Text>
+        <View style={styles.scoreCardHeader}>
+          <View style={styles.scoreCardHeaderLeft}>
+            <Ionicons name="trophy" size={14} color="#EF4444" />
+            <Text style={styles.scoreCardLeague}>{item.league}</Text>
           </View>
-        )}
-        <Text style={styles.scoreCardLeague}>{item.league}</Text>
+          {item.isLive ? (
+            <View style={styles.liveChip}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveChipText}>LIVE</Text>
+            </View>
+          ) : (
+            <View style={styles.finalChip}>
+              <Text style={styles.finalChipText}>{item.status || 'FINAL'}</Text>
+            </View>
+          )}
+        </View>
         <View style={styles.scoreCardTeams}>
           <View style={styles.scoreCardTeam}>
             <Text style={styles.scoreCardTeamLogo}>{item.homeTeam?.logo || '🏟️'}</Text>
@@ -65,31 +77,48 @@ const NewsCard = ({ item, onPress }) => {
             <Text style={styles.scoreCardScore}>{item.awayTeam?.score ?? '-'}</Text>
           </View>
         </View>
-        {item.quarter && <Text style={styles.scoreCardQuarter}>{item.quarter}</Text>}
+        <View style={styles.scoreCardFooter}>
+          {item.quarter && <Text style={styles.scoreCardQuarter}>{item.quarter}</Text>}
+          <Text style={styles.scoreCardTap}>Tap for details →</Text>
+        </View>
       </TouchableOpacity>
     );
   }
 
+  // Google News style card: large hero image on top, title, meta row
+  const dateStr = item.publishedAt || item.timestamp;
   return (
-    <TouchableOpacity style={styles.newsCard} onPress={onPress} activeOpacity={0.85}>
-      <View style={styles.newsCardRow}>
-        <View style={styles.newsCardContent}>
-          <View style={styles.newsCardMeta}>
-            <View style={styles.sportChip}>
-              <Text style={styles.sportChipText}>{item.sport || 'Sports'}</Text>
-            </View>
-            {item.source && <Text style={styles.newsSource}>{item.source}</Text>}
+    <TouchableOpacity style={styles.newsCard} onPress={onPress} activeOpacity={0.9}>
+      {item.imageUrl ? (
+        <View style={styles.newsHeroWrap}>
+          <Image source={{ uri: item.imageUrl }} style={styles.newsHeroImage} />
+          <View style={styles.newsHeroChip}>
+            <Ionicons name="newspaper" size={11} color={COLORS.white} />
+            <Text style={styles.newsHeroChipText}>{item.sport || 'Sports'}</Text>
           </View>
-          <Text style={styles.newsCardTitle} numberOfLines={3}>{item.title}</Text>
-          <Text style={styles.newsCardTime}>{item.publishedAt ? timeAgo(item.publishedAt) : 'Today'}</Text>
         </View>
-        {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.newsCardImage} />
-        ) : (
-          <View style={[styles.newsCardImage, styles.newsCardImagePlaceholder]}>
-            <Ionicons name="newspaper-outline" size={28} color={COLORS.textLight} />
-          </View>
-        )}
+      ) : (
+        <View style={[styles.newsHeroImage, styles.newsCardImagePlaceholder]}>
+          <Ionicons name="newspaper-outline" size={42} color={COLORS.textLight} />
+        </View>
+      )}
+      <View style={styles.newsCardBody}>
+        <Text style={styles.newsCardTitle} numberOfLines={3}>{item.title}</Text>
+        {item.summary ? (
+          <Text style={styles.newsCardSummary} numberOfLines={2}>{item.summary}</Text>
+        ) : null}
+        <View style={styles.newsCardFooter}>
+          {item.source ? (
+            <>
+              <Text style={styles.newsSource}>{item.source}</Text>
+              <Text style={styles.newsDot}>•</Text>
+            </>
+          ) : null}
+          <Ionicons name="time-outline" size={12} color={COLORS.textLight} />
+          <Text style={styles.newsCardTime}>{timeAgo(dateStr)}</Text>
+          <View style={{ flex: 1 }} />
+          <Text style={styles.newsReadMore}>Read →</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -237,14 +266,22 @@ const HomeScreen = ({ navigation }) => {
     posts.forEach((post, idx) => {
       mixed.push({ ...post, feedType: 'post' });
       if ((idx + 1) % NEWS_INJECT_EVERY === 0 && injectIdx < combined.length) {
-        mixed.push({ ...combined[injectIdx], feedType: 'news' });
+        const pick = combined[injectIdx];
+        mixed.push({ ...pick, _id: `${pick._id}_slot${injectIdx}`, feedType: 'news' });
         injectIdx++;
       }
     });
-    // If few/no posts, show some news + scores at the top
-    if (posts.length < NEWS_INJECT_EVERY && combined.length > 0) {
-      combined.slice(0, 4).forEach(n => {
-        if (!mixed.find(m => m._id === n._id)) mixed.unshift({ ...n, feedType: 'news' });
+
+    // Surface ALL remaining news/scores so nothing from the API is hidden
+    for (let i = injectIdx; i < combined.length; i++) {
+      const pick = combined[i];
+      mixed.push({ ...pick, _id: `${pick._id}_tail${i}`, feedType: 'news' });
+    }
+
+    // If no posts at all, ensure news still fills the feed
+    if (posts.length === 0 && combined.length > 0 && mixed.length === 0) {
+      combined.forEach((n, i) => {
+        mixed.push({ ...n, _id: `${n._id}_only${i}`, feedType: 'news' });
       });
     }
     return mixed;
@@ -498,6 +535,15 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.newsDetailTitle}>{selectedNewsItem?.title}</Text>
                   <Text style={styles.newsDetailSummary}>{selectedNewsItem?.summary}</Text>
                   {selectedNewsItem?.source && <Text style={styles.newsDetailSource}>— {selectedNewsItem.source}</Text>}
+                  {selectedNewsItem?.url && selectedNewsItem.url !== '#' && (
+                    <TouchableOpacity
+                      style={styles.readArticleBtn}
+                      onPress={() => Linking.openURL(selectedNewsItem.url).catch(() => {})}
+                    >
+                      <Ionicons name="open-outline" size={16} color={COLORS.white} />
+                      <Text style={styles.readArticleBtnText}>Read full article</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </>
             ) : (
@@ -684,41 +730,74 @@ const styles = StyleSheet.create({
   newsHeaderTitle: { fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.text },
   newsHeaderSub: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary },
 
-  // Google News style card
+  // Google News style card - hero image on top
   newsCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: SPACING.md,
-    marginVertical: SPACING.xs,
+    marginVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
+    overflow: 'hidden',
     ...SHADOWS.small,
   },
-  newsCardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  newsCardContent: { flex: 1, paddingRight: SPACING.sm },
-  newsCardMeta: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.xs, gap: SPACING.xs },
+  newsHeroWrap: { position: 'relative', width: '100%', backgroundColor: COLORS.surface },
+  newsHeroImage: { width: '100%', height: 190, backgroundColor: COLORS.surface },
+  newsHeroChip: {
+    position: 'absolute',
+    top: SPACING.sm,
+    left: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  newsHeroChipText: { color: COLORS.white, fontSize: FONTS.sizes.xs, fontWeight: '700', letterSpacing: 0.3 },
+  newsCardBody: { padding: SPACING.md },
   sportChip: { backgroundColor: COLORS.primary + '15', paddingHorizontal: 8, paddingVertical: 2, borderRadius: BORDER_RADIUS.full },
   sportChipText: { fontSize: FONTS.sizes.xs, color: COLORS.primary, fontWeight: '700' },
-  newsSource: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, fontWeight: '500' },
-  newsCardTitle: { fontSize: FONTS.sizes.md, fontWeight: '600', color: COLORS.text, lineHeight: 20, marginBottom: SPACING.xs },
-  newsCardTime: { fontSize: FONTS.sizes.xs, color: COLORS.textLight },
-  newsCardImage: { width: 90, height: 80, borderRadius: BORDER_RADIUS.md, backgroundColor: COLORS.surface },
+  newsSource: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, fontWeight: '600' },
+  newsDot: { fontSize: FONTS.sizes.xs, color: COLORS.textLight, marginHorizontal: 4 },
+  newsCardTitle: { fontSize: FONTS.sizes.lg, fontWeight: '700', color: COLORS.text, lineHeight: 22, marginBottom: SPACING.xs },
+  newsCardSummary: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, lineHeight: 19, marginBottom: SPACING.sm },
+  newsCardFooter: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: SPACING.xs },
+  newsCardTime: { fontSize: FONTS.sizes.xs, color: COLORS.textLight, marginLeft: 2 },
+  newsReadMore: { fontSize: FONTS.sizes.xs, color: COLORS.primary, fontWeight: '700' },
   newsCardImagePlaceholder: { justifyContent: 'center', alignItems: 'center' },
+  readArticleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginTop: SPACING.md,
+  },
+  readArticleBtnText: { color: COLORS.white, fontSize: FONTS.sizes.md, fontWeight: '700' },
 
   // Score Card (Google News score style)
   scoreCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: SPACING.md,
-    marginVertical: SPACING.xs,
+    marginVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     ...SHADOWS.small,
     borderLeftWidth: 3,
     borderLeftColor: '#EF4444',
   },
-  liveChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EF4444', alignSelf: 'flex-start', paddingHorizontal: SPACING.sm, paddingVertical: 3, borderRadius: BORDER_RADIUS.full, marginBottom: SPACING.xs, gap: 4 },
+  scoreCardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.sm },
+  scoreCardHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liveChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EF4444', paddingHorizontal: SPACING.sm, paddingVertical: 3, borderRadius: BORDER_RADIUS.full, gap: 4 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.white },
   liveChipText: { fontSize: FONTS.sizes.xs, color: COLORS.white, fontWeight: '700' },
-  scoreCardLeague: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, fontWeight: '600', marginBottom: SPACING.sm },
+  finalChip: { backgroundColor: COLORS.textSecondary, paddingHorizontal: SPACING.sm, paddingVertical: 3, borderRadius: BORDER_RADIUS.full },
+  finalChipText: { fontSize: FONTS.sizes.xs, color: COLORS.white, fontWeight: '700' },
+  scoreCardLeague: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, fontWeight: '700' },
+  scoreCardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: SPACING.md, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.border },
+  scoreCardTap: { fontSize: FONTS.sizes.xs, color: COLORS.primary, fontWeight: '600' },
   scoreCardTeams: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
   scoreCardTeam: { flex: 1, alignItems: 'center' },
   scoreCardTeamLogo: { fontSize: 28, marginBottom: 4 },
