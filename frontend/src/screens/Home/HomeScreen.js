@@ -44,6 +44,14 @@ const timeAgo = (dateStr) => {
   return `${Math.floor(diff / 86400)}d ago`;
 };
 
+const isUrl = (s) => typeof s === 'string' && /^https?:\/\//i.test(s);
+const TeamLogo = ({ logo, fallback = '🏟️' }) => {
+  if (isUrl(logo)) {
+    return <Image source={{ uri: logo }} style={styles.scoreCardTeamLogoImg} resizeMode="contain" />;
+  }
+  return <Text style={styles.scoreCardTeamLogo}>{logo || fallback}</Text>;
+};
+
 const NewsCard = ({ item, onPress }) => {
   if (item.itemType === 'score') {
     return (
@@ -66,13 +74,13 @@ const NewsCard = ({ item, onPress }) => {
         </View>
         <View style={styles.scoreCardTeams}>
           <View style={styles.scoreCardTeam}>
-            <Text style={styles.scoreCardTeamLogo}>{item.homeTeam?.logo || '🏟️'}</Text>
+            <TeamLogo logo={item.homeTeam?.logo} />
             <Text style={styles.scoreCardTeamName} numberOfLines={1}>{item.homeTeam?.name}</Text>
             <Text style={styles.scoreCardScore}>{item.homeTeam?.score ?? '-'}</Text>
           </View>
           <Text style={styles.scoreCardVs}>VS</Text>
           <View style={styles.scoreCardTeam}>
-            <Text style={styles.scoreCardTeamLogo}>{item.awayTeam?.logo || '🏟️'}</Text>
+            <TeamLogo logo={item.awayTeam?.logo} />
             <Text style={styles.scoreCardTeamName} numberOfLines={1}>{item.awayTeam?.name}</Text>
             <Text style={styles.scoreCardScore}>{item.awayTeam?.score ?? '-'}</Text>
           </View>
@@ -554,13 +562,21 @@ const HomeScreen = ({ navigation }) => {
                 )}
                 <View style={styles.scoreDetailTeams}>
                   <View style={styles.scoreDetailTeam}>
-                    <Text style={{ fontSize: 36 }}>{selectedNewsItem?.homeTeam?.logo || '🏟️'}</Text>
+                    {isUrl(selectedNewsItem?.homeTeam?.logo) ? (
+                      <Image source={{ uri: selectedNewsItem.homeTeam.logo }} style={styles.scoreDetailTeamLogoImg} resizeMode="contain" />
+                    ) : (
+                      <Text style={{ fontSize: 36 }}>{selectedNewsItem?.homeTeam?.logo || '🏟️'}</Text>
+                    )}
                     <Text style={styles.scoreDetailName}>{selectedNewsItem?.homeTeam?.name}</Text>
                     <Text style={styles.scoreDetailBigScore}>{selectedNewsItem?.homeTeam?.score ?? '-'}</Text>
                   </View>
                   <Text style={styles.scoreDetailVs}>VS</Text>
                   <View style={styles.scoreDetailTeam}>
-                    <Text style={{ fontSize: 36 }}>{selectedNewsItem?.awayTeam?.logo || '🏟️'}</Text>
+                    {isUrl(selectedNewsItem?.awayTeam?.logo) ? (
+                      <Image source={{ uri: selectedNewsItem.awayTeam.logo }} style={styles.scoreDetailTeamLogoImg} resizeMode="contain" />
+                    ) : (
+                      <Text style={{ fontSize: 36 }}>{selectedNewsItem?.awayTeam?.logo || '🏟️'}</Text>
+                    )}
                     <Text style={styles.scoreDetailName}>{selectedNewsItem?.awayTeam?.name}</Text>
                     <Text style={styles.scoreDetailBigScore}>{selectedNewsItem?.awayTeam?.score ?? '-'}</Text>
                   </View>
@@ -801,6 +817,8 @@ const styles = StyleSheet.create({
   scoreCardTeams: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
   scoreCardTeam: { flex: 1, alignItems: 'center' },
   scoreCardTeamLogo: { fontSize: 28, marginBottom: 4 },
+  scoreCardTeamLogoImg: { width: 44, height: 44, marginBottom: 4 },
+  scoreDetailTeamLogoImg: { width: 56, height: 56, marginBottom: 6 },
   scoreCardTeamName: { fontSize: FONTS.sizes.xs, fontWeight: '600', color: COLORS.text, textAlign: 'center', marginBottom: 4 },
   scoreCardScore: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: COLORS.primary },
   scoreCardVs: { fontSize: FONTS.sizes.sm, fontWeight: '700', color: COLORS.textSecondary },
