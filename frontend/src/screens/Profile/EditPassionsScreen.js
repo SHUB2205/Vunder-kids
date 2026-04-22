@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useMatch } from '../../context/MatchContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
+import { mergeWithCanonical } from '../../utils/canonicalSports';
 
 const SKILL_LEVELS = ['Beginner', 'Foundation', 'Intermediate', 'Advance', 'Pro'];
 
@@ -96,20 +97,9 @@ const EditPassionsScreen = ({ navigation }) => {
     return SPORTS_ICONS[sportName] || SPORTS_ICONS.default;
   };
 
-  const defaultSports = [
-    { name: 'Football', _id: '1' },
-    { name: 'Basketball', _id: '2' },
-    { name: 'Tennis', _id: '3' },
-    { name: 'Cricket', _id: '4' },
-    { name: 'Swimming', _id: '5' },
-    { name: 'Running', _id: '6' },
-    { name: 'Cycling', _id: '7' },
-    { name: 'Volleyball', _id: '8' },
-    { name: 'Badminton', _id: '9' },
-    { name: 'Gym', _id: '10' },
-  ];
-
-  const displaySports = sports?.length > 0 ? sports : defaultSports;
+  // Merge API sports with the canonical master list so newer sports
+  // (Pickleball, Padel, etc.) always appear even if the DB hasn't been seeded.
+  const displaySports = mergeWithCanonical(sports);
 
   if (loading) {
     return (

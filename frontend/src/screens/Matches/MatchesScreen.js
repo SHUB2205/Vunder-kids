@@ -47,53 +47,65 @@ const MatchesScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  // Filter matches - exactly like PWA filterMatches function
+  // Grace window: matches past their start time by more than this are treated as completed,
+  // even if the backend still has them as 'scheduled' or 'in-progress'.
+  const STALE_GRACE_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+  // Filter matches
   const filterMatches = () => {
     if (!matches) return [];
-    
-    return matches.filter(match => {
+
+    const now = Date.now();
+    const filtered = matches.filter(match => {
       // My Matches filter
       if (showMyMatches && user) {
-        const isMyMatch = 
-          match.creator?._id === user._id || 
+        const isMyMatch =
+          match.creator?._id === user._id ||
           match.players?.some(p => p._id === user._id) ||
           match.teams?.some(t => t.players?.some(p => p._id === user._id));
         if (!isMyMatch) return false;
       }
 
-      // Treat past-dated non-completed matches as completed so they don't linger in "Upcoming"
-      const matchDate = match.date ? new Date(match.date) : null;
-      const isPastDate = matchDate && matchDate.getTime() < Date.now();
+      // Any match >4h past its start is considered completed for UI purposes,
+      // regardless of backend status. This prevents stale 'scheduled' / 'in-progress'
+      // matches from lingering forever in Upcoming.
+      const matchTime = match.date ? new Date(match.date).getTime() : null;
+      const isStalePast = matchTime && matchTime < now - STALE_GRACE_MS;
       const effectiveStatus =
-        match.status === 'completed'
-          ? 'completed'
-          : isPastDate && match.status !== 'in-progress'
-            ? 'completed'
-            : match.status;
+        match.status === 'completed' || isStalePast ? 'completed' : match.status;
 
       // Status filter
       if (activeStatusTab === 'Upcoming') {
+        // Upcoming = scheduled/in-progress AND not stale-past
         if (effectiveStatus !== 'scheduled' && effectiveStatus !== 'in-progress') return false;
       } else if (activeStatusTab === 'Completed') {
         if (effectiveStatus !== 'completed') return false;
       }
 
       // Match type filter (1 on 1 vs Team)
-      const matchTypeFilter = 
+      const matchTypeFilter =
         activeFilters.matchType === '1 on 1' ? !match.isTeamMatch : match.isTeamMatch;
 
       // Sport type filter
       const matchSportName = match.sport?.name || match.sportName || '';
-      const sportTypeFilter = 
-        activeFilters.sportType === 'All' || 
+      const sportTypeFilter =
+        activeFilters.sportType === 'All' ||
         matchSportName.toLowerCase() === activeFilters.sportType.toLowerCase();
 
       // Location filter
-      const locationFilter = 
-        locationSearch.trim() === '' || 
+      const locationFilter =
+        locationSearch.trim() === '' ||
         match.location?.toLowerCase().includes(locationSearch.toLowerCase());
 
       return matchTypeFilter && sportTypeFilter && locationFilter;
+    });
+
+    // Sort: Upcoming → soonest first, Completed → most-recent first, All → newest date first
+    return filtered.sort((a, b) => {
+      const aT = a.date ? new Date(a.date).getTime() : 0;
+      const bT = b.date ? new Date(b.date).getTime() : 0;
+      if (activeStatusTab === 'Upcoming') return aT - bT;
+      return bT - aT;
     });
   };
 

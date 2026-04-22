@@ -245,10 +245,18 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('SetScore', { match });
   };
 
-  const getUserMatches = () => (matches || []).filter(m =>
-    m.status !== 'completed' &&
-    (m.creator?._id === user?._id || m.players?.some(p => p._id === user?._id))
-  );
+  const getUserMatches = () => {
+    const STALE_GRACE_MS = 4 * 60 * 60 * 1000; // 4 hours past start = treat as over
+    const now = Date.now();
+    return (matches || [])
+      .filter(m => {
+        const t = m.date ? new Date(m.date).getTime() : 0;
+        const isStalePast = t > 0 && t < now - STALE_GRACE_MS;
+        if (m.status === 'completed' || isStalePast) return false;
+        return m.creator?._id === user?._id || m.players?.some(p => p._id === user?._id);
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
 
   // Build mixed feed: posts with news + scores interleaved every N items
   const buildMixedFeed = () => {
