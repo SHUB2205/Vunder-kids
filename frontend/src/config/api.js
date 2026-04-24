@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   GET_SUGGESTIONS: `${API_BASE_URL}/user/suggestions`,
   FOLLOW_USER: `${API_BASE_URL}/user/follow`,
   UNFOLLOW_USER: `${API_BASE_URL}/user/unfollow`,
+  REGISTER_PUSH_TOKEN: `${API_BASE_URL}/user/push-token`,
   GET_FOLLOWERS: (userId) => `${API_BASE_URL}/user/${userId}/followers`,
   GET_FOLLOWING: (userId) => `${API_BASE_URL}/user/${userId}/following`,
   DELETE_ACCOUNT: `${API_BASE_URL}/user/delete-account`,

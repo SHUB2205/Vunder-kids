@@ -461,9 +461,9 @@ const HomeScreen = ({ navigation }) => {
           <Ionicons name="images" size={17} color="#4A90D9" />
           <Text style={styles.actionButtonText}>Photo</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton} onPress={() => setShowSportPicker(true)}>
-          <Text style={{ fontSize: 14 }}>{selectedPostSport ? getSportEmoji(selectedPostSport) : '⚽'}</Text>
-          <Text style={styles.actionButtonText}>{selectedPostSport || 'Sport'}</Text>
+        <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('LiveSport', { sportName: 'All' })}>
+          <Text style={{ fontSize: 14 }}>📺</Text>
+          <Text style={styles.actionButtonText}>Live Sport</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={() => setShowMatchModal(true)}>
           <Text style={{ fontSize: 14 }}>🏆</Text>

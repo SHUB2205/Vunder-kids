@@ -43,6 +43,7 @@ import AIAssistantScreen from '../screens/AI/AIAssistantScreen';
 
 import SportProfileScreen from '../screens/Sports/SportProfileScreen';
 import SportSearchScreen from '../screens/Sports/SportSearchScreen';
+import LiveSportScreen from '../screens/Sports/LiveSportScreen';
 
 import { TermsScreen, PrivacyPolicyScreen, EULAScreen } from '../screens/Legal';
 
@@ -70,6 +71,7 @@ const HomeStack = () => (
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SportProfile" component={SportProfileScreen} />
     <Stack.Screen name="SportSearch" component={SportSearchScreen} />
+    <Stack.Screen name="LiveSport" component={LiveSportScreen} />
   </Stack.Navigator>
 );
 
@@ -82,6 +84,7 @@ const SearchStack = () => (
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="SportProfile" component={SportProfileScreen} />
     <Stack.Screen name="SportSearch" component={SportSearchScreen} />
+    <Stack.Screen name="LiveSport" component={LiveSportScreen} />
   </Stack.Navigator>
 );
 

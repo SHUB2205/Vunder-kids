@@ -128,6 +128,37 @@ const PostCard = ({ post, onPress, onProfilePress, onCommentPress }) => {
 
       {renderMedia()}
 
+      {/* Caption & sport tag come BEFORE the action bar, like most social platforms */}
+      {(post.content || post.sport) && (
+        <View style={styles.captionBlock}>
+          {post.content && (
+            <Text style={styles.caption} numberOfLines={showFullContent ? undefined : 3}>
+              <Text style={styles.captionUsername}>
+                {post.creator?.userName || post.creator?.name}{' '}
+              </Text>
+              {post.content}
+            </Text>
+          )}
+
+          {post.content && post.content.length > 120 && !showFullContent && (
+            <TouchableOpacity onPress={() => setShowFullContent(true)}>
+              <Text style={styles.moreText}>more</Text>
+            </TouchableOpacity>
+          )}
+
+          {post.sport && (
+            <TouchableOpacity
+              style={styles.sportTag}
+              onPress={() => navigation.navigate('LiveSport', { sportName: post.sport })}
+            >
+              <Text style={styles.sportTagEmoji}>{getSportEmoji(post.sport)}</Text>
+              <Text style={styles.sportTagText}>{post.sport}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Action bar sits under the post content */}
       <View style={styles.actions}>
         <View style={styles.leftActions}>
           <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
@@ -146,26 +177,11 @@ const PostCard = ({ post, onPress, onProfilePress, onCommentPress }) => {
         </View>
       </View>
 
-      <View style={styles.content}>
+      {/* Counts + meta row */}
+      <View style={styles.metaBlock}>
         {likesCount > 0 && (
           <Text style={styles.likes}>{likesCount.toLocaleString()} likes</Text>
         )}
-
-        {post.content && (
-          <Text style={styles.caption} numberOfLines={showFullContent ? undefined : 2}>
-            <Text style={styles.captionUsername}>
-              {post.creator?.userName || post.creator?.name}{' '}
-            </Text>
-            {post.content}
-          </Text>
-        )}
-
-        {post.content && post.content.length > 100 && !showFullContent && (
-          <TouchableOpacity onPress={() => setShowFullContent(true)}>
-            <Text style={styles.moreText}>more</Text>
-          </TouchableOpacity>
-        )}
-
         {post.comments?.length > 0 && (
           <TouchableOpacity onPress={onCommentPress}>
             <Text style={styles.viewComments}>
@@ -173,17 +189,6 @@ const PostCard = ({ post, onPress, onProfilePress, onCommentPress }) => {
             </Text>
           </TouchableOpacity>
         )}
-
-        {post.sport && (
-          <TouchableOpacity 
-            style={styles.sportTag}
-            onPress={() => navigation.navigate('SportProfile', { sportName: post.sport })}
-          >
-            <Text style={styles.sportTagEmoji}>{getSportEmoji(post.sport)}</Text>
-            <Text style={styles.sportTagText}>{post.sport}</Text>
-          </TouchableOpacity>
-        )}
-
         <Text style={styles.timestamp}>{formatTime(post.createdAt)}</Text>
       </View>
 
@@ -275,7 +280,12 @@ const styles = StyleSheet.create({
   actionButton: {
     marginRight: SPACING.lg,
   },
-  content: {
+  captionBlock: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xs,
+  },
+  metaBlock: {
     paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.md,
   },

@@ -16,12 +16,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMatch } from '../../context/MatchContext';
 import api from '../../config/axios';
 import { API_ENDPOINTS } from '../../config/api';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/theme';
 
 const STEPS = ['Match Info', 'Players', 'Venue & Time'];
+const LAST_MATCH_KEY = '@fisiko:lastMatchDraft';
 
 const CreateMatchScreen = ({ navigation }) => {
   const { createMatch, sports, fetchSports, searchFacilities } = useMatch();
@@ -60,10 +62,12 @@ const CreateMatchScreen = ({ navigation }) => {
   const [showSportPicker, setShowSportPicker] = useState(false);
   const [customSport, setCustomSport] = useState('');
 
-  // User search
+  // User search (shared between opponent input and team players typeahead)
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  // Which players field is currently showing suggestions: 'team' | 'opponent' | null
+  const [activePlayerField, setActivePlayerField] = useState(null);
 
   // Facility
   const [selectedFacility, setSelectedFacility] = useState(null);
@@ -77,7 +81,40 @@ const CreateMatchScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchSports();
+    // Prefill from last successfully-created match (team name, players, sport, venue, etc.)
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(LAST_MATCH_KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw);
+        if (draft.name) setName(draft.name);
+        if (draft.selectedSport) setSelectedSport(draft.selectedSport);
+        if (typeof draft.isTeamMatch === 'boolean') setIsTeamMatch(draft.isTeamMatch);
+        if (draft.opponent) setOpponent(draft.opponent);
+        if (draft.teamName) setTeamName(draft.teamName);
+        if (draft.teamPlayers) setTeamPlayers(draft.teamPlayers);
+        if (draft.opponentTeamName) setOpponentTeamName(draft.opponentTeamName);
+        if (draft.opponentPlayers) setOpponentPlayers(draft.opponentPlayers);
+        if (draft.venueName) setVenueName(draft.venueName);
+        if (draft.venueCity) setVenueCity(draft.venueCity);
+        if (draft.venueState) setVenueState(draft.venueState);
+        if (draft.venueCountry) setVenueCountry(draft.venueCountry);
+      } catch {}
+    })();
   }, []);
+
+  // Extract the trailing token after the last comma for prefix-based player lookup
+  const lastToken = (str) => {
+    const parts = (str || '').split(',');
+    return (parts[parts.length - 1] || '').trim();
+  };
+
+  // Replace the trailing token with `name` and append a trailing ", " so users can keep typing
+  const applyPickedName = (listStr, name) => {
+    const parts = (listStr || '').split(',');
+    parts[parts.length - 1] = ` ${name}`;
+    return parts.join(',').replace(/^\s*,/, '').trim() + ', ';
+  };
 
   useEffect(() => {
     if (!sportNameForFilter) {
@@ -226,6 +263,24 @@ const CreateMatchScreen = ({ navigation }) => {
     setLoading(false);
 
     if (result.success) {
+      // Persist this match as the next draft so the form pre-fills next time
+      try {
+        await AsyncStorage.setItem(LAST_MATCH_KEY, JSON.stringify({
+          name,
+          selectedSport,
+          isTeamMatch,
+          opponent,
+          teamName,
+          teamPlayers,
+          opponentTeamName,
+          opponentPlayers,
+          venueName,
+          venueCity,
+          venueState,
+          venueCountry,
+        }));
+      } catch {}
+
       if (selectedFacility?._id) {
         Alert.alert(
           'Match Created! 🎉',
@@ -348,14 +403,49 @@ const CreateMatchScreen = ({ navigation }) => {
               />
             </View>
             <Text style={styles.label}>Players (comma separated) *</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="John, Alex, Maria..."
-                placeholderTextColor={COLORS.textLight}
-                value={teamPlayers}
-                onChangeText={setTeamPlayers}
-              />
+            <View style={styles.opponentContainer}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Type a name… e.g. H → Herman, Hardeep"
+                  placeholderTextColor={COLORS.textLight}
+                  value={teamPlayers}
+                  onChangeText={(text) => {
+                    setTeamPlayers(text);
+                    const q = lastToken(text);
+                    setActivePlayerField('team');
+                    setUserSearchQuery(q);
+                  }}
+                  onFocus={() => {
+                    setActivePlayerField('team');
+                    setUserSearchQuery(lastToken(teamPlayers));
+                  }}
+                />
+                {searchLoading && activePlayerField === 'team' && <ActivityIndicator size="small" color={COLORS.primary} />}
+              </View>
+              {activePlayerField === 'team' && lastToken(teamPlayers).length > 0 && searchResults.length > 0 && (
+                <View style={styles.suggestionsDropdown}>
+                  {searchResults.slice(0, 6).map((u) => (
+                    <TouchableOpacity
+                      key={u._id}
+                      style={styles.suggestionItem}
+                      onPress={() => {
+                        setTeamPlayers(applyPickedName(teamPlayers, u.userName || u.name));
+                        setActivePlayerField(null);
+                        setSearchResults([]);
+                      }}
+                    >
+                      <View style={styles.suggestionAvatar}>
+                        <Ionicons name="person" size={16} color={COLORS.primary} />
+                      </View>
+                      <View>
+                        <Text style={styles.suggestionText}>{u.userName || u.name}</Text>
+                        {!!u.email && <Text style={styles.suggestionEmail}>{u.email}</Text>}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           </View>
 
@@ -381,14 +471,49 @@ const CreateMatchScreen = ({ navigation }) => {
               />
             </View>
             <Text style={styles.label}>Players (comma separated) *</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Sarah, Tom, Chris..."
-                placeholderTextColor={COLORS.textLight}
-                value={opponentPlayers}
-                onChangeText={setOpponentPlayers}
-              />
+            <View style={styles.opponentContainer}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Type a name… e.g. S → Sarah, Steve"
+                  placeholderTextColor={COLORS.textLight}
+                  value={opponentPlayers}
+                  onChangeText={(text) => {
+                    setOpponentPlayers(text);
+                    const q = lastToken(text);
+                    setActivePlayerField('opponent');
+                    setUserSearchQuery(q);
+                  }}
+                  onFocus={() => {
+                    setActivePlayerField('opponent');
+                    setUserSearchQuery(lastToken(opponentPlayers));
+                  }}
+                />
+                {searchLoading && activePlayerField === 'opponent' && <ActivityIndicator size="small" color={COLORS.primary} />}
+              </View>
+              {activePlayerField === 'opponent' && lastToken(opponentPlayers).length > 0 && searchResults.length > 0 && (
+                <View style={styles.suggestionsDropdown}>
+                  {searchResults.slice(0, 6).map((u) => (
+                    <TouchableOpacity
+                      key={u._id}
+                      style={styles.suggestionItem}
+                      onPress={() => {
+                        setOpponentPlayers(applyPickedName(opponentPlayers, u.userName || u.name));
+                        setActivePlayerField(null);
+                        setSearchResults([]);
+                      }}
+                    >
+                      <View style={styles.suggestionAvatar}>
+                        <Ionicons name="person" size={16} color={COLORS.primary} />
+                      </View>
+                      <View>
+                        <Text style={styles.suggestionText}>{u.userName || u.name}</Text>
+                        {!!u.email && <Text style={styles.suggestionEmail}>{u.email}</Text>}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           </View>
         </>

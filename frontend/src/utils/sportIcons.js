@@ -66,7 +66,11 @@ export const getSportEmoji = (sportName) => {
   if (name.includes('snowboard')) return '🏂';
   if (name.includes('climbing')) return '🧗';
   if (name.includes('wrestling')) return '🤼';
-  
+  if (name.includes('chess')) return '♟️';
+  if (name.includes('squash')) return '🎾';
+  if (name.includes('handball')) return '🤾';
+  if (name.includes('lacrosse')) return '🥍';
+
   return '🏆';
 };
 

@@ -70,7 +70,7 @@ const SportSearchScreen = ({ navigation }) => {
   const renderSportItem = ({ item }) => (
     <TouchableOpacity
       style={styles.sportItem}
-      onPress={() => navigation.navigate('SportProfile', { sportName: item.name })}
+      onPress={() => navigation.navigate('LiveSport', { sportName: item.name })}
     >
       <View style={styles.sportIconContainer}>
         <Text style={styles.sportEmoji}>{getSportEmoji(item.name)}</Text>
@@ -88,7 +88,7 @@ const SportSearchScreen = ({ navigation }) => {
   const renderTrendingItem = ({ item, index }) => (
     <TouchableOpacity
       style={styles.trendingItem}
-      onPress={() => navigation.navigate('SportProfile', { sportName: item.name })}
+      onPress={() => navigation.navigate('LiveSport', { sportName: item.name })}
     >
       <View style={styles.trendingRank}>
         <Text style={styles.trendingRankText}>{index + 1}</Text>

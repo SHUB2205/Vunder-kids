@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -72,6 +73,16 @@ const TOP_SEARCH_ITEMS = [
     emoji: '🎾',
     image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=300&fit=crop'
   },
+  {
+    label: 'Pickleball',
+    emoji: '🏓',
+    image: 'https://images.unsplash.com/photo-1687204209659-3bded6aecd79?w=400&h=300&fit=crop'
+  },
+  {
+    label: 'Chess',
+    emoji: '♟️',
+    image: 'https://images.unsplash.com/photo-1528819622765-d6bcf132f793?w=400&h=300&fit=crop'
+  },
 ];
 
 const RECENT_SEARCHES_KEY = '@fisiko:recent_searches';
@@ -95,6 +106,8 @@ const SearchScreen = ({ navigation }) => {
   
   // Suggestions state
   const [suggestions, setSuggestions] = useState([]);
+  // Local follow state per suggested user: 'follow' | 'following' | 'message'
+  const [followState, setFollowState] = useState({});
   
   // News state
   const [news, setNews] = useState([]);
@@ -243,10 +256,62 @@ const SearchScreen = ({ navigation }) => {
   const fetchSuggestions = async () => {
     try {
       const response = await api.get(API_ENDPOINTS.GET_SUGGESTIONS);
-      setSuggestions(response.data.users || []);
+      const users = response.data.users || [];
+      setSuggestions(users);
+
+      // Seed follow state: if current user already follows them → following
+      // (mutual if they also follow us back → Message)
+      const myFollowing = new Set((user?.following || []).map((u) => (typeof u === 'object' ? u._id : u)));
+      const myFollowers = new Set((user?.followers || []).map((u) => (typeof u === 'object' ? u._id : u)));
+      const initial = {};
+      users.forEach((u) => {
+        if (myFollowing.has(u._id)) {
+          initial[u._id] = myFollowers.has(u._id) ? 'message' : 'following';
+        } else {
+          initial[u._id] = 'follow';
+        }
+      });
+      setFollowState(initial);
     } catch (error) {
       console.error('Error fetching suggestions:', error);
       setSuggestions([]);
+    }
+  };
+
+  const handleFollowTap = async (item) => {
+    const current = followState[item._id] || 'follow';
+
+    // Message button → open chat
+    if (current === 'message') {
+      navigation.navigate('Chat', { recipient: item });
+      return;
+    }
+
+    // Optimistic toggle
+    if (current === 'follow') {
+      setFollowState((prev) => ({ ...prev, [item._id]: 'following' }));
+      try {
+        await api.post(API_ENDPOINTS.FOLLOW_USER, { userId: item._id });
+        // If they already follow us → mutual → show Message
+        const myFollowers = new Set((user?.followers || []).map((u) => (typeof u === 'object' ? u._id : u)));
+        if (myFollowers.has(item._id)) {
+          setFollowState((prev) => ({ ...prev, [item._id]: 'message' }));
+        }
+      } catch (err) {
+        setFollowState((prev) => ({ ...prev, [item._id]: 'follow' })); // rollback
+        Alert.alert('Error', err?.response?.data?.message || 'Failed to follow');
+      }
+      return;
+    }
+
+    // Unfollow
+    if (current === 'following') {
+      setFollowState((prev) => ({ ...prev, [item._id]: 'follow' }));
+      try {
+        await api.post(API_ENDPOINTS.UNFOLLOW_USER, { userId: item._id });
+      } catch (err) {
+        setFollowState((prev) => ({ ...prev, [item._id]: 'following' })); // rollback
+      }
     }
   };
 
@@ -300,9 +365,30 @@ const SearchScreen = ({ navigation }) => {
         </View>
         <Text style={styles.userHandle}>{item.userName || item.email}</Text>
       </View>
-      <TouchableOpacity style={styles.followBtn}>
-        <Text style={styles.followBtnText}>Follow</Text>
-      </TouchableOpacity>
+      {(() => {
+        const state = followState[item._id] || 'follow';
+        const isMessage = state === 'message';
+        const isFollowing = state === 'following';
+        const label = isMessage ? 'Message' : isFollowing ? 'Following' : 'Follow';
+        return (
+          <TouchableOpacity
+            style={[
+              styles.followBtn,
+              isMessage && styles.messageBtn,
+              isFollowing && styles.followingBtn,
+            ]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              handleFollowTap(item);
+            }}
+          >
+            {isMessage && <Ionicons name="chatbubble-ellipses" size={14} color={COLORS.white} style={{ marginRight: 4 }} />}
+            <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })()}
     </TouchableOpacity>
   );
 
@@ -428,7 +514,7 @@ const SearchScreen = ({ navigation }) => {
           <TouchableOpacity
             key={index}
             style={styles.sportCard}
-            onPress={() => navigation.navigate('SportProfile', { sportName: item.label })}
+            onPress={() => navigation.navigate('LiveSport', { sportName: item.label })}
           >
             <Image 
               source={{ uri: item.image }} 
@@ -908,10 +994,23 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   followBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.text,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.full,
+  },
+  followingBtn: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  followingBtnText: {
+    color: COLORS.text,
+  },
+  messageBtn: {
+    backgroundColor: COLORS.primary,
   },
   followBtnText: {
     color: COLORS.white,

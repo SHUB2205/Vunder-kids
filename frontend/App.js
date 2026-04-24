@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import { MatchProvider } from './src/context/MatchContext';
 import { ChatProvider } from './src/context/ChatContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import PushBootstrap from './src/components/PushBootstrap';
 
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
@@ -34,6 +35,7 @@ class ErrorBoundary extends React.Component {
 }
 
 export default function App() {
+  const navigationRef = useRef(null);
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -43,9 +45,10 @@ export default function App() {
               <MatchProvider>
                 <ChatProvider>
                   <NotificationProvider>
-                    <NavigationContainer>
+                    <NavigationContainer ref={navigationRef}>
                       <StatusBar style="dark" />
                       <RootNavigator />
+                      <PushBootstrap navigationRef={navigationRef} />
                     </NavigationContainer>
                   </NotificationProvider>
                 </ChatProvider>

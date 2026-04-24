@@ -19,6 +19,20 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/user/push-token
+// @desc    Register or clear the current user's Expo push token
+router.post('/push-token', auth, async (req, res) => {
+  try {
+    const { token } = req.body;
+    const update = token ? { notificationToken: token } : { $unset: { notificationToken: 1 } };
+    await User.findByIdAndUpdate(req.user._id, update);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Push token save error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET /api/user/suggestions
 // @desc    Get suggested users to follow
 router.get('/suggestions', auth, async (req, res) => {
