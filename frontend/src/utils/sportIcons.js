@@ -4,14 +4,14 @@ export const getSportIcon = (sportName) => {
   
   const name = sportName.toLowerCase();
   
-  if (name.includes('football') || name.includes('soccer')) return 'football';
+  if (name.includes('soccer')) return 'football';
+  if (name.includes('football')) return 'american-football';
   if (name.includes('basketball')) return 'basketball';
   if (name.includes('tennis')) return 'tennisball';
   if (name.includes('pickleball')) return 'tennisball';
   if (name.includes('padel')) return 'tennisball';
   if (name.includes('golf')) return 'golf';
   if (name.includes('baseball')) return 'baseball';
-  if (name.includes('american football')) return 'american-football';
   if (name.includes('cricket')) return 'fitness';
   if (name.includes('hockey')) return 'fitness';
   if (name.includes('volleyball')) return 'fitness';
@@ -35,14 +35,14 @@ export const getSportEmoji = (sportName) => {
   
   const name = sportName.toLowerCase();
   
-  if (name.includes('football') || name.includes('soccer')) return '⚽';
+  if (name.includes('soccer')) return '⚽';
+  if (name.includes('football')) return '🏈';
   if (name.includes('basketball')) return '🏀';
   if (name.includes('tennis')) return '🎾';
   if (name.includes('pickleball')) return '🏓';
   if (name.includes('padel')) return '🎾';
   if (name.includes('golf')) return '⛳';
   if (name.includes('baseball')) return '⚾';
-  if (name.includes('american football')) return '🏈';
   if (name.includes('cricket')) return '🏏';
   if (name.includes('hockey')) return '🏒';
   if (name.includes('volleyball')) return '🏐';
