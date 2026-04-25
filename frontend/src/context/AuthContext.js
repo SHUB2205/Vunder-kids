@@ -124,7 +124,35 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = async (updates) => {
     try {
-      const response = await axios.put(API_ENDPOINTS.UPDATE_USER, updates);
+      let response;
+      
+      // If avatar is a local file URI, use FormData for multipart upload
+      if (updates.avatar && updates.avatar.startsWith('file://')) {
+        const formData = new FormData();
+        
+        // Append the avatar file
+        formData.append('avatar', {
+          uri: updates.avatar,
+          type: 'image/jpeg',
+          name: 'avatar.jpg',
+        });
+        
+        // Append other fields
+        Object.keys(updates).forEach(key => {
+          if (key !== 'avatar' && updates[key] !== undefined) {
+            formData.append(key, typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]);
+          }
+        });
+        
+        response = await axios.put(API_ENDPOINTS.UPDATE_USER, formData, {
+          headers: { 'Content-Type': undefined },
+          transformRequest: (data) => data,
+        });
+      } else {
+        // No file upload, use regular JSON
+        response = await axios.put(API_ENDPOINTS.UPDATE_USER, updates);
+      }
+      
       const updatedUser = response.data.user;
       
       await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
@@ -132,6 +160,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: updatedUser };
     } catch (error) {
+      console.error('Update user error:', error.response?.data || error.message);
       return { 
         success: false, 
         error: error.response?.data?.message || 'Update failed' 

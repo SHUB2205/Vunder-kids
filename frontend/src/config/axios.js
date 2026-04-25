@@ -18,9 +18,11 @@ api.interceptors.request.use(
       const token = await AsyncStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('Token attached to request:', config.url);
-      } else {
-        console.log('No token found for request:', config.url);
+      }
+      
+      // For FormData (file uploads), let the browser/RN set the Content-Type with boundary
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
       }
     } catch (error) {
       console.error('Error getting token:', error);

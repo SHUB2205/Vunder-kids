@@ -60,14 +60,6 @@ const UploadPictureScreen = ({ navigation }) => {
     setLoading(true);
 
     if (image && image !== user?.avatar) {
-      // Upload image
-      const formData = new FormData();
-      formData.append('avatar', {
-        uri: image,
-        type: 'image/jpeg',
-        name: 'avatar.jpg',
-      });
-
       await updateUser({ avatar: image });
     }
 

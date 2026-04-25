@@ -52,9 +52,7 @@ export const PostProvider = ({ children }) => {
       if (postData.tags) formData.append('tags', JSON.stringify(postData.tags));
       if (postData.sport) formData.append('sport', postData.sport);
 
-      const response = await api.post(API_ENDPOINTS.CREATE_POST, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post(API_ENDPOINTS.CREATE_POST, formData);
 
       setPosts(prev => [response.data.post, ...prev]);
       return { success: true, post: response.data.post };
@@ -128,9 +126,7 @@ export const PostProvider = ({ children }) => {
         name: storyData.media.fileName || 'story.jpg',
       });
 
-      const response = await api.post(API_ENDPOINTS.CREATE_STORY, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post(API_ENDPOINTS.CREATE_STORY, formData);
 
       setStories(prev => [response.data.story, ...prev]);
       return { success: true };
@@ -172,9 +168,7 @@ export const PostProvider = ({ children }) => {
       });
       if (reelData.caption) formData.append('caption', reelData.caption);
 
-      const response = await api.post(API_ENDPOINTS.CREATE_REEL, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post(API_ENDPOINTS.CREATE_REEL, formData);
 
       setReels(prev => [response.data.reel, ...prev]);
       return { success: true };
