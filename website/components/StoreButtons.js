@@ -1,5 +1,5 @@
-const APP_STORE_URL = 'https://apps.apple.com/app/fisiko/id6743640887'
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.fisiko.app'
+const APP_STORE_URL = 'https://apps.apple.com/us/app/fisiko-ai/id6759229981'
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=io.fisiko.www.twa'
 
 export default function StoreButtons({ variant = 'dark' }) {
   const isLight = variant === 'light'
