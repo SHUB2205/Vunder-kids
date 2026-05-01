@@ -1,73 +1,171 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import Link from 'next/link'
+import StoreButtons from '../components/StoreButtons'
+
+const features = [
+  {
+    icon: '⚡',
+    title: 'Live Sport Scores',
+    desc: 'Track live scores and breaking news for Football, Soccer, Basketball, Cricket, Tennis, Pickleball, Chess and more — all in one place.',
+    gradient: 'from-orange-500 to-red-500',
+  },
+  {
+    icon: '🏆',
+    title: 'Set Up Matches',
+    desc: 'Organize matches with friends in seconds. Pick a sport, location, time, invite players with smart typeahead, and let everyone know.',
+    gradient: 'from-blue-500 to-indigo-600',
+  },
+  {
+    icon: '📸',
+    title: 'Share Your Game',
+    desc: 'Post photos, videos, and reels of your sports moments. Tag the sport so it lands on the right community feed.',
+    gradient: 'from-pink-500 to-purple-600',
+  },
+  {
+    icon: '👥',
+    title: 'Connect with Athletes',
+    desc: 'Follow players in your area, build your sports network, and discover people who play what you play.',
+    gradient: 'from-green-500 to-emerald-600',
+  },
+  {
+    icon: '💬',
+    title: 'Chat & DM',
+    desc: 'Message your followers, coordinate teams, and stay in touch with your sports buddies — all in-app.',
+    gradient: 'from-cyan-500 to-blue-500',
+  },
+  {
+    icon: '🔔',
+    title: 'Smart Notifications',
+    desc: 'Get notified for match invites, follows, likes, comments, and the right nudges to keep you active.',
+    gradient: 'from-amber-500 to-orange-500',
+  },
+]
+
+const sports = [
+  { name: 'Football', emoji: '🏈' },
+  { name: 'Soccer', emoji: '⚽' },
+  { name: 'Basketball', emoji: '🏀' },
+  { name: 'Tennis', emoji: '🎾' },
+  { name: 'Cricket', emoji: '🏏' },
+  { name: 'Baseball', emoji: '⚾' },
+  { name: 'Pickleball', emoji: '🏓' },
+  { name: 'Golf', emoji: '⛳' },
+  { name: 'Volleyball', emoji: '🏐' },
+  { name: 'Hockey', emoji: '🏒' },
+  { name: 'Rugby', emoji: '🏉' },
+  { name: 'Boxing', emoji: '🥊' },
+  { name: 'Chess', emoji: '♟️' },
+  { name: 'Running', emoji: '🏃' },
+  { name: 'Cycling', emoji: '🚴' },
+  { name: 'Swimming', emoji: '🏊' },
+]
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen overflow-x-hidden">
       <Navbar />
-      
+
       {/* Hero Section */}
-      <section className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                <span className="text-primary">Play, Connect and Thrive.</span>{' '}
-                App your parents want on your phone!
+      <section className="relative pt-28 pb-20 md:pt-36 md:pb-32 bg-gradient-to-br from-orange-50 via-white to-amber-50">
+        {/* Decorative background blobs */}
+        <div className="absolute top-20 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 -right-24 w-96 h-96 bg-amber-300/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="animate-fade-in-up">
+              <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                Now live on App Store & Play Store
+              </span>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.05] tracking-tight">
+                Play. <span className="text-primary">Connect.</span> Thrive.
               </h1>
-              <p className="mt-6 text-lg text-gray-600 leading-relaxed">
-                Welcome to Fisiko - Your sports super app that brings together everyone who enjoys sport. 
-                Be it playing, coaching, watching or tracking. Post your favorite sports moments, arrange matches, 
-                and share the excitement with your friends. Whether you're organizing a local game or celebrating 
-                a big win, Fisiko connects you with the sports community like never before. Game on!
+              <p className="mt-6 text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl">
+                Fisiko is your sports super-app. Track live scores, set up matches, share your game-day moments,
+                and build your athletic community — all in one place.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <a
-                  href="https://apps.apple.com/app/fisiko"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-dark transition shadow-lg hover:shadow-xl"
-                >
-                  Download on App Store
-                </a>
+              <div className="mt-10">
+                <StoreButtons />
+              </div>
+              <div className="mt-10 flex items-center gap-8 text-sm text-gray-500">
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">30+</div>
+                  Sports supported
+                </div>
+                <div className="h-10 w-px bg-gray-200" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">Live</div>
+                  Scores & News
+                </div>
+                <div className="h-10 w-px bg-gray-200" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">Free</div>
+                  To download
+                </div>
               </div>
             </div>
-            <div className="relative">
-              <div className="bg-gradient-to-br from-gray-700 to-gray-900 rounded-3xl p-8 relative overflow-hidden">
-                <div className="absolute inset-0 opacity-20">
-                  <svg viewBox="0 0 400 400" className="w-full h-full">
-                    <circle cx="300" cy="300" r="150" fill="rgba(255,255,255,0.1)" />
-                    <circle cx="100" cy="100" r="80" fill="rgba(255,255,255,0.05)" />
-                  </svg>
-                </div>
-                <div className="relative z-10 flex justify-center items-end gap-4">
-                  {/* Soccer Player Illustration */}
-                  <div className="text-center">
-                    <svg viewBox="0 0 120 200" className="w-32 h-48">
-                      <ellipse cx="60" cy="195" rx="25" ry="5" fill="rgba(0,0,0,0.2)" />
-                      <circle cx="60" cy="30" r="20" fill="#FFD5B4" />
-                      <rect x="45" y="50" width="30" height="50" rx="5" fill="#9333EA" />
-                      <rect x="42" y="100" width="15" height="60" fill="#9333EA" />
-                      <rect x="63" y="100" width="15" height="60" fill="#9333EA" />
-                      <rect x="40" y="155" width="18" height="25" fill="#FCD34D" />
-                      <rect x="62" y="155" width="18" height="25" fill="#FCD34D" />
-                      <circle cx="90" cy="180" r="15" fill="#EF4444" />
-                      <circle cx="90" cy="180" r="15" fill="none" stroke="#FCD34D" strokeWidth="2" />
-                    </svg>
-                  </div>
-                  {/* Second Player */}
-                  <div className="text-center">
-                    <svg viewBox="0 0 100 180" className="w-24 h-40">
-                      <ellipse cx="50" cy="175" rx="20" ry="4" fill="rgba(0,0,0,0.2)" />
-                      <circle cx="50" cy="25" r="18" fill="#FFD5B4" />
-                      <rect x="35" y="43" width="30" height="45" rx="5" fill="#3B82F6" />
-                      <text x="50" y="70" textAnchor="middle" fill="white" fontSize="12">00</text>
-                      <rect x="33" y="88" width="14" height="50" fill="#1E3A8A" />
-                      <rect x="53" y="88" width="14" height="50" fill="#1E3A8A" />
-                      <rect x="31" y="135" width="16" height="22" fill="#FCD34D" />
-                      <rect x="53" y="135" width="16" height="22" fill="#FCD34D" />
-                    </svg>
+
+            {/* Phone Mockup */}
+            <div className="relative flex justify-center lg:justify-end">
+              <div className="relative">
+                {/* Floating sport icons */}
+                <div className="absolute -top-6 -left-6 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-3xl animate-float">🏈</div>
+                <div className="absolute top-1/3 -right-8 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-3xl animate-float-delayed">🏀</div>
+                <div className="absolute bottom-10 -left-10 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-3xl animate-float">⚽</div>
+
+                {/* Phone Frame */}
+                <div className="relative w-[300px] h-[600px] bg-gray-900 rounded-[3rem] p-3 shadow-2xl">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-900 rounded-b-2xl z-20" />
+                  <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative">
+                    {/* Status bar */}
+                    <div className="h-12 bg-white flex items-center justify-between px-6 pt-2 text-xs font-semibold">
+                      <span>9:41</span>
+                      <span>● ● ●</span>
+                    </div>
+                    {/* App header */}
+                    <div className="px-5 pb-3 flex items-center justify-between border-b border-gray-100">
+                      <span className="text-2xl font-extrabold text-primary">Fisiko</span>
+                      <div className="flex gap-3 text-xl">🔔 💬</div>
+                    </div>
+                    {/* Live score card */}
+                    <div className="m-4 p-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl text-white shadow-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">🏈 NFL · LIVE</span>
+                        <span className="text-xs">Q4 · 02:15</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="text-center">
+                          <div className="text-xs opacity-90">PATRIOTS</div>
+                          <div className="text-3xl font-bold">13</div>
+                        </div>
+                        <div className="text-sm opacity-75">VS</div>
+                        <div className="text-center">
+                          <div className="text-xs opacity-90">SEAHAWKS</div>
+                          <div className="text-3xl font-bold">29</div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Post preview */}
+                    <div className="mx-4 p-3 border border-gray-100 rounded-2xl">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-pink-500" />
+                        <div>
+                          <div className="text-xs font-semibold">@coach_jake</div>
+                          <div className="text-[10px] text-gray-500">Tagged · ⚽ Soccer</div>
+                        </div>
+                      </div>
+                      <div className="h-24 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-3xl">⚽</div>
+                      <div className="flex gap-4 mt-2 text-xs text-gray-500">❤️ 248  💬 31  ↗ 12</div>
+                    </div>
+                    {/* Bottom tab bar */}
+                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-100 flex items-center justify-around text-xl">
+                      <span className="text-primary">🏠</span>
+                      <span>🔍</span>
+                      <span>▶️</span>
+                      <span>🏆</span>
+                      <span>👤</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -76,140 +174,87 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
+      {/* Sports Marquee */}
+      <section className="py-12 bg-gray-900 text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4">
+          <p className="text-center text-sm uppercase tracking-widest text-gray-400 mb-6">All your favorite sports</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {sports.map((s) => (
+              <span key={s.name} className="inline-flex items-center gap-2 bg-white/5 hover:bg-primary/20 hover:text-primary border border-white/10 px-4 py-2 rounded-full text-sm font-medium transition">
+                <span className="text-lg">{s.emoji}</span>
+                {s.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section id="features" className="py-24 bg-gradient-to-b from-white to-orange-50/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-16">
-            Everything You Need for Your Sports Journey
-          </h2>
-
-          {/* Feature 1 - Sports Profile */}
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-            <div className="bg-white rounded-3xl shadow-xl p-8 order-1 md:order-1">
-              <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 relative overflow-hidden">
-                <div className="absolute top-4 right-4 flex gap-1">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                </div>
-                <div className="mt-8 flex items-center gap-4">
-                  <div className="bg-white/20 rounded-lg p-3 w-24 h-16"></div>
-                  <div className="flex-1">
-                    <div className="bg-white/30 rounded h-3 w-full mb-2"></div>
-                    <div className="bg-white/20 rounded h-2 w-3/4"></div>
-                  </div>
-                </div>
-                <div className="mt-6 grid grid-cols-4 gap-4">
-                  <div className="bg-white/20 rounded-lg p-2 aspect-square"></div>
-                  <div className="bg-white/20 rounded-lg p-2 aspect-square"></div>
-                  <div className="bg-white/20 rounded-lg p-2 aspect-square"></div>
-                  <div className="bg-white/20 rounded-lg p-2 aspect-square"></div>
-                </div>
-                <div className="mt-6 flex justify-center gap-6">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-2xl">⏱️</span>
-                  </div>
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-2xl">❤️</span>
-                  </div>
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-2xl">🏋️</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="order-2 md:order-2">
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                Create Your Sports Profile
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Build your personalized sports profile by sharing your athletic achievements, favorite sports, 
-                and past match experiences. Connect with other sports enthusiasts, showcase your skills, 
-                and stay active in your favorite sports community.
-              </p>
-            </div>
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
+              Everything you need to <span className="text-primary">stay in the game</span>
+            </h2>
+            <p className="mt-5 text-lg text-gray-600">
+              From organizing pickup matches to following live scores — Fisiko has it all.
+            </p>
           </div>
 
-          {/* Feature 2 - Set a Match */}
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-            <div className="order-2 md:order-1">
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                Set A Match
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Easily organize and schedule matches with your friends or fellow athletes. Choose your sport, 
-                set the date and time, and invite participants to join. Keep track of upcoming games and enjoy 
-                a seamless way to arrange friendly competitions and tournaments.
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-blue-900 to-blue-950 rounded-3xl p-8 relative overflow-hidden order-1 md:order-2">
-              <div className="absolute inset-0">
-                <div className="absolute top-8 left-1/4 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
-                <div className="absolute top-8 right-1/4 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
-              </div>
-              <div className="relative z-10 flex justify-center items-center py-8">
-                <div className="text-6xl">🏓</div>
-              </div>
-              <div className="relative z-10 h-2 bg-white/30 rounded mt-4"></div>
-              <div className="relative z-10 flex justify-between mt-2">
-                <div className="w-1 h-8 bg-blue-400"></div>
-                <div className="w-1 h-8 bg-blue-400"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature 3 - Connect */}
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-3xl p-8 relative overflow-hidden order-1 md:order-1">
-              <div className="flex justify-center items-end gap-4 py-8">
-                <div className="text-6xl">⚽</div>
-                <div className="flex gap-2">
-                  <div className="w-16 h-24 bg-green-500 rounded-t-full"></div>
-                  <div className="w-16 h-24 bg-orange-500 rounded-t-full"></div>
-                  <div className="w-16 h-24 bg-blue-500 rounded-t-full"></div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f) => (
+              <div key={f.title} className="group bg-white rounded-3xl p-8 border border-gray-100 hover:border-primary/30 hover:shadow-2xl transition-all duration-300">
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${f.gradient} flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform`}>
+                  {f.icon}
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{f.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{f.desc}</p>
               </div>
-            </div>
-            <div className="order-2 md:order-2">
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                Connect with Athletes
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Connect with fellow athletes and sports enthusiasts to boost your game. Build your network, 
-                share match highlights, and collaborate on team activities. Whether you're training or competing, 
-                having your sport buddies by your side will help elevate your performance and keep you motivated.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Wave Divider */}
-      <div className="wave-divider bg-gray-50">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="fill-slate-800">
-          <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
-          <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
-          <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,googl172.46-45.71,248.8-84.81V0Z"></path>
-        </svg>
-      </div>
+      {/* How It Works */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">How Fisiko works</h2>
+            <p className="mt-5 text-lg text-gray-600">Get started in under a minute.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: '01', title: 'Create your profile', desc: 'Sign up, add your favorite sports and bio. Done in seconds.' },
+              { step: '02', title: 'Find your community', desc: 'Follow athletes, join sport feeds, and discover players near you.' },
+              { step: '03', title: 'Play & post', desc: 'Set up matches, share highlights, track scores — game on!' },
+            ].map((s) => (
+              <div key={s.step} className="relative bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-3xl p-8 hover:shadow-xl transition">
+                <div className="text-6xl font-extrabold text-primary/15 absolute top-4 right-6">{s.step}</div>
+                <div className="relative">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{s.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      {/* CTA Section */}
-      <section className="bg-slate-800 py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Join the Sports Community?
+      {/* Final CTA */}
+      <section className="py-24 bg-gradient-to-br from-primary via-orange-500 to-red-500 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 text-9xl">⚽</div>
+          <div className="absolute bottom-10 right-10 text-9xl">🏈</div>
+          <div className="absolute top-1/2 left-1/2 text-9xl">🏀</div>
+        </div>
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 tracking-tight">
+            Ready to join the community?
           </h2>
-          <p className="text-gray-300 text-lg mb-8">
-            Download Fisiko today and start connecting with athletes near you.
+          <p className="text-white/90 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+            Download Fisiko free and start connecting with athletes today.
           </p>
-          <a
-            href="https://apps.apple.com/app/fisiko"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center bg-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-dark transition shadow-lg"
-          >
-            Get Started Free
-          </a>
+          <StoreButtons variant="light" />
         </div>
       </section>
 
