@@ -60,7 +60,47 @@ const UserSchema = new mongoose.Schema({
   },
   
   // Occupation
-  occupation: { type: String }
+  occupation: { type: String },
+  
+  // Role - for facility owners
+  role: {
+    type: String,
+    enum: ['user', 'facility_owner', 'admin'],
+    default: 'user'
+  },
+  
+  // Facilities owned (for facility owners)
+  ownedFacilities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Facility' }],
+  
+  // Location for map discovery
+  coordinates: {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
+  lastLocationUpdate: { type: Date },
+  showOnMap: { type: Boolean, default: true },
+  
+  // Gamification & Stats
+  stats: {
+    totalMatches: { type: Number, default: 0 },
+    wins: { type: Number, default: 0 },
+    losses: { type: Number, default: 0 },
+    draws: { type: Number, default: 0 },
+    totalBookings: { type: Number, default: 0 },
+    sportStats: { type: mongoose.Schema.Types.Mixed, default: {} } // { "Tennis": { matches: 10, wins: 5 }, ... }
+  },
+  
+  // Achievements & Badges
+  badges: [{
+    name: { type: String },
+    icon: { type: String },
+    earnedAt: { type: Date, default: Date.now },
+    sport: { type: String }
+  }],
+  
+  // Level system
+  xp: { type: Number, default: 0 },
+  level: { type: Number, default: 1 }
 }, { timestamps: true });
 
 // Hash password before saving

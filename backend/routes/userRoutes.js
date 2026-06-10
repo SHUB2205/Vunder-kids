@@ -182,6 +182,120 @@ router.get('/:id/following', auth, async (req, res) => {
   }
 });
 
+// @route   PUT /api/user/location
+// @desc    Update user's location for map discovery
+router.put('/location', auth, async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    
+    if (lat == null || lng == null) {
+      return res.status(400).json({ message: 'Coordinates required' });
+    }
+
+    await User.findByIdAndUpdate(req.user._id, {
+      coordinates: { lat: Number(lat), lng: Number(lng) },
+      lastLocationUpdate: new Date()
+    });
+
+    res.json({ message: 'Location updated' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/user/nearby
+// @desc    Get nearby players for map discovery
+router.get('/nearby', auth, async (req, res) => {
+  try {
+    const { lat, lng, radius = 10, sport } = req.query; // radius in km
+    
+    if (!lat || !lng) {
+      return res.status(400).json({ message: 'Coordinates required' });
+    }
+
+    // Simple distance filter (approximate)
+    const latRange = Number(radius) / 111;
+    const lngRange = Number(radius) / (111 * Math.cos(Number(lat) * Math.PI / 180));
+
+    const filter = {
+      _id: { $ne: req.user._id },
+      showOnMap: { $ne: false },
+      'coordinates.lat': { $gte: Number(lat) - latRange, $lte: Number(lat) + latRange },
+      'coordinates.lng': { $gte: Number(lng) - lngRange, $lte: Number(lng) + lngRange }
+    };
+
+    if (sport) {
+      filter['passions.name'] = new RegExp(sport, 'i');
+    }
+
+    const users = await User.find(filter)
+      .select('name userName avatar bio passions coordinates stats level')
+      .limit(50);
+
+    // Calculate approximate distance for each user
+    const usersWithDistance = users.map(user => {
+      const userLat = user.coordinates?.lat;
+      const userLng = user.coordinates?.lng;
+      if (userLat && userLng) {
+        const distance = Math.sqrt(
+          Math.pow((userLat - Number(lat)) * 111, 2) +
+          Math.pow((userLng - Number(lng)) * 111 * Math.cos(Number(lat) * Math.PI / 180), 2)
+        );
+        return { ...user.toObject(), distance: Math.round(distance * 10) / 10 };
+      }
+      return user.toObject();
+    });
+
+    // Sort by distance
+    usersWithDistance.sort((a, b) => (a.distance || 999) - (b.distance || 999));
+
+    res.json({ users: usersWithDistance });
+  } catch (error) {
+    console.error('Nearby users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/user/map-visibility
+// @desc    Toggle visibility on map
+router.put('/map-visibility', auth, async (req, res) => {
+  try {
+    const { showOnMap } = req.body;
+    
+    await User.findByIdAndUpdate(req.user._id, { showOnMap: !!showOnMap });
+    
+    res.json({ showOnMap: !!showOnMap });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/user/:id/stats
+// @desc    Get user's gamification stats
+router.get('/:id/stats', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('stats badges xp level passions');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Calculate level from XP
+    const level = Math.floor(user.xp / 100) + 1;
+
+    res.json({
+      stats: user.stats,
+      badges: user.badges,
+      xp: user.xp,
+      level,
+      passions: user.passions
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   DELETE /api/user/delete-account
 // @desc    Delete user account and all associated data
 router.delete('/delete-account', auth, async (req, res) => {

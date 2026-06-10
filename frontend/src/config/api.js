@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   GET_USER: `${API_BASE_URL}/user`,
   UPDATE_USER: `${API_BASE_URL}/user`,
   GET_USER_BY_ID: (userId) => `${API_BASE_URL}/user/${userId}`,
+  GET_USER_STATS: (userId) => `${API_BASE_URL}/user/${userId}/stats`,
   GET_SUGGESTIONS: `${API_BASE_URL}/user/suggestions`,
   FOLLOW_USER: `${API_BASE_URL}/user/follow`,
   UNFOLLOW_USER: `${API_BASE_URL}/user/unfollow`,
@@ -21,36 +22,25 @@ export const API_ENDPOINTS = {
   GET_FOLLOWERS: (userId) => `${API_BASE_URL}/user/${userId}/followers`,
   GET_FOLLOWING: (userId) => `${API_BASE_URL}/user/${userId}/following`,
   DELETE_ACCOUNT: `${API_BASE_URL}/user/delete-account`,
-  
-  // Posts
-  GET_POSTS: `${API_BASE_URL}/post/posts`,
-  CREATE_POST: `${API_BASE_URL}/post/create`,
-  LIKE_POST: (postId) => `${API_BASE_URL}/post/like/${postId}`,
-  COMMENT_POST: (postId) => `${API_BASE_URL}/post/comment/${postId}`,
-  DELETE_POST: (postId) => `${API_BASE_URL}/post/delete/${postId}`,
-  GET_USER_POSTS: (userId) => `${API_BASE_URL}/post/user/${userId}`,
-  GET_SPORT_POSTS: (sportName) => `${API_BASE_URL}/post/sport/${encodeURIComponent(sportName)}`,
-  SEARCH_SPORTS_TAGS: `${API_BASE_URL}/post/sports/search`,
-  GET_TRENDING_SPORTS: `${API_BASE_URL}/post/sports/trending`,
-  
-  // Stories
-  GET_STORIES: `${API_BASE_URL}/story`,
-  CREATE_STORY: `${API_BASE_URL}/story/create`,
-  VIEW_STORY: (storyId) => `${API_BASE_URL}/story/view/${storyId}`,
-  
-  // Reels
-  GET_REELS: `${API_BASE_URL}/reels`,
-  GET_REEL: (reelId) => `${API_BASE_URL}/reels/${reelId}`,
-  CREATE_REEL: `${API_BASE_URL}/reels/create`,
-  LIKE_REEL: (reelId) => `${API_BASE_URL}/reels/like/${reelId}`,
-  COMMENT_REEL: (reelId) => `${API_BASE_URL}/reels/comment/${reelId}`,
+  UPDATE_LOCATION: `${API_BASE_URL}/user/location`,
+  GET_NEARBY_USERS: `${API_BASE_URL}/user/nearby`,
+  UPDATE_MAP_VISIBILITY: `${API_BASE_URL}/user/map-visibility`,
   
   // Matches
   GET_MATCHES: `${API_BASE_URL}/matches`,
+  GET_MY_MATCHES: `${API_BASE_URL}/matches/my`,
+  GET_PENDING_MATCHES: `${API_BASE_URL}/matches/pending-approval`,
   GET_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}`,
   CREATE_MATCH: `${API_BASE_URL}/matches/create`,
   UPDATE_SCORE: (matchId) => `${API_BASE_URL}/matches/score/${matchId}`,
   JOIN_MATCH: (matchId) => `${API_BASE_URL}/matches/join/${matchId}`,
+  APPROVE_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/approve`,
+  DECLINE_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/decline`,
+  START_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/start`,
+  COMPLETE_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/complete`,
+  VERIFY_SCORE: (matchId) => `${API_BASE_URL}/matches/${matchId}/verify-score`,
+  ADD_MATCH_MEDIA: (matchId) => `${API_BASE_URL}/matches/${matchId}/media`,
+  DELETE_MATCH_MEDIA: (matchId, mediaId) => `${API_BASE_URL}/matches/${matchId}/media/${mediaId}`,
   LIKE_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/like`,
   COMMENT_MATCH: (matchId) => `${API_BASE_URL}/matches/${matchId}/comment`,
   
@@ -66,9 +56,19 @@ export const API_ENDPOINTS = {
   
   // Facilities
   GET_FACILITIES: `${API_BASE_URL}/facilities`,
+  GET_FEATURED_FACILITIES: `${API_BASE_URL}/facilities/featured`,
+  GET_NEARBY_FACILITIES: `${API_BASE_URL}/facilities/nearby`,
   GET_FACILITY: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}`,
+  GET_FACILITY_AVAILABILITY: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}/availability`,
   BOOK_FACILITY: `${API_BASE_URL}/facilities/book`,
+  GET_MY_BOOKINGS: `${API_BASE_URL}/facilities/bookings/my`,
+  CANCEL_BOOKING: (bookingId) => `${API_BASE_URL}/facilities/bookings/${bookingId}/cancel`,
+  REVIEW_FACILITY: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}/review`,
   CREATE_FACILITY: `${API_BASE_URL}/facilities`,
+  GET_MY_FACILITIES: `${API_BASE_URL}/facilities/owner/my`,
+  GET_FACILITY_BOOKINGS: (facilityId) => `${API_BASE_URL}/facilities/owner/${facilityId}/bookings`,
+  UPDATE_FACILITY: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}`,
+  UPDATE_FACILITY_SCHEDULE: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}/schedule`,
   
   // Sports
   GET_SPORTS: `${API_BASE_URL}/sport`,

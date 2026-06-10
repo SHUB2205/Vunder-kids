@@ -4,23 +4,104 @@ const auth = require('../middleware/auth');
 const Match = require('../models/Match');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Booking = require('../models/Booking');
 
 // @route   GET /api/matches
-// @desc    Get all matches
+// @desc    Get all matches (with filters)
 router.get('/', auth, async (req, res) => {
   try {
-    const matches = await Match.find()
+    const { status, sport, upcoming, mine } = req.query;
+    const filter = {};
+
+    if (status) filter.status = status;
+    if (sport) filter.sportName = new RegExp(sport, 'i');
+    
+    if (upcoming === 'true') {
+      filter.date = { $gte: new Date() };
+      filter.status = { $in: ['scheduled', 'pending-approval'] };
+    }
+
+    if (mine === 'true') {
+      filter.$or = [
+        { creator: req.user._id },
+        { opponent: req.user._id },
+        { players: req.user._id }
+      ];
+    }
+
+    const matches = await Match.find(filter)
       .sort({ date: -1 })
       .populate('sport', 'name')
       .populate('creator', 'name userName avatar')
       .populate('players', 'name userName avatar')
       .populate('opponent', 'name userName avatar')
+      .populate('facility', 'name address image')
+      .populate('booking', 'bookingCode startTime endTime')
       .lean();
 
     res.json({ matches: matches || [] });
   } catch (error) {
     console.error('Get matches error:', error);
     res.json({ matches: [] });
+  }
+});
+
+// @route   GET /api/matches/my
+// @desc    Get current user's matches (scheduled, ongoing, completed)
+router.get('/my', auth, async (req, res) => {
+  try {
+    const { tab } = req.query; // 'upcoming', 'ongoing', 'completed'
+    
+    const filter = {
+      $or: [
+        { creator: req.user._id },
+        { opponent: req.user._id },
+        { players: req.user._id }
+      ]
+    };
+
+    if (tab === 'upcoming') {
+      filter.status = { $in: ['scheduled', 'pending-approval'] };
+      filter.date = { $gte: new Date() };
+    } else if (tab === 'ongoing') {
+      filter.status = 'in-progress';
+    } else if (tab === 'completed') {
+      filter.status = 'completed';
+    }
+
+    const matches = await Match.find(filter)
+      .sort({ date: tab === 'completed' ? -1 : 1 })
+      .populate('sport', 'name')
+      .populate('creator', 'name userName avatar')
+      .populate('opponent', 'name userName avatar')
+      .populate('facility', 'name address image')
+      .populate('booking', 'bookingCode startTime endTime status')
+      .lean();
+
+    res.json({ matches });
+  } catch (error) {
+    console.error('Get my matches error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/matches/pending-approval
+// @desc    Get matches waiting for user's approval
+router.get('/pending-approval', auth, async (req, res) => {
+  try {
+    const matches = await Match.find({
+      opponent: req.user._id,
+      status: 'pending-approval',
+      opponentApproved: false
+    })
+      .sort({ date: 1 })
+      .populate('creator', 'name userName avatar')
+      .populate('facility', 'name address image')
+      .lean();
+
+    res.json({ matches });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -296,10 +377,340 @@ router.get('/:id', auth, async (req, res) => {
       .populate('creator', 'name userName avatar')
       .populate('players', 'name userName avatar')
       .populate('admins', 'name userName avatar')
-      .populate('teams.team', 'name');
+      .populate('opponent', 'name userName avatar')
+      .populate('facility', 'name address image pricePerHour')
+      .populate('booking')
+      .populate('media.uploadedBy', 'name userName avatar')
+      .populate('comments.user', 'name userName avatar');
 
     if (!match) {
       return res.status(404).json({ message: 'Match not found' });
+    }
+
+    res.json({ match });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/matches/:id/approve
+// @desc    Opponent approves the match
+router.put('/:id/approve', auth, async (req, res) => {
+  try {
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    if (match.opponent?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the opponent can approve this match' });
+    }
+
+    if (match.opponentApproved) {
+      return res.status(400).json({ message: 'Match already approved' });
+    }
+
+    match.opponentApproved = true;
+    match.opponentApprovedAt = new Date();
+    match.status = 'scheduled';
+    match.players.addToSet(req.user._id);
+    await match.save();
+
+    // Add match to opponent's matchIds
+    await User.findByIdAndUpdate(req.user._id, {
+      $addToSet: { matchIds: match._id }
+    });
+
+    // Notify creator
+    await Notification.create({
+      recipient: match.creator,
+      sender: req.user._id,
+      type: 'match_approved',
+      message: `${req.user.name} accepted your match challenge`,
+      data: { matchId: match._id }
+    });
+
+    await match.populate('creator', 'name userName avatar');
+    await match.populate('opponent', 'name userName avatar');
+
+    res.json({ match, message: 'Match approved successfully' });
+  } catch (error) {
+    console.error('Approve match error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/matches/:id/decline
+// @desc    Opponent declines the match
+router.put('/:id/decline', auth, async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    if (match.opponent?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the opponent can decline this match' });
+    }
+
+    match.status = 'cancelled';
+    await match.save();
+
+    // Notify creator
+    await Notification.create({
+      recipient: match.creator,
+      sender: req.user._id,
+      type: 'match_declined',
+      message: `${req.user.name} declined your match challenge${reason ? ': ' + reason : ''}`,
+      data: { matchId: match._id }
+    });
+
+    res.json({ message: 'Match declined' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/matches/:id/media
+// @desc    Add media (photos/videos) to a match
+router.post('/:id/media', auth, async (req, res) => {
+  try {
+    const { url, type, thumbnail, caption } = req.body;
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    // Check if user is part of the match
+    const isParticipant = match.creator.toString() === req.user._id.toString() ||
+      match.opponent?.toString() === req.user._id.toString() ||
+      match.players.some(p => p.toString() === req.user._id.toString());
+
+    if (!isParticipant) {
+      return res.status(403).json({ message: 'Only match participants can add media' });
+    }
+
+    if (!url) {
+      return res.status(400).json({ message: 'Media URL is required' });
+    }
+
+    match.media.push({
+      url,
+      type: type || 'image',
+      thumbnail,
+      caption,
+      uploadedBy: req.user._id
+    });
+
+    await match.save();
+    await match.populate('media.uploadedBy', 'name userName avatar');
+
+    res.json({ media: match.media, message: 'Media added successfully' });
+  } catch (error) {
+    console.error('Add media error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/matches/:id/media/:mediaId
+// @desc    Remove media from a match
+router.delete('/:id/media/:mediaId', auth, async (req, res) => {
+  try {
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    const mediaItem = match.media.id(req.params.mediaId);
+    if (!mediaItem) {
+      return res.status(404).json({ message: 'Media not found' });
+    }
+
+    // Only uploader or match creator can delete
+    if (mediaItem.uploadedBy.toString() !== req.user._id.toString() &&
+        match.creator.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete this media' });
+    }
+
+    match.media.pull(req.params.mediaId);
+    await match.save();
+
+    res.json({ message: 'Media removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/matches/:id/complete
+// @desc    Mark match as completed and set final score
+router.put('/:id/complete', auth, async (req, res) => {
+  try {
+    const { scores, winnerId, winnerName, isDraw } = req.body;
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    // Only creator or admin can complete
+    if (match.creator.toString() !== req.user._id.toString() &&
+        !match.admins.some(a => a.toString() === req.user._id.toString())) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    match.scores = scores;
+    match.scoreSubmittedBy = req.user._id;
+    match.status = 'score-requested'; // Needs opponent approval
+    
+    if (isDraw) {
+      match.isDraw = true;
+    } else if (winnerId) {
+      match.winnerId = winnerId;
+      match.winnerName = winnerName;
+    }
+
+    await match.save();
+
+    // Notify opponent to approve score
+    if (match.opponent) {
+      await Notification.create({
+        recipient: match.opponent,
+        sender: req.user._id,
+        type: 'score_submitted',
+        message: `${req.user.name} submitted the score for your match. Please verify.`,
+        data: { matchId: match._id }
+      });
+    }
+
+    res.json({ match, message: 'Score submitted, awaiting opponent verification' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/matches/:id/verify-score
+// @desc    Opponent verifies/approves the submitted score
+router.put('/:id/verify-score', auth, async (req, res) => {
+  try {
+    const { approved } = req.body;
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    // Only opponent can verify
+    if (match.opponent?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the opponent can verify the score' });
+    }
+
+    if (approved) {
+      match.scoreApproved = true;
+      match.scoreApprovedBy = req.user._id;
+      match.status = 'completed';
+
+      // Update user stats
+      const updateStats = async (userId, isWinner, isDraw, sportName) => {
+        const update = {
+          $inc: {
+            'stats.totalMatches': 1,
+            [`stats.sportStats.${sportName}.matches`]: 1
+          }
+        };
+        
+        if (isDraw) {
+          update.$inc['stats.draws'] = 1;
+          update.$inc[`stats.sportStats.${sportName}.draws`] = 1;
+        } else if (isWinner) {
+          update.$inc['stats.wins'] = 1;
+          update.$inc[`stats.sportStats.${sportName}.wins`] = 1;
+          update.$inc.xp = 50; // XP for winning
+        } else {
+          update.$inc['stats.losses'] = 1;
+          update.$inc[`stats.sportStats.${sportName}.losses`] = 1;
+          update.$inc.xp = 10; // XP for participating
+        }
+
+        await User.findByIdAndUpdate(userId, update);
+      };
+
+      // Update stats for both players
+      if (match.creator) {
+        const isCreatorWinner = match.winnerId?.toString() === match.creator.toString();
+        await updateStats(match.creator, isCreatorWinner, match.isDraw, match.sportName);
+      }
+      if (match.opponent) {
+        const isOpponentWinner = match.winnerId?.toString() === match.opponent.toString();
+        await updateStats(match.opponent, isOpponentWinner, match.isDraw, match.sportName);
+      }
+
+      // Notify creator
+      await Notification.create({
+        recipient: match.creator,
+        sender: req.user._id,
+        type: 'score_verified',
+        message: `${req.user.name} verified the match score`,
+        data: { matchId: match._id }
+      });
+    } else {
+      // Score disputed - reset to in-progress
+      match.status = 'in-progress';
+      match.scores = {};
+      match.winnerId = null;
+      match.winnerName = null;
+      match.isDraw = false;
+
+      await Notification.create({
+        recipient: match.creator,
+        sender: req.user._id,
+        type: 'score_disputed',
+        message: `${req.user.name} disputed the submitted score`,
+        data: { matchId: match._id }
+      });
+    }
+
+    await match.save();
+    res.json({ match, message: approved ? 'Score verified, match completed' : 'Score disputed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/matches/:id/start
+// @desc    Start the match (change status to in-progress)
+router.put('/:id/start', auth, async (req, res) => {
+  try {
+    const match = await Match.findById(req.params.id);
+    
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
+    }
+
+    if (match.creator.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only match creator can start the match' });
+    }
+
+    if (match.status !== 'scheduled') {
+      return res.status(400).json({ message: 'Match cannot be started' });
+    }
+
+    match.status = 'in-progress';
+    await match.save();
+
+    // Notify opponent
+    if (match.opponent) {
+      await Notification.create({
+        recipient: match.opponent,
+        sender: req.user._id,
+        type: 'match_started',
+        message: `Your match has started!`,
+        data: { matchId: match._id }
+      });
     }
 
     res.json({ match });

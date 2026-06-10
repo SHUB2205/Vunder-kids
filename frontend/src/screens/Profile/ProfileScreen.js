@@ -22,9 +22,9 @@ import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOWS } from '../../config/the
 import { getSportIcon, getSportEmoji } from '../../utils/sportIcons';
 
 const { width } = Dimensions.get('window');
-const POST_SIZE = (width - SPACING.lg * 2 - 4) / 3;
+const MEDIA_SIZE = (width - SPACING.lg * 2 - 4) / 3;
 
-const PROFILE_TABS = ['Overview', 'Photos', 'Posts', 'Reels', 'Matches'];
+const PROFILE_TABS = ['Overview', 'Matches', 'Media', 'Bookings'];
 
 const LEVELS = [
   { min: 0,   max: 20,   name: 'Learner',      icon: '📚', color: '#8B5CF6', next: 20 },
@@ -49,27 +49,31 @@ const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const { matches, fetchMatches } = useMatch();
   const [activeTab, setActiveTab] = useState('Overview');
-  const [posts, setPosts] = useState([]);
-  const [reels, setReels] = useState([]);
+  const [matchMedia, setMatchMedia] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const xpAnim = useRef(new Animated.Value(0)).current;
 
-  const progress = user?.progress || {};
+  // Use new stats model
+  const userStats = user?.stats || {};
   const stats = {
-    coins: progress.overallScore || 0,
-    matchesPlayed: progress.totalMatches || 0,
-    matchesWon: progress.matchesWon || 0,
-    matchesLost: (progress.totalMatches || 0) - (progress.matchesWon || 0),
-    winPercent: progress.totalMatches > 0 ? Math.ceil((progress.matchesWon * 100) / progress.totalMatches) : 0,
-    streak: progress.currentStreak || 0,
+    xp: user?.xp || 0,
+    matchesPlayed: userStats.totalMatches || 0,
+    matchesWon: userStats.wins || 0,
+    matchesLost: userStats.losses || 0,
+    draws: userStats.draws || 0,
+    winPercent: userStats.totalMatches > 0 ? Math.ceil((userStats.wins * 100) / userStats.totalMatches) : 0,
+    streak: userStats.currentStreak || 0,
   };
 
-  const currentLevel = getCurrentLevel(stats.coins);
-  const nextLevel = getNextLevel(stats.coins);
-  const xpInLevel = stats.coins - currentLevel.min;
+  const currentLevel = getCurrentLevel(stats.xp);
+  const nextLevel = getNextLevel(stats.xp);
+  const xpInLevel = stats.xp - currentLevel.min;
   const xpNeeded = currentLevel.max - currentLevel.min;
   const xpPercent = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
+
+  const isFacilityOwner = user?.role === 'facility_owner' || (user?.ownedFacilities?.length > 0);
 
   useEffect(() => {
     fetchUserData();
@@ -78,17 +82,30 @@ const ProfileScreen = ({ navigation }) => {
 
   const fetchUserData = async () => {
     setLoading(true);
-    await Promise.all([fetchUserPosts(), fetchMatches()]);
+    await Promise.all([fetchMatchMedia(), fetchMatches(), fetchUserBookings()]);
     setLoading(false);
   };
 
-  const fetchUserPosts = async () => {
+  const fetchMatchMedia = async () => {
     try {
-      const response = await api.get(API_ENDPOINTS.GET_USER_POSTS(user._id));
-      const allPosts = response.data.posts || [];
-      setPosts(allPosts.filter(p => p.mediaType !== 'video'));
-      setReels(allPosts.filter(p => p.mediaType === 'video'));
-    } catch (error) { console.error('Error fetching posts:', error); }
+      // Get media from user's matches
+      const response = await api.get(API_ENDPOINTS.GET_MY_MATCHES, { params: { tab: 'completed' } });
+      const allMatches = response.data.matches || [];
+      const media = [];
+      allMatches.forEach(match => {
+        (match.media || []).forEach(m => {
+          media.push({ ...m, matchId: match._id, matchName: match.name, sport: match.sportName });
+        });
+      });
+      setMatchMedia(media);
+    } catch (error) { console.error('Error fetching match media:', error); }
+  };
+
+  const fetchUserBookings = async () => {
+    try {
+      const response = await api.get(API_ENDPOINTS.GET_MY_BOOKINGS);
+      setBookings(response.data.bookings || []);
+    } catch (error) { console.error('Error fetching bookings:', error); }
   };
 
   const onRefresh = async () => {
@@ -105,16 +122,15 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const getUserMatches = () => (matches || []).filter(m =>
-    m.creator?._id === user?._id || m.players?.some(p => p._id === user?._id)
+    m.creator?._id === user?._id || m.opponent?._id === user?._id || m.players?.some(p => p._id === user?._id)
   );
 
   const getTabContent = () => {
     switch (activeTab) {
-      case 'Photos': return posts.filter(p => p.mediaType === 'image');
-      case 'Posts': return posts;
-      case 'Reels': return reels;
       case 'Matches': return getUserMatches();
-      default: return posts;
+      case 'Media': return matchMedia;
+      case 'Bookings': return bookings;
+      default: return [];
     }
   };
 
@@ -147,18 +163,56 @@ const ProfileScreen = ({ navigation }) => {
     );
   };
 
-  const renderPostItem = ({ item }) => {
+  const renderMediaItem = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.mediaItem} 
+      onPress={() => navigation.navigate('MatchDetail', { matchId: item.matchId })}
+    >
+      <Image source={{ uri: item.thumbnail || item.url }} style={styles.mediaImage} />
+      {item.type === 'video' && (
+        <View style={styles.videoIndicator}>
+          <Ionicons name="play" size={14} color={COLORS.white} />
+        </View>
+      )}
+      <View style={styles.mediaSportBadge}>
+        <Text style={styles.mediaSportText}>{getSportEmoji(item.sport)}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderBookingItem = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.bookingItem}
+      onPress={() => item.match && navigation.navigate('MatchDetail', { matchId: item.match._id || item.match })}
+    >
+      <View style={styles.bookingIconWrap}>
+        <Text style={{ fontSize: 20 }}>{getSportEmoji(item.sport)}</Text>
+      </View>
+      <View style={styles.bookingInfo}>
+        <Text style={styles.bookingName}>{item.facility?.name || 'Facility'}</Text>
+        <Text style={styles.bookingMeta}>
+          {new Date(item.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })} • {item.startTime} - {item.endTime}
+        </Text>
+      </View>
+      <View style={[styles.bookingStatusBadge, { 
+        backgroundColor: item.status === 'confirmed' ? COLORS.success + '20' : 
+          item.status === 'completed' ? COLORS.info + '20' : COLORS.textLight + '20' 
+      }]}>
+        <Text style={[styles.bookingStatusText, { 
+          color: item.status === 'confirmed' ? COLORS.success : 
+            item.status === 'completed' ? COLORS.info : COLORS.textSecondary 
+        }]}>
+          {item.status}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderListItem = ({ item }) => {
     if (activeTab === 'Matches') return renderMatchItem(item);
-    return (
-      <TouchableOpacity style={styles.postItem} onPress={() => navigation.navigate('PostDetail', { post: item })}>
-        <Image source={{ uri: item.mediaURL }} style={styles.postImage} />
-        {item.mediaType === 'video' && (
-          <View style={styles.videoIndicator}>
-            <Ionicons name="play" size={14} color={COLORS.white} />
-          </View>
-        )}
-      </TouchableOpacity>
-    );
+    if (activeTab === 'Media') return renderMediaItem({ item });
+    if (activeTab === 'Bookings') return renderBookingItem({ item });
+    return null;
   };
 
   const xpBarWidth = xpAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
@@ -178,7 +232,7 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.name}>{user?.name}</Text>
             <Text style={styles.username}>@{user?.userName}</Text>
             <View style={styles.statsRow}>
-              <Text style={styles.statText}><Text style={styles.statNumber}>{posts.length}</Text> posts</Text>
+              <Text style={styles.statText}><Text style={styles.statNumber}>{stats.matchesPlayed}</Text> matches</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Followers')}>
                 <Text style={styles.statText}><Text style={styles.statNumber}>{user?.followers?.length || 0}</Text> followers</Text>
               </TouchableOpacity>
@@ -214,14 +268,14 @@ const ProfileScreen = ({ navigation }) => {
             </View>
             <View style={styles.xpRow}>
               <Text style={styles.xpLabel}>
-                {stats.coins} / {currentLevel.max} XP
+                {stats.xp} / {currentLevel.max} XP
               </Text>
               {nextLevel && <Text style={styles.nextLevelText}>→ {nextLevel.icon} {nextLevel.name}</Text>}
             </View>
           </View>
           <View style={styles.coinBadge}>
-            <Text style={styles.coinIcon}>🪙</Text>
-            <Text style={styles.coinCount}>{stats.coins}</Text>
+            <Text style={styles.coinIcon}>⚡</Text>
+            <Text style={styles.coinCount}>{stats.xp}</Text>
           </View>
         </View>
 
@@ -266,8 +320,8 @@ const ProfileScreen = ({ navigation }) => {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {LEVELS.map((level, idx) => {
-            const earned = stats.coins >= level.min;
-            const isCurrent = stats.coins >= level.min && stats.coins <= level.max;
+            const earned = stats.xp >= level.min;
+            const isCurrent = stats.xp >= level.min && stats.xp <= level.max;
             return (
               <View key={idx} style={[styles.badgeItem, !earned && styles.badgeItemLocked]}>
                 <View style={[styles.badgeCircle, { backgroundColor: earned ? level.color + '25' : '#E5E7EB' }, isCurrent && styles.badgeCircleCurrent]}>
@@ -318,6 +372,23 @@ const ProfileScreen = ({ navigation }) => {
         </ScrollView>
       </View>
 
+      {/* Facility Owner Quick Action */}
+      {isFacilityOwner && (
+        <TouchableOpacity 
+          style={styles.ownerCard}
+          onPress={() => navigation.navigate('FacilityOwnerDashboard')}
+        >
+          <View style={styles.ownerCardIcon}>
+            <Ionicons name="business" size={24} color={COLORS.primary} />
+          </View>
+          <View style={styles.ownerCardInfo}>
+            <Text style={styles.ownerCardTitle}>Facility Owner Dashboard</Text>
+            <Text style={styles.ownerCardSubtitle}>Manage your facilities & bookings</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      )}
+
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -333,18 +404,7 @@ const ProfileScreen = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      {/* Create Post / Match shortcut bar below tabs */}
-      {activeTab !== 'Matches' && (
-        <View style={styles.createBar}>
-          <TouchableOpacity
-            style={styles.createBarBtn}
-            onPress={() => navigation.navigate('CreatePost')}
-          >
-            <Ionicons name="add-circle" size={18} color={COLORS.white} />
-            <Text style={styles.createBarBtnText}>Add Post</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Quick action bar below tabs */}
       {activeTab === 'Matches' && (
         <View style={styles.createBar}>
           <TouchableOpacity
@@ -356,6 +416,17 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+      {activeTab === 'Bookings' && (
+        <View style={styles.createBar}>
+          <TouchableOpacity
+            style={styles.createBarBtn}
+            onPress={() => navigation.navigate('Book', { screen: 'BookingHome' })}
+          >
+            <Ionicons name="calendar" size={18} color={COLORS.white} />
+            <Text style={styles.createBarBtnText}>Book Venue</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -364,8 +435,8 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.topHeader}>
         <Text style={styles.headerUsername}>{user?.userName}</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('CreatePost')}>
-            <Ionicons name="add-circle-outline" size={28} color={COLORS.text} />
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('MyBookings')}>
+            <Ionicons name="calendar-outline" size={28} color={COLORS.text} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Settings')}>
             <Ionicons name="menu-outline" size={28} color={COLORS.text} />
@@ -375,53 +446,60 @@ const ProfileScreen = ({ navigation }) => {
 
       <FlatList
         data={getTabContent()}
-        renderItem={renderPostItem}
+        renderItem={renderListItem}
         keyExtractor={(item) => item._id}
-        numColumns={activeTab === 'Matches' ? 1 : 3}
-        key={activeTab === 'Matches' ? 'matches' : 'grid'}
+        numColumns={activeTab === 'Media' ? 3 : 1}
+        key={activeTab === 'Media' ? 'grid' : 'list'}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name={
-                activeTab === 'Matches' ? 'trophy-outline' :
-                activeTab === 'Reels' ? 'videocam-outline' :
-                activeTab === 'Photos' ? 'images-outline' :
-                'newspaper-outline'
-              }
-              size={56}
-              color={COLORS.textLight}
-            />
-            <Text style={styles.emptyText}>
-              {activeTab === 'Matches' ? 'No matches yet' :
-               activeTab === 'Reels' ? 'No reels yet' :
-               activeTab === 'Photos' ? 'No photos yet' :
-               'No posts yet'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {activeTab === 'Matches'
-                ? 'Create a match to track your games and scores.'
-                : activeTab === 'Reels'
-                ? 'Share a short video of your best moments.'
-                : 'Share your first post with the community.'}
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyAction}
-              onPress={() =>
-                activeTab === 'Matches'
-                  ? navigation.navigate('Matches', { screen: 'CreateMatch' })
-                  : navigation.navigate('CreatePost')
-              }
-            >
-              <Ionicons name="add-circle" size={16} color={COLORS.white} />
-              <Text style={styles.emptyActionText}>
-                {activeTab === 'Matches' ? 'Set a Match' : activeTab === 'Reels' ? 'Create Reel' : 'Create Post'}
+          activeTab !== 'Overview' ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name={
+                  activeTab === 'Matches' ? 'trophy-outline' :
+                  activeTab === 'Media' ? 'images-outline' :
+                  activeTab === 'Bookings' ? 'calendar-outline' :
+                  'trophy-outline'
+                }
+                size={56}
+                color={COLORS.textLight}
+              />
+              <Text style={styles.emptyText}>
+                {activeTab === 'Matches' ? 'No matches yet' :
+                 activeTab === 'Media' ? 'No media yet' :
+                 activeTab === 'Bookings' ? 'No bookings yet' :
+                 'Nothing here'}
               </Text>
-            </TouchableOpacity>
-          </View>
+              <Text style={styles.emptySubtext}>
+                {activeTab === 'Matches'
+                  ? 'Book a venue or create a match to get started.'
+                  : activeTab === 'Media'
+                  ? 'Photos and videos from your matches will appear here.'
+                  : activeTab === 'Bookings'
+                  ? 'Book a sports venue to see your bookings.'
+                  : ''}
+              </Text>
+              <TouchableOpacity
+                style={styles.emptyAction}
+                onPress={() =>
+                  activeTab === 'Matches'
+                    ? navigation.navigate('Matches', { screen: 'CreateMatch' })
+                    : activeTab === 'Bookings'
+                    ? navigation.navigate('Book', { screen: 'BookingHome' })
+                    : null
+                }
+              >
+                <Ionicons name="add-circle" size={16} color={COLORS.white} />
+                <Text style={styles.emptyActionText}>
+                  {activeTab === 'Matches' ? 'Create Match' : 
+                   activeTab === 'Bookings' ? 'Book Venue' : 'Get Started'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
         }
       />
     </SafeAreaView>
@@ -523,10 +601,12 @@ const styles = StyleSheet.create({
   createBarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.lg, gap: SPACING.xs },
   createBarBtnText: { color: COLORS.white, fontSize: FONTS.sizes.md, fontWeight: '700' },
 
-  // Posts grid
-  postItem: { width: POST_SIZE, height: POST_SIZE, margin: 1, position: 'relative' },
-  postImage: { width: '100%', height: '100%', backgroundColor: COLORS.surface },
-  videoIndicator: { position: 'absolute', top: SPACING.xs, right: SPACING.xs },
+  // Media grid
+  mediaItem: { width: MEDIA_SIZE, height: MEDIA_SIZE, margin: 1, position: 'relative' },
+  mediaImage: { width: '100%', height: '100%', backgroundColor: COLORS.surface },
+  videoIndicator: { position: 'absolute', top: SPACING.xs, right: SPACING.xs, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 10, padding: 4 },
+  mediaSportBadge: { position: 'absolute', bottom: SPACING.xs, left: SPACING.xs, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: BORDER_RADIUS.sm, paddingHorizontal: 4, paddingVertical: 2 },
+  mediaSportText: { fontSize: 10 },
 
   // Matches
   matchItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, marginHorizontal: SPACING.md, marginBottom: SPACING.sm, padding: SPACING.md, borderRadius: BORDER_RADIUS.lg, ...SHADOWS.small },
@@ -536,6 +616,22 @@ const styles = StyleSheet.create({
   matchItemMeta: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary },
   matchStatusBadge: { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: BORDER_RADIUS.full },
   matchStatusText: { fontSize: FONTS.sizes.xs, fontWeight: '700' },
+
+  // Bookings
+  bookingItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, marginHorizontal: SPACING.md, marginBottom: SPACING.sm, padding: SPACING.md, borderRadius: BORDER_RADIUS.lg, ...SHADOWS.small },
+  bookingIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primary + '15', justifyContent: 'center', alignItems: 'center' },
+  bookingInfo: { flex: 1, marginLeft: SPACING.md },
+  bookingName: { fontSize: FONTS.sizes.md, fontWeight: '600', color: COLORS.text },
+  bookingMeta: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary },
+  bookingStatusBadge: { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: BORDER_RADIUS.full },
+  bookingStatusText: { fontSize: FONTS.sizes.xs, fontWeight: '600', textTransform: 'capitalize' },
+
+  // Owner Card
+  ownerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.primary + '10', marginHorizontal: SPACING.md, marginTop: SPACING.sm, borderRadius: BORDER_RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: COLORS.primary + '30' },
+  ownerCardIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
+  ownerCardInfo: { flex: 1, marginLeft: SPACING.md },
+  ownerCardTitle: { fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.primary },
+  ownerCardSubtitle: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary },
 
   // Empty
   emptyContainer: { alignItems: 'center', paddingVertical: SPACING.xxxl, paddingHorizontal: SPACING.xl },

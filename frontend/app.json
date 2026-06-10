@@ -34,7 +34,7 @@
         "foregroundImage": "./assets/Fisiko_logo-noBG.png",
         "backgroundColor": "#FF6B35"
       },
-      "package": "com.fisiko.app",
+      "package": "io.fisiko.www.twa",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",

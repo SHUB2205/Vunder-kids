@@ -7,23 +7,20 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-import HomeScreen from '../screens/Home/HomeScreen';
-import SearchScreen from '../screens/Search/SearchScreen';
-import ReelsScreen from '../screens/Reels/ReelsScreen';
+// Booking Screens (New Home)
+import { BookingHomeScreen, FacilityDetailScreen, MyBookingsScreen } from '../screens/Booking';
+
+// Matches Screens
 import MatchesScreen from '../screens/Matches/MatchesScreen';
+import CreateMatchScreen from '../screens/Matches/CreateMatchScreen';
+import MatchDetailScreen from '../screens/Matches/MatchDetailScreen';
+import SetScoreScreen from '../screens/Matches/SetScoreScreen';
+
+// Discover/Map Screen
+import { DiscoverScreen } from '../screens/Discover';
+
+// Profile Screens
 import ProfileScreen from '../screens/Profile/ProfileScreen';
-
-import CreatePostScreen from '../screens/Home/CreatePostScreen';
-import CreateStoryScreen from '../screens/Home/CreateStoryScreen';
-import StoryViewerScreen from '../screens/Home/StoryViewerScreen';
-import PostDetailScreen from '../screens/Home/PostDetailScreen';
-import CommentsScreen from '../screens/Home/CommentsScreen';
-
-import MessagesScreen from '../screens/Messages/MessagesScreen';
-import ChatScreen from '../screens/Messages/ChatScreen';
-
-import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
-
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 import EditPassionsScreen from '../screens/Profile/EditPassionsScreen';
 import FollowersScreen from '../screens/Profile/FollowersScreen';
@@ -31,20 +28,30 @@ import FollowingScreen from '../screens/Profile/FollowingScreen';
 import UserProfileScreen from '../screens/Profile/UserProfileScreen';
 import SettingsScreen from '../screens/Profile/SettingsScreen';
 
-import CreateMatchScreen from '../screens/Matches/CreateMatchScreen';
-import MatchDetailScreen from '../screens/Matches/MatchDetailScreen';
-import SetScoreScreen from '../screens/Matches/SetScoreScreen';
+// Messages
+import MessagesScreen from '../screens/Messages/MessagesScreen';
+import ChatScreen from '../screens/Messages/ChatScreen';
 
+// Notifications
+import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
+
+// Facilities (legacy - for facility owners)
 import FacilitiesScreen from '../screens/Facilities/FacilitiesScreen';
 import BookFacilityScreen from '../screens/Facilities/BookFacilityScreen';
 import AddFacilityScreen from '../screens/Facilities/AddFacilityScreen';
 
+// Facility Owner
+import { FacilityOwnerDashboard } from '../screens/FacilityOwner';
+
+// AI Assistant
 import AIAssistantScreen from '../screens/AI/AIAssistantScreen';
 
+// Sports
 import SportProfileScreen from '../screens/Sports/SportProfileScreen';
 import SportSearchScreen from '../screens/Sports/SportSearchScreen';
 import LiveSportScreen from '../screens/Sports/LiveSportScreen';
 
+// Legal
 import { TermsScreen, PrivacyPolicyScreen, EULAScreen } from '../screens/Legal';
 
 import { COLORS } from '../config/theme';
@@ -52,61 +59,51 @@ import { COLORS } from '../config/theme';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-const HomeStack = () => (
+// Book Tab - Facility Booking (New Home)
+const BookStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="HomeMain" component={HomeScreen} />
-    <Stack.Screen name="CreatePost" component={CreatePostScreen} />
-    <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
-    <Stack.Screen name="StoryViewer" component={StoryViewerScreen} />
-    <Stack.Screen name="PostDetail" component={PostDetailScreen} />
-    <Stack.Screen name="Comments" component={CommentsScreen} />
+    <Stack.Screen name="BookingHome" component={BookingHomeScreen} />
+    <Stack.Screen name="FacilityDetail" component={FacilityDetailScreen} />
+    <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
     <Stack.Screen name="Messages" component={MessagesScreen} />
     <Stack.Screen name="Chat" component={ChatScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+    <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
-    <Stack.Screen name="BookFacility" component={BookFacilityScreen} />
+    <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="AddFacility" component={AddFacilityScreen} />
-    <Stack.Screen name="SetScore" component={SetScoreScreen} />
-    <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
-    <Stack.Screen name="SportProfile" component={SportProfileScreen} />
-    <Stack.Screen name="SportSearch" component={SportSearchScreen} />
-    <Stack.Screen name="LiveSport" component={LiveSportScreen} />
   </Stack.Navigator>
 );
 
-const SearchStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="SearchMain" component={SearchScreen} />
-    <Stack.Screen name="UserProfile" component={UserProfileScreen} />
-    <Stack.Screen name="PostDetail" component={PostDetailScreen} />
-    <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
-    <Stack.Screen name="SetScore" component={SetScoreScreen} />
-    <Stack.Screen name="SportProfile" component={SportProfileScreen} />
-    <Stack.Screen name="SportSearch" component={SportSearchScreen} />
-    <Stack.Screen name="LiveSport" component={LiveSportScreen} />
-  </Stack.Navigator>
-);
-
-const ReelsStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="ReelsMain" component={ReelsScreen} />
-    <Stack.Screen name="UserProfile" component={UserProfileScreen} />
-  </Stack.Navigator>
-);
-
+// Matches Tab
 const MatchesStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="MatchesMain" component={MatchesScreen} />
     <Stack.Screen name="CreateMatch" component={CreateMatchScreen} />
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
-    <Stack.Screen name="Facilities" component={FacilitiesScreen} />
-    <Stack.Screen name="BookFacility" component={BookFacilityScreen} />
-    <Stack.Screen name="AddFacility" component={AddFacilityScreen} />
+    <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+    <Stack.Screen name="FacilityDetail" component={FacilityDetailScreen} />
+    <Stack.Screen name="Chat" component={ChatScreen} />
   </Stack.Navigator>
 );
 
+// Discover Tab - Find Players (Map)
+const DiscoverStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="DiscoverMain" component={DiscoverScreen} />
+    <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+    <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
+    <Stack.Screen name="Chat" component={ChatScreen} />
+    <Stack.Screen name="Messages" component={MessagesScreen} />
+    <Stack.Screen name="SportProfile" component={SportProfileScreen} />
+    <Stack.Screen name="SportSearch" component={SportSearchScreen} />
+    <Stack.Screen name="LiveSport" component={LiveSportScreen} />
+  </Stack.Navigator>
+);
+
+// Profile Tab
 const ProfileStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="ProfileMain" component={ProfileScreen} />
@@ -119,11 +116,15 @@ const ProfileStack = () => (
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="Settings" component={SettingsScreen} />
-    <Stack.Screen name="CreatePost" component={CreatePostScreen} />
-    <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
+    <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
+    <Stack.Screen name="Messages" component={MessagesScreen} />
+    <Stack.Screen name="Chat" component={ChatScreen} />
     <Stack.Screen name="Terms" component={TermsScreen} />
     <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
     <Stack.Screen name="EULA" component={EULAScreen} />
+    <Stack.Screen name="AddFacility" component={AddFacilityScreen} />
+    <Stack.Screen name="Facilities" component={FacilitiesScreen} />
+    <Stack.Screen name="FacilityOwnerDashboard" component={FacilityOwnerDashboard} />
   </Stack.Navigator>
 );
 
@@ -222,17 +223,14 @@ const MainNavigator = () => {
           let iconName;
 
           switch (route.name) {
-            case 'Home':
-              iconName = focused ? 'home' : 'home-outline';
-              break;
-            case 'Search':
-              iconName = focused ? 'search' : 'search-outline';
-              break;
-            case 'Reels':
-              iconName = focused ? 'play-circle' : 'play-circle-outline';
+            case 'Book':
+              iconName = focused ? 'calendar' : 'calendar-outline';
               break;
             case 'Matches':
               iconName = focused ? 'trophy' : 'trophy-outline';
+              break;
+            case 'Discover':
+              iconName = focused ? 'compass' : 'compass-outline';
               break;
             case 'Profile':
               iconName = focused ? 'person' : 'person-outline';
@@ -247,10 +245,9 @@ const MainNavigator = () => {
         tabBarLabelStyle: styles.tabBarLabel,
       })}
     >
-      <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Search" component={SearchStack} />
-      <Tab.Screen name="Reels" component={ReelsStack} />
+      <Tab.Screen name="Book" component={BookStack} />
       <Tab.Screen name="Matches" component={MatchesStack} />
+      <Tab.Screen name="Discover" component={DiscoverStack} />
       <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
     
