@@ -581,7 +581,8 @@ router.put('/:id', auth, async (req, res) => {
       'name', 'address', 'city', 'state', 'pincode', 'description', 'sports',
       'pricePerHour', 'pricePerSlot', 'slotDuration', 'amenities', 'openingHours',
       'schedule', 'blockedDates', 'image', 'images', 'contactPhone', 'contactEmail',
-      'surfaceType', 'capacity', 'coordinates', 'isActive'
+      'surfaceType', 'capacity', 'coordinates', 'isActive', 'sportPricing',
+      'weekendPricing', 'peakHourPricing', 'discounts', 'peakHours', 'rules'
     ];
 
     allowedUpdates.forEach(field => {
@@ -615,10 +616,12 @@ router.put('/:id/schedule', auth, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const { schedule, blockedDates } = req.body;
+    const { schedule, slotDuration, blockedDates, peakHours } = req.body;
     
     if (schedule) facility.schedule = schedule;
+    if (slotDuration) facility.slotDuration = slotDuration;
     if (blockedDates) facility.blockedDates = blockedDates;
+    if (peakHours) facility.peakHours = peakHours;
 
     await facility.save();
     res.json({ facility });

@@ -325,4 +325,115 @@ router.post('/apple', async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/register-owner
+// @desc    Register a new facility owner
+router.post('/register-owner', [
+  body('name').notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('phone').notEmpty().withMessage('Phone number is required'),
+  body('businessName').notEmpty().withMessage('Business name is required'),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, email, password, phone, businessName } = req.body;
+
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: 'User already exists with this email' });
+    }
+
+    user = new User({ 
+      name, 
+      email, 
+      password,
+      phone,
+      role: 'facility_owner',
+      businessName,
+      isVerified: false,
+      onboardingComplete: false,
+    });
+    await user.save();
+
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        businessName: user.businessName,
+        isVerified: user.isVerified,
+        onboardingComplete: user.onboardingComplete,
+      },
+    });
+  } catch (error) {
+    console.error('Register owner error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/auth/login-owner
+// @desc    Login facility owner
+router.post('/login-owner', [
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').notEmpty().withMessage('Password is required'),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    if (user.role !== 'facility_owner' && user.role !== 'admin') {
+      return res.status(403).json({ message: 'This login is for facility owners only' });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const token = generateToken(user._id);
+
+    // Get owner's facilities
+    const Facility = require('../models/Facility');
+    const facilities = await Facility.find({ owner: user._id }).select('_id name');
+
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        userName: user.userName,
+        email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
+        role: user.role,
+        businessName: user.businessName,
+        isVerified: user.isVerified,
+        onboardingComplete: user.onboardingComplete,
+        facilities: facilities,
+      },
+    });
+  } catch (error) {
+    console.error('Login owner error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

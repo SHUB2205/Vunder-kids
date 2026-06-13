@@ -34,6 +34,42 @@ const FacilitySchema = new mongoose.Schema({
   slotDuration: { type: Number, default: 60 }, // Minutes per slot
   currency: { type: String, default: 'INR' },
   
+  // Sport-specific pricing
+  sportPricing: { type: mongoose.Schema.Types.Mixed, default: {} }, // { "Football": 600, "Cricket": 800 }
+  
+  // Dynamic pricing
+  weekendPricing: {
+    enabled: { type: Boolean, default: false },
+    multiplier: { type: Number, default: 1.2 }
+  },
+  peakHourPricing: {
+    enabled: { type: Boolean, default: false },
+    multiplier: { type: Number, default: 1.5 }
+  },
+  peakHours: {
+    start: { type: String, default: '17:00' },
+    end: { type: String, default: '21:00' },
+    multiplier: { type: Number, default: 1.5 }
+  },
+  
+  // Discounts
+  discounts: {
+    earlyBird: {
+      enabled: { type: Boolean, default: false },
+      percent: { type: Number, default: 10 },
+      beforeHour: { type: String, default: '08:00' }
+    },
+    bulkBooking: {
+      enabled: { type: Boolean, default: false },
+      percent: { type: Number, default: 15 },
+      minSlots: { type: Number, default: 3 }
+    },
+    membership: {
+      enabled: { type: Boolean, default: false },
+      percent: { type: Number, default: 20 }
+    }
+  },
+  
   // Scheduling
   schedule: [TimeSlotSchema], // Weekly schedule
   openingHours: { // Legacy/simple format
@@ -56,6 +92,7 @@ const FacilitySchema = new mongoose.Schema({
   amenities: [{ type: String }], // Parking, Changing Room, etc.
   surfaceType: { type: String }, // Grass, Turf, Indoor, etc.
   capacity: { type: Number }, // Max players
+  rules: { type: String }, // Facility rules and guidelines
   
   // Owner & Management
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

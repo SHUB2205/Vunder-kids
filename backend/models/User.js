@@ -72,6 +72,11 @@ const UserSchema = new mongoose.Schema({
   // Facilities owned (for facility owners)
   ownedFacilities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Facility' }],
   
+  // Facility owner specific fields
+  businessName: { type: String },
+  phone: { type: String },
+  onboardingComplete: { type: Boolean, default: false },
+  
   // Location for map discovery
   coordinates: {
     lat: { type: Number },

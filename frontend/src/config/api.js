@@ -9,6 +9,8 @@ export const API_ENDPOINTS = {
   VERIFY_EMAIL: `${API_BASE_URL}/auth/verify-email`,
   GOOGLE_AUTH: `${API_BASE_URL}/auth/google`,
   APPLE_AUTH: `${API_BASE_URL}/auth/apple`,
+  REGISTER_OWNER: `${API_BASE_URL}/auth/register-owner`,
+  LOGIN_OWNER: `${API_BASE_URL}/auth/login-owner`,
   
   // User
   GET_USER: `${API_BASE_URL}/user`,
