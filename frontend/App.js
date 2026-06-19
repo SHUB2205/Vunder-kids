@@ -11,6 +11,8 @@ import { PostProvider } from './src/context/PostContext';
 import { MatchProvider } from './src/context/MatchContext';
 import { ChatProvider } from './src/context/ChatContext';
 import { NotificationProvider } from './src/context/NotificationContext';
+import { ThemeProvider } from './src/context/ThemeContext';
+import { LanguageProvider } from './src/context/LanguageContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import PushBootstrap from './src/components/PushBootstrap';
 
@@ -40,21 +42,25 @@ export default function App() {
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <AuthProvider>
-            <PostProvider>
-              <MatchProvider>
-                <ChatProvider>
-                  <NotificationProvider>
-                    <NavigationContainer ref={navigationRef}>
-                      <StatusBar style="dark" />
-                      <RootNavigator />
-                      <PushBootstrap navigationRef={navigationRef} />
-                    </NavigationContainer>
-                  </NotificationProvider>
-                </ChatProvider>
-              </MatchProvider>
-            </PostProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <AuthProvider>
+                <PostProvider>
+                  <MatchProvider>
+                    <ChatProvider>
+                      <NotificationProvider>
+                        <NavigationContainer ref={navigationRef}>
+                          <StatusBar style="dark" />
+                          <RootNavigator />
+                          <PushBootstrap navigationRef={navigationRef} />
+                        </NavigationContainer>
+                      </NotificationProvider>
+                    </ChatProvider>
+                  </MatchProvider>
+                </PostProvider>
+              </AuthProvider>
+            </LanguageProvider>
+          </ThemeProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>

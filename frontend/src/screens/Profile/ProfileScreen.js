@@ -427,6 +427,13 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+      {activeTab === 'Media' && matchMedia.length > 0 && (
+        <View style={styles.createBar}>
+          <Text style={styles.mediaHint}>
+            📸 Photos from your completed matches appear here
+          </Text>
+        </View>
+      )}
     </View>
   );
 
@@ -600,6 +607,7 @@ const styles = StyleSheet.create({
   createBar: { marginHorizontal: SPACING.md, marginTop: SPACING.xs, marginBottom: SPACING.xs },
   createBarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.lg, gap: SPACING.xs },
   createBarBtnText: { color: COLORS.white, fontSize: FONTS.sizes.md, fontWeight: '700' },
+  mediaHint: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, textAlign: 'center', paddingVertical: SPACING.sm },
 
   // Media grid
   mediaItem: { width: MEDIA_SIZE, height: MEDIA_SIZE, margin: 1, position: 'relative' },

@@ -1,11 +1,11 @@
-// Local development API URLs
-const LOCAL_IP = '100.110.57.70';
-const API_BASE_URL = `http://${LOCAL_IP}:5001/api`;
-const CHAT_BASE_URL = `http://${LOCAL_IP}:5001`;
+// Production API URLs
+const API_BASE_URL = 'https://vunder-kids-production.up.railway.app/api';
+const CHAT_BASE_URL = 'https://vunder-kids-production.up.railway.app';
 
-// Production URLs (uncomment for production)
-// const API_BASE_URL = 'https://vunder-kids-production.up.railway.app/api';
-// const CHAT_BASE_URL = 'https://vunder-kids-production.up.railway.app';
+// Local development URLs (uncomment for local testing)
+// const LOCAL_IP = '100.110.57.70';
+// const API_BASE_URL = `http://${LOCAL_IP}:5001/api`;
+// const CHAT_BASE_URL = `http://${LOCAL_IP}:5001`;
 
 export const API_ENDPOINTS = {
   // Auth

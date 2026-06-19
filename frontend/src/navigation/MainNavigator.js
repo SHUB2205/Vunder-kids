@@ -27,6 +27,9 @@ import FollowersScreen from '../screens/Profile/FollowersScreen';
 import FollowingScreen from '../screens/Profile/FollowingScreen';
 import UserProfileScreen from '../screens/Profile/UserProfileScreen';
 import SettingsScreen from '../screens/Profile/SettingsScreen';
+import SecurityScreen from '../screens/Profile/SecurityScreen';
+import LanguageScreen from '../screens/Profile/LanguageScreen';
+import SavedScreen from '../screens/Profile/SavedScreen';
 
 // Messages
 import MessagesScreen from '../screens/Messages/MessagesScreen';
@@ -41,7 +44,16 @@ import BookFacilityScreen from '../screens/Facilities/BookFacilityScreen';
 import AddFacilityScreen from '../screens/Facilities/AddFacilityScreen';
 
 // Facility Owner
-import { FacilityOwnerDashboard } from '../screens/FacilityOwner';
+import { 
+  FacilityOwnerDashboard,
+  OwnerLoginScreen,
+  OwnerRegisterScreen,
+  OwnerOnboardingScreen,
+  OwnerDashboardScreen,
+  ManageScheduleScreen,
+  ManagePricingScreen,
+  ManagePhotosScreen,
+} from '../screens/FacilityOwner';
 
 // AI Assistant
 import AIAssistantScreen from '../screens/AI/AIAssistantScreen';
@@ -116,6 +128,9 @@ const ProfileStack = () => (
     <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
     <Stack.Screen name="SetScore" component={SetScoreScreen} />
     <Stack.Screen name="Settings" component={SettingsScreen} />
+    <Stack.Screen name="Security" component={SecurityScreen} />
+    <Stack.Screen name="Language" component={LanguageScreen} />
+    <Stack.Screen name="Saved" component={SavedScreen} />
     <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
     <Stack.Screen name="Messages" component={MessagesScreen} />
     <Stack.Screen name="Chat" component={ChatScreen} />
@@ -125,6 +140,13 @@ const ProfileStack = () => (
     <Stack.Screen name="AddFacility" component={AddFacilityScreen} />
     <Stack.Screen name="Facilities" component={FacilitiesScreen} />
     <Stack.Screen name="FacilityOwnerDashboard" component={FacilityOwnerDashboard} />
+    <Stack.Screen name="OwnerLogin" component={OwnerLoginScreen} />
+    <Stack.Screen name="OwnerRegister" component={OwnerRegisterScreen} />
+    <Stack.Screen name="OwnerOnboarding" component={OwnerOnboardingScreen} />
+    <Stack.Screen name="OwnerDashboard" component={OwnerDashboardScreen} />
+    <Stack.Screen name="ManageSchedule" component={ManageScheduleScreen} />
+    <Stack.Screen name="ManagePricing" component={ManagePricingScreen} />
+    <Stack.Screen name="ManagePhotos" component={ManagePhotosScreen} />
   </Stack.Navigator>
 );
 

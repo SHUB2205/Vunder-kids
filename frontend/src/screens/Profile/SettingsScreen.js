@@ -12,16 +12,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../../config/theme';
 import api from '../../config/axios';
 import { API_ENDPOINTS } from '../../config/api';
 
 const SettingsScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const { language, languages } = useLanguage();
   const [notifications, setNotifications] = useState(true);
   const [privateAccount, setPrivateAccount] = useState(user?.isPrivate || false);
-  const [darkMode, setDarkMode] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  
+  const currentLanguage = languages.find(l => l.code === language) || languages[0];
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -118,7 +123,7 @@ const SettingsScreen = ({ navigation }) => {
           <SettingItem
             icon="shield-checkmark-outline"
             title="Security"
-            onPress={() => Alert.alert('Security', 'Security settings coming soon')}
+            onPress={() => navigation.navigate('Security')}
           />
         </SettingSection>
 
@@ -140,8 +145,8 @@ const SettingsScreen = ({ navigation }) => {
             title="Dark Mode"
             rightElement={
               <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
+                value={isDarkMode}
+                onValueChange={toggleTheme}
                 trackColor={{ false: COLORS.border, true: COLORS.primary }}
               />
             }
@@ -150,27 +155,62 @@ const SettingsScreen = ({ navigation }) => {
           <SettingItem
             icon="language-outline"
             title="Language"
-            subtitle="English"
-            onPress={() => Alert.alert('Language', 'Language settings coming soon')}
+            subtitle={currentLanguage?.name || 'English'}
+            onPress={() => navigation.navigate('Language')}
           />
         </SettingSection>
 
         <SettingSection title="Content">
           <SettingItem
             icon="bookmark-outline"
-            title="Saved Posts"
-            onPress={() => Alert.alert('Saved', 'Saved posts coming soon')}
+            title="Saved"
+            onPress={() => navigation.navigate('Saved')}
           />
           <SettingItem
             icon="archive-outline"
             title="Archive"
-            onPress={() => Alert.alert('Archive', 'Archive coming soon')}
+            onPress={() => navigation.navigate('MyBookings')}
           />
           <SettingItem
             icon="time-outline"
             title="Your Activity"
-            onPress={() => Alert.alert('Activity', 'Activity log coming soon')}
+            onPress={() => navigation.navigate('MyBookings')}
           />
+        </SettingSection>
+
+        {/* Facility Owner Section */}
+        <SettingSection title="Facility Owner">
+          {user?.role === 'facility_owner' ? (
+            <>
+              <SettingItem
+                icon="stats-chart-outline"
+                title="Facility Dashboard"
+                subtitle="Manage your facilities and bookings"
+                onPress={() => navigation.navigate('OwnerDashboard')}
+              />
+              <SettingItem
+                icon="add-circle-outline"
+                title="Add New Facility"
+                subtitle="List another sports facility"
+                onPress={() => navigation.navigate('OwnerOnboarding')}
+              />
+            </>
+          ) : (
+            <>
+              <SettingItem
+                icon="business-outline"
+                title="Become a Facility Owner"
+                subtitle="Register to list your sports facilities"
+                onPress={() => navigation.navigate('OwnerRegister')}
+              />
+              <SettingItem
+                icon="log-in-outline"
+                title="Facility Owner Login"
+                subtitle="Already registered? Sign in here"
+                onPress={() => navigation.navigate('OwnerLogin')}
+              />
+            </>
+          )}
         </SettingSection>
 
         <SettingSection title="Legal">
