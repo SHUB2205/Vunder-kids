@@ -74,6 +74,9 @@ export const API_ENDPOINTS = {
   CREATE_FACILITY: `${API_BASE_URL}/facilities`,
   GET_MY_FACILITIES: `${API_BASE_URL}/facilities/owner/my`,
   GET_FACILITY_BOOKINGS: (facilityId) => `${API_BASE_URL}/facilities/owner/${facilityId}/bookings`,
+  GET_FACILITY_CUSTOMERS: (facilityId) => `${API_BASE_URL}/facilities/owner/${facilityId}/customers`,
+  GET_FACILITY_ANALYTICS: (facilityId) => `${API_BASE_URL}/facilities/owner/${facilityId}/analytics`,
+  UPDATE_OWNER_BOOKING: (bookingId) => `${API_BASE_URL}/facilities/owner/bookings/${bookingId}`,
   UPDATE_FACILITY: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}`,
   UPDATE_FACILITY_SCHEDULE: (facilityId) => `${API_BASE_URL}/facilities/${facilityId}/schedule`,
   

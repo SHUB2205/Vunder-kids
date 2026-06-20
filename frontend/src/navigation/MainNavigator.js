@@ -44,7 +44,7 @@ import BookFacilityScreen from '../screens/Facilities/BookFacilityScreen';
 import AddFacilityScreen from '../screens/Facilities/AddFacilityScreen';
 
 // Facility Owner
-import { 
+import {
   FacilityOwnerDashboard,
   OwnerLoginScreen,
   OwnerRegisterScreen,
@@ -53,6 +53,12 @@ import {
   ManageScheduleScreen,
   ManagePricingScreen,
   ManagePhotosScreen,
+  OwnerBookingsScreen,
+  BookingDetailScreen,
+  OwnerCustomersScreen,
+  OwnerPaymentsScreen,
+  EditFacilityScreen,
+  OwnerNotificationsScreen,
 } from '../screens/FacilityOwner';
 
 // AI Assistant
@@ -147,6 +153,12 @@ const ProfileStack = () => (
     <Stack.Screen name="ManageSchedule" component={ManageScheduleScreen} />
     <Stack.Screen name="ManagePricing" component={ManagePricingScreen} />
     <Stack.Screen name="ManagePhotos" component={ManagePhotosScreen} />
+    <Stack.Screen name="AllBookings" component={OwnerBookingsScreen} />
+    <Stack.Screen name="BookingDetail" component={BookingDetailScreen} />
+    <Stack.Screen name="OwnerCustomers" component={OwnerCustomersScreen} />
+    <Stack.Screen name="OwnerPayments" component={OwnerPaymentsScreen} />
+    <Stack.Screen name="EditFacility" component={EditFacilityScreen} />
+    <Stack.Screen name="OwnerNotifications" component={OwnerNotificationsScreen} />
   </Stack.Navigator>
 );
 
