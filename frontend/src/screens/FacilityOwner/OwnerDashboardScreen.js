@@ -93,19 +93,51 @@ const OwnerDashboardScreen = ({ navigation }) => {
       
       const bookings = bookingsRes.data.bookings || [];
       setTodayBookings(bookings);
-      
-      // Calculate stats
-      const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
-      const revenue = bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
-      
-      setStats({
-        todayBookings: confirmedBookings.length,
-        weekBookings: bookingsRes.data.weekCount || confirmedBookings.length * 7,
-        monthRevenue: bookingsRes.data.monthRevenue || revenue * 30,
-        pendingBookings: bookings.filter(b => b.status === 'pending').length,
-      });
+
+      // Fetch accurate analytics (revenue, week/month totals)
+      try {
+        const analyticsRes = await api.get(
+          API_ENDPOINTS.GET_FACILITY_ANALYTICS(selectedFacility._id),
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const a = analyticsRes.data.analytics || {};
+        setStats({
+          todayBookings: a.todayBookings ?? bookings.filter(b => b.status !== 'cancelled').length,
+          weekBookings: a.weekBookings ?? 0,
+          monthRevenue: a.monthPaidRevenue ?? a.monthRevenue ?? 0,
+          pendingBookings: a.pendingBookings ?? bookings.filter(b => b.status === 'pending').length,
+        });
+      } catch (analyticsErr) {
+        // Fallback to today's bookings if analytics unavailable
+        const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
+        const revenue = bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+        setStats({
+          todayBookings: confirmedBookings.length,
+          weekBookings: confirmedBookings.length,
+          monthRevenue: revenue,
+          pendingBookings: bookings.filter(b => b.status === 'pending').length,
+        });
+      }
     } catch (error) {
       console.error('Fetch facility data error:', error);
+    }
+  };
+
+  const toggleFacilityActive = async () => {
+    if (!selectedFacility) return;
+    try {
+      const token = await AsyncStorage.getItem('ownerToken');
+      const newActive = !selectedFacility.isActive;
+      await api.put(
+        API_ENDPOINTS.UPDATE_FACILITY(selectedFacility._id),
+        { isActive: newActive },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const updated = { ...selectedFacility, isActive: newActive };
+      setSelectedFacility(updated);
+      setFacilities((prev) => prev.map((f) => (f._id === updated._id ? updated : f)));
+    } catch (error) {
+      Alert.alert('Error', error?.response?.data?.message || 'Failed to update facility');
     }
   };
 
@@ -300,6 +332,33 @@ const OwnerDashboardScreen = ({ navigation }) => {
               </View>
               <Text style={styles.actionText}>Edit Info</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('AllBookings', { facilityId: selectedFacility?._id })}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: COLORS.primary + '15' }]}>
+                <Ionicons name="list-outline" size={24} color={COLORS.primary} />
+              </View>
+              <Text style={styles.actionText}>Bookings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('OwnerCustomers', { facilityId: selectedFacility?._id })}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: COLORS.secondary + '25' }]}>
+                <Ionicons name="people-outline" size={24} color={COLORS.secondary} />
+              </View>
+              <Text style={styles.actionText}>Customers</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate('OwnerPayments', { facilityId: selectedFacility?._id })}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: COLORS.success + '15' }]}>
+                <Ionicons name="wallet-outline" size={24} color={COLORS.success} />
+              </View>
+              <Text style={styles.actionText}>Payments</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -322,7 +381,7 @@ const OwnerDashboardScreen = ({ navigation }) => {
               <TouchableOpacity
                 key={booking._id}
                 style={styles.bookingCard}
-                onPress={() => navigation.navigate('BookingDetail', { bookingId: booking._id })}
+                onPress={() => navigation.navigate('BookingDetail', { bookingId: booking._id, booking, facilityId: selectedFacility?._id })}
               >
                 <View style={styles.bookingTime}>
                   <Text style={styles.timeText}>{booking.startTime}</Text>
@@ -370,7 +429,7 @@ const OwnerDashboardScreen = ({ navigation }) => {
               </View>
               <TouchableOpacity
                 style={styles.toggleButton}
-                onPress={() => {/* Toggle active status */}}
+                onPress={toggleFacilityActive}
               >
                 <Text style={styles.toggleButtonText}>
                   {selectedFacility?.isActive ? 'Pause Bookings' : 'Resume Bookings'}

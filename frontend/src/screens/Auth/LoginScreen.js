@@ -302,6 +302,18 @@ const LoginScreen = ({ navigation }) => {
             >
               <Text style={styles.signUpButtonText}>Sign up</Text>
             </TouchableOpacity>
+
+            {/* Facility Owner Entry */}
+            <TouchableOpacity
+              style={styles.ownerEntry}
+              onPress={() => navigation.navigate('OwnerLogin')}
+            >
+              <Ionicons name="business-outline" size={18} color={COLORS.textSecondary} />
+              <Text style={styles.ownerEntryText}>
+                List your facility?{' '}
+                <Text style={styles.ownerEntryLink}>Facility Owner Login</Text>
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -507,8 +519,21 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
   },
-  socialButtonDisabled: {
-    opacity: 0.7,
+  ownerEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.lg,
+    gap: SPACING.sm,
+  },
+  ownerEntryText: {
+    marginLeft: SPACING.sm,
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+  },
+  ownerEntryLink: {
+    color: COLORS.primary,
+    fontWeight: '700',
   },
 });
 

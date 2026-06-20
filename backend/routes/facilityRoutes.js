@@ -630,6 +630,183 @@ router.put('/:id/schedule', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/facilities/owner/:facilityId/customers
+// @desc    Get the base of users (customers) who booked a facility (owner only)
+router.get('/owner/:facilityId/customers', auth, async (req, res) => {
+  try {
+    const facility = await Facility.findById(req.params.facilityId);
+    if (!facility) {
+      return res.status(404).json({ message: 'Facility not found' });
+    }
+    if (facility.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const bookings = await Booking.find({ facility: req.params.facilityId })
+      .populate('user', 'name userName avatar phone email')
+      .sort({ date: -1 });
+
+    // Aggregate per-user stats
+    const customersMap = new Map();
+    for (const b of bookings) {
+      if (!b.user) continue;
+      const id = b.user._id.toString();
+      const isPaid = b.paymentStatus === 'paid';
+      const isCancelled = b.status === 'cancelled';
+      if (!customersMap.has(id)) {
+        customersMap.set(id, {
+          user: b.user,
+          totalBookings: 0,
+          completedBookings: 0,
+          cancelledBookings: 0,
+          totalSpent: 0,
+          lastBooking: b.date,
+          lastSport: b.sport,
+        });
+      }
+      const c = customersMap.get(id);
+      c.totalBookings += 1;
+      if (isCancelled) c.cancelledBookings += 1;
+      if (b.status === 'completed') c.completedBookings += 1;
+      if (isPaid && !isCancelled) c.totalSpent += b.totalAmount || 0;
+      if (new Date(b.date) > new Date(c.lastBooking)) {
+        c.lastBooking = b.date;
+        c.lastSport = b.sport;
+      }
+    }
+
+    const customers = Array.from(customersMap.values())
+      .sort((a, b) => b.totalBookings - a.totalBookings);
+
+    res.json({ customers, totalCustomers: customers.length });
+  } catch (error) {
+    console.error('Get facility customers error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/facilities/owner/:facilityId/analytics
+// @desc    Get revenue & payment analytics for a facility (owner only)
+router.get('/owner/:facilityId/analytics', auth, async (req, res) => {
+  try {
+    const facility = await Facility.findById(req.params.facilityId);
+    if (!facility) {
+      return res.status(404).json({ message: 'Facility not found' });
+    }
+    if (facility.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const now = new Date();
+    const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
+    const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - 7);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const bookings = await Booking.find({ facility: req.params.facilityId });
+
+    const active = bookings.filter(b => b.status !== 'cancelled');
+    const paid = bookings.filter(b => b.paymentStatus === 'paid' && b.status !== 'cancelled');
+
+    const sum = (arr) => arr.reduce((s, b) => s + (b.totalAmount || 0), 0);
+
+    const analytics = {
+      totalBookings: active.length,
+      todayBookings: active.filter(b => new Date(b.date) >= startOfDay).length,
+      weekBookings: active.filter(b => new Date(b.date) >= startOfWeek).length,
+      monthBookings: active.filter(b => new Date(b.date) >= startOfMonth).length,
+      pendingBookings: bookings.filter(b => b.status === 'pending').length,
+      cancelledBookings: bookings.filter(b => b.status === 'cancelled').length,
+      // Revenue
+      totalRevenue: sum(active),
+      paidRevenue: sum(paid),
+      pendingRevenue: sum(active.filter(b => b.paymentStatus !== 'paid')),
+      monthRevenue: sum(active.filter(b => new Date(b.date) >= startOfMonth)),
+      monthPaidRevenue: sum(paid.filter(b => new Date(b.date) >= startOfMonth)),
+      // Payment status breakdown
+      paymentBreakdown: {
+        paid: bookings.filter(b => b.paymentStatus === 'paid').length,
+        pending: bookings.filter(b => b.paymentStatus === 'pending').length,
+        partial: bookings.filter(b => b.paymentStatus === 'partial').length,
+        refunded: bookings.filter(b => b.paymentStatus === 'refunded').length,
+      },
+    };
+
+    res.json({ analytics });
+  } catch (error) {
+    console.error('Facility analytics error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/facilities/owner/bookings/:bookingId
+// @desc    Owner updates a booking's status / payment / notes
+router.put('/owner/bookings/:bookingId', auth, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.bookingId).populate('facility', 'owner name');
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    if (!booking.facility || booking.facility.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const { status, paymentStatus, paymentMethod, facilityNotes } = req.body;
+
+    const allowedStatus = ['pending', 'confirmed', 'cancelled', 'completed', 'no-show'];
+    const allowedPayment = ['pending', 'paid', 'refunded', 'partial'];
+
+    if (status !== undefined) {
+      if (!allowedStatus.includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' });
+      }
+      booking.status = status;
+      if (status === 'confirmed' && !booking.confirmedAt) booking.confirmedAt = new Date();
+      if (status === 'cancelled') {
+        booking.cancelledAt = new Date();
+        booking.cancelledBy = req.user._id;
+      }
+    }
+    if (paymentStatus !== undefined) {
+      if (!allowedPayment.includes(paymentStatus)) {
+        return res.status(400).json({ message: 'Invalid payment status' });
+      }
+      booking.paymentStatus = paymentStatus;
+    }
+    if (paymentMethod !== undefined) booking.paymentMethod = paymentMethod;
+    if (facilityNotes !== undefined) booking.facilityNotes = facilityNotes;
+
+    await booking.save();
+
+    // Keep the linked match in sync when a booking is cancelled/completed
+    if (booking.match && (status === 'cancelled' || status === 'completed')) {
+      await Match.findByIdAndUpdate(booking.match, { status });
+    }
+
+    // Notify the customer of the change
+    if (status !== undefined || paymentStatus !== undefined) {
+      const parts = [];
+      if (status !== undefined) parts.push(`status: ${status}`);
+      if (paymentStatus !== undefined) parts.push(`payment: ${paymentStatus}`);
+      await Notification.create({
+        recipient: booking.user,
+        type: 'booking',
+        message: `Your booking at ${booking.facility.name} was updated (${parts.join(', ')})`,
+        data: { bookingId: booking._id },
+        sender: req.user._id,
+      });
+    }
+
+    const populated = await Booking.findById(booking._id)
+      .populate('user', 'name userName avatar phone email')
+      .populate('facility', 'name address image');
+
+    res.json({ booking: populated });
+  } catch (error) {
+    console.error('Owner update booking error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   DELETE /api/facilities/:id
 // @desc    Delete/deactivate facility (owner only)
 router.delete('/:id', auth, async (req, res) => {

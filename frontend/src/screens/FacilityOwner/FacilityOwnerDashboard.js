@@ -300,10 +300,24 @@ const FacilityOwnerDashboard = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate('FacilityAnalytics', { facilityId: selectedFacility?._id })}
+            onPress={() => navigation.navigate('OwnerPayments', { facilityId: selectedFacility?._id })}
           >
             <Ionicons name="stats-chart-outline" size={20} color={COLORS.primary} />
             <Text style={styles.actionText}>Analytics</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('AllBookings', { facilityId: selectedFacility?._id })}
+          >
+            <Ionicons name="list-outline" size={20} color={COLORS.primary} />
+            <Text style={styles.actionText}>All Bookings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('OwnerCustomers', { facilityId: selectedFacility?._id })}
+          >
+            <Ionicons name="people-outline" size={20} color={COLORS.primary} />
+            <Text style={styles.actionText}>Customers</Text>
           </TouchableOpacity>
         </View>
 
