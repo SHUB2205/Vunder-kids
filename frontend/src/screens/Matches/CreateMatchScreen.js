@@ -782,6 +782,15 @@ const CreateMatchScreen = ({ navigation }) => {
                 <Ionicons name="close" size={24} color={COLORS.text} />
               </TouchableOpacity>
             </View>
+            {/* Add New Facility Button */}
+            <TouchableOpacity
+              style={styles.addFacilityBtn}
+              onPress={() => { setShowFacilityPicker(false); navigation.navigate('AddFacility'); }}
+            >
+              <Ionicons name="add-circle" size={20} color={COLORS.primary} />
+              <Text style={styles.addFacilityBtnText}>Add New Facility</Text>
+            </TouchableOpacity>
+
             {facilitiesLoading ? (
               <ActivityIndicator style={{ marginTop: SPACING.xl }} color={COLORS.primary} />
             ) : (
@@ -800,7 +809,18 @@ const CreateMatchScreen = ({ navigation }) => {
                     {selectedFacility?._id === item._id && <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />}
                   </TouchableOpacity>
                 )}
-                ListEmptyComponent={<Text style={styles.emptyText}>No facilities found for this sport and city.</Text>}
+                ListEmptyComponent={
+                  <View style={styles.emptyFacilityContainer}>
+                    <Text style={styles.emptyText}>No facilities found for this sport and city.</Text>
+                    <TouchableOpacity
+                      style={styles.addFacilityEmptyBtn}
+                      onPress={() => { setShowFacilityPicker(false); navigation.navigate('AddFacility'); }}
+                    >
+                      <Ionicons name="add" size={18} color={COLORS.white} />
+                      <Text style={styles.addFacilityEmptyBtnText}>Add Your Facility</Text>
+                    </TouchableOpacity>
+                  </View>
+                }
               />
             )}
           </View>
@@ -998,6 +1018,35 @@ const styles = StyleSheet.create({
   sportItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   sportItemText: { fontSize: FONTS.sizes.md, color: COLORS.text },
   emptyText: { textAlign: 'center', color: COLORS.textSecondary, marginTop: SPACING.xl, fontSize: FONTS.sizes.md },
+  addFacilityBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.primary + '15',
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderStyle: 'dashed',
+    gap: SPACING.sm,
+  },
+  addFacilityBtnText: { fontSize: FONTS.sizes.md, fontWeight: '600', color: COLORS.primary },
+  emptyFacilityContainer: { alignItems: 'center', paddingVertical: SPACING.xl, paddingHorizontal: SPACING.lg },
+  addFacilityEmptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.full,
+    gap: SPACING.xs,
+  },
+  addFacilityEmptyBtnText: { fontSize: FONTS.sizes.md, fontWeight: '600', color: COLORS.white },
   footer: { padding: SPACING.lg, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.border },
   nextButton: {
     flexDirection: 'row',

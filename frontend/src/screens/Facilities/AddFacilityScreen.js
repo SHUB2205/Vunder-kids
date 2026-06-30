@@ -40,7 +40,9 @@ const AddFacilityScreen = ({ navigation }) => {
 
   // Form state
   const [name, setName] = useState('');
-  const [location, setLocation] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const [description, setDescription] = useState('');
   const [pricePerHour, setPricePerHour] = useState('');
   const [selectedSports, setSelectedSports] = useState([]);
@@ -97,7 +99,9 @@ const AddFacilityScreen = ({ navigation }) => {
   const selectSuggestion = (facility) => {
     Keyboard.dismiss();
     setName(facility.name);
-    setLocation(facility.location || '');
+    setAddress(facility.address || facility.location || '');
+    setCity(facility.city || '');
+    setState(facility.state || '');
     setDescription(facility.description || '');
     setPricePerHour(facility.pricePerHour?.toString() || '');
     setSelectedSports(facility.sports || []);
@@ -125,7 +129,8 @@ const AddFacilityScreen = ({ navigation }) => {
 
   const validate = () => {
     if (!name.trim()) { Alert.alert('Missing name', 'Please enter a facility name.'); return false; }
-    if (!location.trim()) { Alert.alert('Missing location', 'Please enter the facility address or area.'); return false; }
+    if (!address.trim()) { Alert.alert('Missing address', 'Please enter the facility address.'); return false; }
+    if (!city.trim()) { Alert.alert('Missing city', 'Please enter the city.'); return false; }
     if (!pricePerHour || isNaN(Number(pricePerHour)) || Number(pricePerHour) <= 0) {
       Alert.alert('Invalid price', 'Please enter a valid hourly price.'); return false;
     }
@@ -138,7 +143,9 @@ const AddFacilityScreen = ({ navigation }) => {
     setSubmitting(true);
     const result = await createFacility({
       name: name.trim(),
-      location: location.trim(),
+      address: address.trim(),
+      city: city.trim(),
+      state: state.trim(),
       description: description.trim(),
       pricePerHour: Number(pricePerHour),
       sports: selectedSports,
@@ -232,17 +239,48 @@ const AddFacilityScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Location */}
+          {/* Address */}
           <View style={styles.field}>
-            <Text style={styles.label}>Location / Address *</Text>
+            <Text style={styles.label}>Address *</Text>
             <View style={styles.inputRow}>
               <Ionicons name="location" size={18} color={COLORS.textSecondary} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Area, City, State"
+                placeholder="Street address, area"
                 placeholderTextColor={COLORS.textLight}
-                value={location}
-                onChangeText={setLocation}
+                value={address}
+                onChangeText={setAddress}
+                returnKeyType="next"
+              />
+            </View>
+          </View>
+
+          {/* City & State */}
+          <View style={styles.field}>
+            <Text style={styles.label}>City *</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="business" size={18} color={COLORS.textSecondary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Tampa, Mumbai, Budapest"
+                placeholderTextColor={COLORS.textLight}
+                value={city}
+                onChangeText={setCity}
+                returnKeyType="next"
+              />
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>State / Region</Text>
+            <View style={styles.inputRow}>
+              <Ionicons name="map" size={18} color={COLORS.textSecondary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Florida, Maharashtra"
+                placeholderTextColor={COLORS.textLight}
+                value={state}
+                onChangeText={setState}
                 returnKeyType="next"
               />
             </View>

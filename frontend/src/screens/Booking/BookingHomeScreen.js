@@ -41,6 +41,18 @@ const SORT_OPTIONS = [
   { label: 'Most Popular', value: 'popular' },
 ];
 
+const POPULAR_LOCATIONS = [
+  { name: 'Current Location', icon: 'navigate', isCurrentLocation: true },
+  { name: 'Tampa, FL', country: 'USA', icon: 'location' },
+  { name: 'Miami, FL', country: 'USA', icon: 'location' },
+  { name: 'New York, NY', country: 'USA', icon: 'location' },
+  { name: 'Los Angeles, CA', country: 'USA', icon: 'location' },
+  { name: 'Delhi', country: 'India', icon: 'location' },
+  { name: 'Mumbai', country: 'India', icon: 'location' },
+  { name: 'Budapest', country: 'Hungary', icon: 'location' },
+  { name: 'London', country: 'UK', icon: 'location' },
+];
+
 const BookingHomeScreen = ({ navigation }) => {
   const { user } = useAuth();
   const [facilities, setFacilities] = useState([]);
@@ -55,6 +67,8 @@ const BookingHomeScreen = ({ navigation }) => {
   const [sortBy, setSortBy] = useState('recommended');
   const [showFilters, setShowFilters] = useState(false);
   const [showSortModal, setShowSortModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
   
   // Location
   const [userLocation, setUserLocation] = useState(null);
@@ -138,6 +152,24 @@ const BookingHomeScreen = ({ navigation }) => {
 
   const handleSearch = () => {
     fetchFacilities();
+  };
+
+  const handleSelectLocation = async (location) => {
+    if (location.isCurrentLocation) {
+      await requestLocation();
+    } else {
+      setLocationName(location.name);
+      setSelectedCity(location.name.split(',')[0].trim());
+    }
+    setShowLocationModal(false);
+    setLocationSearchQuery('');
+  };
+
+  const getFilteredLocations = () => {
+    if (!locationSearchQuery) return POPULAR_LOCATIONS;
+    return POPULAR_LOCATIONS.filter(loc => 
+      loc.name.toLowerCase().includes(locationSearchQuery.toLowerCase())
+    );
   };
 
   const renderFacilityCard = ({ item }) => (
@@ -230,7 +262,7 @@ const BookingHomeScreen = ({ navigation }) => {
     <View>
       {/* Search & Location Bar */}
       <View style={styles.searchSection}>
-        <TouchableOpacity style={styles.locationSelector} onPress={() => {}}>
+        <TouchableOpacity style={styles.locationSelector} onPress={() => setShowLocationModal(true)}>
           <Ionicons name="location" size={20} color={COLORS.primary} />
           <View style={styles.locationInfo}>
             <Text style={styles.locationLabel}>Location</Text>
@@ -409,6 +441,76 @@ const BookingHomeScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Location Modal */}
+      <Modal visible={showLocationModal} transparent animationType="slide">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowLocationModal(false)}
+        >
+          <View style={styles.locationModal}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Select Location</Text>
+            
+            {/* Search Bar */}
+            <View style={styles.locationSearchBar}>
+              <Ionicons name="search" size={20} color={COLORS.textLight} />
+              <TextInput
+                style={styles.locationSearchInput}
+                placeholder="Search city or area..."
+                placeholderTextColor={COLORS.textLight}
+                value={locationSearchQuery}
+                onChangeText={setLocationSearchQuery}
+              />
+              {locationSearchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setLocationSearchQuery('')}>
+                  <Ionicons name="close-circle" size={18} color={COLORS.textLight} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Location List */}
+            <ScrollView style={styles.locationList} showsVerticalScrollIndicator={false}>
+              {getFilteredLocations().map((location, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.locationItem}
+                  onPress={() => handleSelectLocation(location)}
+                >
+                  <View style={[
+                    styles.locationItemIcon,
+                    location.isCurrentLocation && styles.locationItemIconCurrent
+                  ]}>
+                    <Ionicons 
+                      name={location.icon} 
+                      size={20} 
+                      color={location.isCurrentLocation ? COLORS.white : COLORS.primary} 
+                    />
+                  </View>
+                  <View style={styles.locationItemInfo}>
+                    <Text style={styles.locationItemName}>{location.name}</Text>
+                    {location.country && (
+                      <Text style={styles.locationItemCountry}>{location.country}</Text>
+                    )}
+                  </View>
+                  {locationName === location.name && (
+                    <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Floating Add Facility Button */}
+      <TouchableOpacity 
+        style={styles.addFacilityFab}
+        onPress={() => navigation.navigate('AddFacility')}
+      >
+        <Ionicons name="add" size={28} color={COLORS.white} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -825,6 +927,78 @@ const styles = StyleSheet.create({
   sortOptionTextActive: {
     color: COLORS.primary,
     fontWeight: '600',
+  },
+  // Location Modal
+  locationModal: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: BORDER_RADIUS.xl,
+    borderTopRightRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
+    paddingBottom: SPACING.xxxl,
+    maxHeight: '70%',
+  },
+  locationSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    height: 48,
+    marginBottom: SPACING.md,
+  },
+  locationSearchInput: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+    fontSize: FONTS.sizes.md,
+    color: COLORS.text,
+  },
+  locationList: {
+    maxHeight: 400,
+  },
+  locationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  locationItemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  locationItemIconCurrent: {
+    backgroundColor: COLORS.primary,
+  },
+  locationItemInfo: {
+    flex: 1,
+  },
+  locationItemName: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  locationItemCountry: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  // Floating Add Button
+  addFacilityFab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.large,
   },
 });
 

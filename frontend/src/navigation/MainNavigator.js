@@ -104,6 +104,7 @@ const MatchesStack = () => (
     <Stack.Screen name="UserProfile" component={UserProfileScreen} />
     <Stack.Screen name="FacilityDetail" component={FacilityDetailScreen} />
     <Stack.Screen name="Chat" component={ChatScreen} />
+    <Stack.Screen name="AddFacility" component={AddFacilityScreen} />
   </Stack.Navigator>
 );
 
