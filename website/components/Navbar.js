@@ -1,40 +1,57 @@
 'use client'
 import Link from 'next/link'
-import { useState } from 'react'
+import Image from 'next/image'
+import { useState, useEffect } from 'react'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 shadow-sm">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      scrolled 
+        ? 'bg-white/95 backdrop-blur-md shadow-lg' 
+        : 'bg-transparent'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-extrabold text-gray-900">
-            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-red-500 flex items-center justify-center text-white text-lg shadow-md">F</span>
-            <span>Fisiko</span>
+        <div className="flex justify-between items-center h-16 md:h-20">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <Image src="/logo.png" alt="Fisiko" width={44} height={44} className="rounded-xl shadow-lg group-hover:shadow-primary/30 transition-shadow" />
+            <span className={`text-2xl font-extrabold transition-colors ${scrolled ? 'text-gray-900' : 'text-white'}`}>Fisiko</span>
           </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/#features" className="text-gray-600 hover:text-gray-900 transition">
+            <Link href="/#features" className={`font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-600' : 'text-gray-200 hover:text-white'}`}>
               Features
             </Link>
-            <Link href="/support" className="text-gray-600 hover:text-gray-900 transition">
+            <Link href="/#facilities" className={`font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-600' : 'text-gray-200 hover:text-white'}`}>
+              Facilities
+            </Link>
+            <Link href="/support" className={`font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-600' : 'text-gray-200 hover:text-white'}`}>
               Support
             </Link>
             <a
-              href="https://apps.apple.com/app/fisiko"
+              href="https://apps.apple.com/us/app/fisiko-ai/id6759229981"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-primary text-white px-5 py-2 rounded-full hover:bg-primary-dark transition"
+              className="bg-gradient-to-r from-primary to-orange-600 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-0.5"
             >
-              Download App
+              Download Free
             </a>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className={`md:hidden p-2 rounded-lg transition-colors ${scrolled ? 'text-gray-900' : 'text-white'}`}
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >
@@ -50,21 +67,36 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t">
-            <div className="flex flex-col space-y-4">
-              <Link href="/#features" className="text-gray-600 hover:text-gray-900 transition" onClick={() => setIsOpen(false)}>
+          <div className="md:hidden py-4 border-t border-gray-100 bg-white rounded-b-2xl shadow-xl">
+            <div className="flex flex-col space-y-1 px-2">
+              <Link 
+                href="/#features" 
+                className="text-gray-700 hover:text-primary hover:bg-primary/5 px-4 py-3 rounded-xl transition font-medium" 
+                onClick={() => setIsOpen(false)}
+              >
                 Features
               </Link>
-              <Link href="/support" className="text-gray-600 hover:text-gray-900 transition" onClick={() => setIsOpen(false)}>
+              <Link 
+                href="/#facilities" 
+                className="text-gray-700 hover:text-primary hover:bg-primary/5 px-4 py-3 rounded-xl transition font-medium" 
+                onClick={() => setIsOpen(false)}
+              >
+                Facilities
+              </Link>
+              <Link 
+                href="/support" 
+                className="text-gray-700 hover:text-primary hover:bg-primary/5 px-4 py-3 rounded-xl transition font-medium" 
+                onClick={() => setIsOpen(false)}
+              >
                 Support
               </Link>
               <a
-                href="https://apps.apple.com/app/fisiko"
+                href="https://apps.apple.com/us/app/fisiko-ai/id6759229981"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-primary text-white px-5 py-2 rounded-full text-center hover:bg-primary-dark transition"
+                className="bg-gradient-to-r from-primary to-orange-600 text-white px-4 py-3 rounded-xl text-center font-semibold mt-2"
               >
-                Download App
+                Download Free
               </a>
             </div>
           </div>

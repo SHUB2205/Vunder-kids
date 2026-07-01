@@ -1,114 +1,129 @@
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
+import StoreButtons from '../../components/StoreButtons'
 
 export const metadata = {
   title: 'Support - Fisiko',
   description: 'Get help and support for the Fisiko app. Contact us with any questions or issues.',
 }
 
+const faqs = [
+  {
+    question: 'How do I create an account?',
+    answer: 'Download the Fisiko app from the App Store or Google Play, then tap "Sign Up" to create your account. You can register using your email address or sign in with Apple or Google.',
+  },
+  {
+    question: 'How do I book a sports facility?',
+    answer: 'Go to the Booking tab, search for facilities by sport, location, or name. Select a facility, choose your preferred date and time slot, and confirm your booking. Payment is processed securely in-app.',
+  },
+  {
+    question: 'How do I create or join a match?',
+    answer: 'Navigate to the Matches tab in the app. To create a match, tap the "+" button, select a sport, invite opponents, choose a venue, and set the date/time. To join an existing match, browse available matches and tap "Join".',
+  },
+  {
+    question: 'How does score verification work?',
+    answer: 'After a match, both players submit the final score. When both scores match, the result is verified and added to your match history. This ensures fair and accurate record-keeping.',
+  },
+  {
+    question: 'How do I find players near me?',
+    answer: 'Use the Discover tab to see athletes on the map. You can filter by sport, skill level, and distance. Tap on any player to view their profile and send a match invitation.',
+  },
+  {
+    question: 'How do I add my own facility?',
+    answer: 'Go to the Booking tab and tap "Add Facility". Fill in the details including name, address, sports available, pricing, and amenities. Your facility will be visible to all users once submitted.',
+  },
+  {
+    question: 'How do I delete my account?',
+    answer: 'Go to your Profile, tap the Settings icon, scroll down to "Account Actions," and tap "Delete Account." Please note that this action is permanent and cannot be undone.',
+  },
+  {
+    question: 'Is Fisiko free to use?',
+    answer: 'Yes! Fisiko is free to download and use. All core features including creating matches, connecting with athletes, and booking facilities are available at no cost. Facility booking fees go directly to the venue.',
+  },
+]
+
 export default function SupportPage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
       <Navbar />
       
-      <div className="pt-24 pb-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Support</h1>
-          <p className="text-xl text-gray-600 mb-12">
-            We're here to help! Find answers to common questions or get in touch with our team.
+      {/* Hero */}
+      <div className="pt-32 pb-16 text-center">
+        <div className="max-w-4xl mx-auto px-4">
+          <span className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            💬 We're here to help
+          </span>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">Support Center</h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            Find answers to common questions or get in touch with our team.
           </p>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        {/* Contact Cards */}
+        <div className="grid md:grid-cols-2 gap-6 mb-16">
+          <div className="bg-white rounded-2xl p-6 shadow-xl">
+            <div className="w-14 h-14 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-4">
+              📧
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Email Support</h3>
+            <p className="text-gray-600 mb-4">For general inquiries and support requests</p>
+            <a href="mailto:support@fisiko.io" className="text-primary hover:underline font-semibold">
+              support@fisiko.io
+            </a>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-xl">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl mb-4">
+              ⚡
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Response</h3>
+            <p className="text-gray-600 mb-4">We typically respond within 24 hours</p>
+            <span className="text-gray-500 font-medium">Monday - Friday, 9am - 6pm EST</span>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-xl mb-16">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h2>
           
-          {/* Contact Section */}
-          <div className="bg-gray-50 rounded-2xl p-8 mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Us</h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Email Support</h3>
-                  <p className="text-gray-600">For general inquiries and support</p>
-                  <a href="mailto:support@fisiko.io" className="text-primary hover:underline font-medium">
-                    support@fisiko.io
-                  </a>
-                </div>
+          <div className="space-y-6">
+            {faqs.map((faq, i) => (
+              <div key={i} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm flex-shrink-0 mt-0.5">?</span>
+                  {faq.question}
+                </h3>
+                <p className="text-gray-600 pl-9">{faq.answer}</p>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* App Info */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-3xl p-8 md:p-10 border border-slate-700">
+          <h2 className="text-2xl font-bold mb-6">App Information</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div>
+              <p className="text-gray-400 text-sm mb-1">Version</p>
+              <p className="font-semibold text-lg">1.0.0</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm mb-1">Platforms</p>
+              <p className="font-semibold text-lg">iOS & Android</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm mb-1">Requirements</p>
+              <p className="font-semibold text-lg">iOS 13+ / Android 8+</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm mb-1">Developer</p>
+              <p className="font-semibold text-lg">Fisiko</p>
             </div>
           </div>
-
-          {/* FAQ Section */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
-            
-            <div className="space-y-6">
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How do I create an account?</h3>
-                <p className="text-gray-600">
-                  Download the Fisiko app from the App Store, then tap "Sign Up" to create your account. You can register using your email address or sign in with Apple or Google.
-                </p>
-              </div>
-
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How do I create or join a match?</h3>
-                <p className="text-gray-600">
-                  Navigate to the Matches tab in the app. To create a match, tap the "+" button and fill in the details. To join an existing match, browse available matches and tap "Join" on any match you'd like to participate in.
-                </p>
-              </div>
-
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How do I delete my account?</h3>
-                <p className="text-gray-600">
-                  Go to your Profile, tap the Settings icon, scroll down to "Account Actions," and tap "Delete Account." Please note that this action is permanent and cannot be undone.
-                </p>
-              </div>
-
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How do I make my profile private?</h3>
-                <p className="text-gray-600">
-                  Go to your Profile, tap Settings, then toggle on "Private Account." When your account is private, only approved followers can see your posts and activity.
-                </p>
-              </div>
-
-              <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How do I report inappropriate content?</h3>
-                <p className="text-gray-600">
-                  Tap the three dots (...) on any post, profile, or message and select "Report." Choose the reason for your report and submit. Our team will review it promptly.
-                </p>
-              </div>
-
-              <div className="pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Is Fisiko free to use?</h3>
-                <p className="text-gray-600">
-                  Yes! Fisiko is free to download and use. All core features including creating matches, connecting with athletes, and sharing content are available at no cost.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* App Info */}
-          <div className="bg-slate-800 text-white rounded-2xl p-8">
-            <h2 className="text-2xl font-bold mb-4">App Information</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-gray-400 text-sm">Current Version</p>
-                <p className="font-semibold">1.0.0</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-sm">Platform</p>
-                <p className="font-semibold">iOS</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-sm">Minimum iOS Version</p>
-                <p className="font-semibold">iOS 13.0+</p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-sm">Developer</p>
-                <p className="font-semibold">Fisiko</p>
-              </div>
-            </div>
+          <div className="pt-6 border-t border-slate-700">
+            <p className="text-gray-400 mb-4">Download the app</p>
+            <StoreButtons />
           </div>
         </div>
       </div>
